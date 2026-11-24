@@ -1,2 +1,6 @@
 .DS_Store
+# 미리보기 스크린샷 등 임시 PNG 는 올리지 않음 (앱 아이콘은 예외)
 *.png
+!icon-192.png
+!icon-512.png
+!apple-touch-icon.png
