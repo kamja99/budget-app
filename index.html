@@ -539,6 +539,13 @@
     display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;padding:0;
   }
   .iconGrid button.on{border-color:var(--theme);background:var(--theme-soft)}
+  /* 장부 이름·아이콘 수정 */
+  .renamePreview{display:flex;align-items:center;gap:10px;background:#F7F8FA;border-radius:14px;padding:10px 12px;margin-bottom:14px}
+  .renamePreview .mark{width:36px;height:36px;border-radius:12px;font-size:17px;box-shadow:none}
+  .renamePreview .names{min-width:0}
+  .renamePreview b{display:block;font-size:13.5px;font-weight:800;letter-spacing:-.02em;color:#191F28;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .renamePreview .pSub{display:block;font-size:10.5px;color:var(--sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .iconCustom{margin-bottom:16px}
   .colorRow{display:flex;gap:9px;margin-bottom:16px}
   .colorRow button{
     width:27px;height:27px;border-radius:50%;border:none;cursor:pointer;padding:0;
@@ -1363,7 +1370,7 @@
     <div class="handle"></div>
     <div class="lsHead">
       <h2>장부 선택</h2>
-      <p>장부마다 내역과 설정이 따로 저장돼요.</p>
+      <p>장부마다 내역과 설정이 따로 저장돼요. 이름 옆 ✎을 눌러 이름·아이콘을 바꿀 수 있어요.</p>
     </div>
     <div class="lsList" id="ledgerList"></div>
     <button class="lsRow lsSync" id="catRow">
@@ -1400,6 +1407,7 @@
     <input class="textInput" id="nlName" placeholder="예: 결혼 준비" autocomplete="off" />
     <div class="fLabel">아이콘</div>
     <div class="iconGrid" id="nlIcons"></div>
+    <input class="textInput iconCustom" id="nlIconCustom" maxlength="4" placeholder="직접 입력 — 이모지나 1글자" autocomplete="off" spellcheck="false">
     <div class="fLabel">테마 색</div>
     <div class="colorRow" id="nlColors"></div>
     <div class="fLabel">기능</div>
@@ -1457,10 +1465,20 @@
   <div class="backdrop" id="renameBackdrop"></div>
   <div class="modalCard">
     <div class="handle" style="margin-bottom:8px"></div>
-    <h2>장부 이름 수정</h2>
-    <div class="modalDate">바꾼 이름은 구글 시트 연동 시 장부목록에도 함께 반영돼요.</div>
+    <h2>장부 이름·아이콘 수정</h2>
+    <div class="modalDate">바꾼 이름과 아이콘은 상단 헤더와 장부 목록에 바로 반영되고, 구글 시트 연동 중이면 장부목록에도 함께 저장돼요.</div>
+    <div class="renamePreview">
+      <span class="mark" id="renameMark">💰</span>
+      <span class="names">
+        <b id="renamePreviewName">개인 가계부</b>
+        <span class="pSub" id="renamePreviewSub">위쪽 장부 모양이 이렇게 보여요</span>
+      </span>
+    </div>
     <div class="fLabel">장부 이름</div>
     <input class="textInput" id="renameInput" maxlength="20" autocomplete="off" placeholder="예: 생활비">
+    <div class="fLabel">아이콘</div>
+    <div class="iconGrid" id="renameIcons"></div>
+    <input class="textInput iconCustom" id="renameIconCustom" maxlength="4" placeholder="직접 입력 — 이모지나 1글자" autocomplete="off" spellcheck="false">
     <button class="saveBtn" id="renameSave">저장</button>
   </div>
 </div>
@@ -3330,7 +3348,7 @@ function renderLedgerList(){
     return `<div class="lsRow ${l.id === state.ledger ? "on" : ""}" data-id="${l.id}" role="button" tabindex="0">
       <span class="lsIcon" style="background:${l.theme}1A;color:${l.theme}">${l.icon}</span>
       <span class="lsMain"><b>${esc(l.name)}</b><span>${sub}</span></span>
-      <span class="lsEdit" data-edit="${l.id}" role="button" tabindex="0" aria-label="${esc(l.name)} 이름 수정" title="이름 수정">✎</span>
+      <span class="lsEdit" data-edit="${l.id}" role="button" tabindex="0" aria-label="${esc(l.name)} 이름과 아이콘 수정" title="이름·아이콘 수정">✎</span>
       <span class="lsCheck">✓</span>
     </div>`;
   }).join("");
@@ -3399,13 +3417,49 @@ document.getElementById("ledgerList").addEventListener("click", ev => {
   showToast(`${cur().icon} ${cur().name} 장부로 바꿨어요`);
 });
 
-/* ---------- 장부 이름 수정 ---------- */
+/* ---------- 장부 이름·아이콘 수정 ----------
+   이름과 아이콘을 한 창에서 바꿉니다. 고른 아이콘은 장부(l.icon)에 저장되어
+   상단 헤더 · 장부 목록 · buildPayload()의 ledgers 행(시트 '장부목록')으로
+   그대로 오가고, 새로고침 뒤에도 localStorage 값이 그대로 살아납니다. */
+const LEDGER_ICONS = [
+  "💰","🐷","🏠","⛪","💳","🌿","🍎","🐥",
+  "💼","🎓","✈️","💍","🚗","⭐","📒","🎁",
+  "👶","🐶","🏥","📚","🛒","☕","🌱","🍱",
+  "🎉","💜","💵","🏦","📈","🧾","🎵","🛠️"
+];
 let renameTarget = null;
+let renameDraft = { icon:"" };
+
+function renderRenameForm(){
+  const l = renameTarget;
+  const pick = renameDraft.icon || (l && l.icon) || "📒";
+  const grid = document.getElementById("renameIcons");
+  if (grid){
+    const list = LEDGER_ICONS.slice();
+    if (pick && list.indexOf(pick) < 0) list.unshift(pick);
+    grid.innerHTML = list.map(i =>
+      `<button type="button" data-licon="${esc(i)}" class="${i === pick ? "on" : ""}" aria-label="아이콘 ${esc(i)}" aria-pressed="${i === pick ? "true" : "false"}">${esc(i)}</button>`).join("");
+  }
+  const mark = document.getElementById("renameMark");
+  if (mark) mark.textContent = pick;
+  const input = document.getElementById("renameInput");
+  const name = input ? input.value.trim() : "";
+  const pn = document.getElementById("renamePreviewName");
+  if (pn) pn.textContent = name || (l ? l.name : "장부");
+  const ps = document.getElementById("renamePreviewSub");
+  if (ps) ps.textContent =
+    `${state.view.getFullYear()}년 ${state.view.getMonth()+1}월 · 위쪽 장부 모양이 이렇게 보여요`;
+  const custom = document.getElementById("renameIconCustom");
+  if (custom && document.activeElement !== custom)
+    custom.value = (pick && LEDGER_ICONS.indexOf(pick) < 0) ? pick : "";
+}
 function openRename(id){
   const l = ledgerById(id);
   if (!l) return;
   renameTarget = l;
+  renameDraft = { icon: l.icon || "📒" };
   document.getElementById("renameInput").value = l.name;
+  renderRenameForm();
   closeLedgerSheet();
   document.getElementById("renameModal").hidden = false;
   Overlay.show("renameModal", closeRename);
@@ -3417,6 +3471,7 @@ function openRename(id){
 function closeRename(){
   document.getElementById("renameModal").hidden = true;
   renameTarget = null;
+  renameDraft = { icon:"" };
   Overlay.hide("renameModal");
 }
 function saveRename(){
@@ -3425,13 +3480,19 @@ function saveRename(){
   if (!v){ el.focus(); showToast("장부 이름을 넣어 주세요", true); return; }
   const l = renameTarget;
   if (!l){ closeRename(); return; }
-  if (v === l.name){ closeRename(); return; }
+  const ic = renameDraft.icon || l.icon || "📒";
+  const nameChanged = v !== l.name;
+  const iconChanged = ic !== (l.icon || "📒");
+  if (!nameChanged && !iconChanged){ closeRename(); return; }
   l.name = v;
+  l.icon = ic;
   closeRename();
   saveAll();
   renderAll();
   if (!ledgerSheet.hidden) renderLedgerList();
-  showToast(`장부 이름을 '${v}'${josaRo(v)} 바꿨어요`);
+  if (nameChanged && iconChanged) showToast(`장부 이름과 아이콘을 바꿨어요 — ${ic} ${v}`);
+  else if (iconChanged) showToast(`장부 아이콘을 ${ic} 아이콘으로 바꿨어요`);
+  else showToast(`장부 이름을 '${v}'${josaRo(v)} 바꿨어요`);
 }
 /* 받침 유무에 따라 '로 / 으로' */
 function josaRo(s){
@@ -3441,8 +3502,21 @@ function josaRo(s){
 }
 document.getElementById("renameBackdrop").addEventListener("click", closeRename);
 document.getElementById("renameSave").addEventListener("click", saveRename);
+document.getElementById("renameInput").addEventListener("input", renderRenameForm);
 document.getElementById("renameInput").addEventListener("keydown", ev => {
   if (ev.key === "Enter"){ ev.preventDefault(); saveRename(); }
+});
+document.getElementById("renameIcons").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-licon]");
+  if (!b) return;
+  renameDraft.icon = b.dataset.licon;
+  renderRenameForm();
+});
+document.getElementById("renameIconCustom").addEventListener("input", ev => {
+  const v = firstEmoji(ev.target.value);
+  if (ev.target.value !== v) ev.target.value = v;
+  if (v) renameDraft.icon = v;
+  renderRenameForm();
 });
 
 /* ---------- 카테고리 관리 (대분류 · 세부 카테고리 직접 편집) ----------
@@ -3682,15 +3756,18 @@ document.getElementById("catEditName").addEventListener("keydown", ev => {
   if (ev.key === "Enter"){ ev.preventDefault(); saveCatEdit(); }
 });
 
-const NL_ICONS = ["💰","💍","⛪","🏠","✈️","🎓","🐶","🚗","👶","🎁","🛒","📚","🏥","🌱","☕","📒"];
+const NL_ICONS = LEDGER_ICONS;
 const NL_COLORS = ["#1B7A6B","#E0588C","#6B5BE0","#2F7CF6","#D94F45","#D98324","#1E3A5F","#8B5E3C"];
 let nlDraft = { icon:"💍", theme:"#E0588C" };
 
 function renderNlForm(){
   document.getElementById("nlIcons").innerHTML = NL_ICONS.map(i =>
-    `<button data-icon="${i}" class="${i === nlDraft.icon ? "on" : ""}">${i}</button>`).join("");
+    `<button type="button" data-icon="${esc(i)}" class="${i === nlDraft.icon ? "on" : ""}" aria-label="아이콘 ${esc(i)}" aria-pressed="${i === nlDraft.icon ? "true" : ""}">${esc(i)}</button>`).join("");
   document.getElementById("nlColors").innerHTML = NL_COLORS.map(c =>
     `<button data-color="${c}" class="${c === nlDraft.theme ? "on" : ""}" style="background:${c}" aria-label="${c}"></button>`).join("");
+  const custom = document.getElementById("nlIconCustom");
+  if (custom && document.activeElement !== custom)
+    custom.value = (nlDraft.icon && NL_ICONS.indexOf(nlDraft.icon) < 0) ? nlDraft.icon : "";
   const pr = palette(nlDraft.theme);
   const card = document.querySelector("#newLedgerWrap .nlCard");
   card.style.setProperty("--theme", nlDraft.theme);
@@ -3707,6 +3784,7 @@ function renderNlForm(){
 function openNewLedger(){
   nlDraft = { icon:"💍", theme:"#E0588C" };
   document.getElementById("nlName").value = "";
+  document.getElementById("nlIconCustom").value = "";
   document.getElementById("nlCycle").checked = true;
   document.getElementById("nlAssets").checked = true;
   renderNlForm();
@@ -3728,6 +3806,12 @@ document.getElementById("nlAssets").addEventListener("change", renderNlForm);
 document.getElementById("nlIcons").addEventListener("click", ev => {
   const b = ev.target.closest("[data-icon]"); if (!b) return;
   nlDraft.icon = b.dataset.icon; renderNlForm();
+});
+document.getElementById("nlIconCustom").addEventListener("input", ev => {
+  const v = firstEmoji(ev.target.value);
+  if (ev.target.value !== v) ev.target.value = v;
+  if (v) nlDraft.icon = v;
+  renderNlForm();
 });
 document.getElementById("nlColors").addEventListener("click", ev => {
   const b = ev.target.closest("[data-color]"); if (!b) return;
