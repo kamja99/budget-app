@@ -490,6 +490,61 @@
     box-shadow:0 0 0 1px rgba(20,25,35,.07) inset;
   }
   .colorRow button.on{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--theme)}
+  /* 자산 뱃지 — 아이콘·색 직접 고르기 */
+  .badgeEdit{display:flex;gap:11px;align-items:flex-start;margin-bottom:14px}
+  .badgeEdit > .aIcon{width:46px;height:46px;border-radius:15px;font-size:21px;transition:background .18s ease,color .18s ease}
+  .badgeEditMain{flex:1 1 auto;min-width:0}
+  .badgeEdit .iconGrid{grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:10px}
+  .badgeEdit .iconGrid button{height:31px;font-size:14px;border-radius:9px}
+  .badgeEdit .iconGrid button.auto{font-size:10px;font-weight:800;color:#6B7280;letter-spacing:-.02em}
+  .badgeEdit .colorRow{gap:7px;margin-bottom:9px;flex-wrap:wrap}
+  .badgeEdit .colorRow button{width:22px;height:22px}
+  .badgeEdit .colorRow button.auto{width:auto;padding:0 7px;border-radius:99px;font-size:10px;font-weight:800;color:#6B7280;background:#F2F4F6;box-shadow:none}
+  .badgeEdit .colorRow button.on{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--theme)}
+  .badgeEdit .badgeCustom{margin-bottom:0;padding:8px 10px;font-size:11.5px;border-radius:10px}
+  /* 추이 그래프 토글 */
+  .trackRow{margin:0 0 16px}
+  /* ---------- 변동 자산 평가금액 추이 ---------- */
+  .valBox{border:1px solid #EEF0F3;border-radius:16px;padding:11px 12px 10px;margin:2px 0 14px;background:#FCFCFD}
+  .valBox[hidden]{display:none}
+  .valHead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+  .valHead b{font-size:12px;font-weight:800;letter-spacing:-.02em}
+  .valHead span{font-size:10px;font-weight:700;color:#98A1AD}
+  .valEntry{display:flex;gap:8px;align-items:flex-end;margin-bottom:9px}
+  .valEntry .valDate{flex:0 0 132px}
+  .valEntry .valAmt{flex:1 1 auto;margin:0;border-bottom-width:1.5px;padding-bottom:3px;background:#fff;border-radius:8px}
+  .valEntry .valAmt input{font-size:19px;height:30px;line-height:30px}
+  .valSave{width:100%;margin-bottom:10px;padding:10px 0;font-size:12px}
+  .valDelta{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
+  .valDelta span{font-size:11px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#8B95A1}
+  .valDelta .up{color:#F04452}
+  .valDelta .dn{color:#2F7CF6}
+  .valChartWrap{margin-bottom:4px}
+  .valChart{width:100%;height:110px;display:block;overflow:visible}
+  .valChart .vGrid{stroke:#E9EBEF;stroke-width:1;stroke-dasharray:3 3}
+  .valChart .vArea{opacity:.12}
+  .valChart .vLine{fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  .valChart .vDot{stroke:#fff;stroke-width:1.5}
+  .valChart .vEmpty{font-size:11px;fill:#98A1AD;font-weight:700}
+  .valChart .vLab{font-size:9px;fill:#98A1AD;font-weight:700}
+  .valChartFoot{display:flex;justify-content:space-between;font-size:10px;font-weight:700;color:#8B95A1;letter-spacing:-.01em;margin-bottom:10px}
+  .valChartFoot b{font-weight:800;color:#4B5563}
+  .valListHead{font-size:10.5px;font-weight:800;color:#8B95A1;margin:0 0 5px}
+  .valList{display:flex;flex-direction:column;gap:2px;max-height:150px;overflow-y:auto}
+  .valItem{display:flex;align-items:center;gap:8px;padding:6px 5px;border-radius:9px;cursor:pointer;background:#fff;border:1px solid #F2F4F6}
+  .valItem:active{background:#F5F7F9}
+  .valItem .vd{flex:0 0 54px;font-size:10.5px;font-weight:800;color:#6B7280;font-variant-numeric:tabular-nums}
+  .valItem .vv{flex:1 1 auto;text-align:right;font-size:11.5px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .valItem .vc{flex:0 0 66px;text-align:right;font-size:10px;font-weight:800;color:#98A1AD;font-variant-numeric:tabular-nums}
+  .valItem .vc.up{color:#F04452}
+  .valItem .vc.dn{color:#2F7CF6}
+  .valItem .vdel{flex:0 0 auto;border:none;background:transparent;color:#B0B8C1;font-size:13px;font-family:inherit;cursor:pointer;padding:0 2px;line-height:1}
+  .valItem .vdel:active{color:#F04452}
+  .valEmptyNote{font-size:10.5px;color:#98A1AD;line-height:1.5;padding:4px 2px 2px}
+  /* 자산 목록의 직전 대비 변동 뱃지 */
+  .aTrend{display:inline-block;margin-top:3px;font-size:10px;font-weight:800;letter-spacing:-.01em;color:#8B95A1;font-variant-numeric:tabular-nums}
+  .aTrend.up{color:#F04452}
+  .aTrend.dn{color:#2F7CF6}
   .toggleList{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
   .toggleRow{display:flex;align-items:center;gap:10px;border:1px solid #EEF0F3;border-radius:13px;padding:11px 12px;cursor:pointer;position:relative}
   .toggleRow .tx{flex:1 1 auto;min-width:0}
@@ -1290,6 +1345,33 @@
       <button class="actBtn" id="assetAdjustBtn">⚖️ 잔액 맞추기</button>
       <button class="actBtn" id="assetPrepayBtn">💸 즉시결제 기록</button>
     </div>
+    <div class="valBox" id="assetValueBox" hidden>
+      <div class="valHead">
+        <b>평가금액 추이</b>
+        <span id="assetValCount">0일 기록</span>
+      </div>
+      <div class="valEntry">
+        <label class="dateBox valDate"><span>날짜</span><b id="assetValDateText">—</b><input type="date" id="assetValDate" aria-label="평가일"></label>
+        <div class="amountField valAmt">
+          <input id="assetValInput" inputmode="numeric" placeholder="0" autocomplete="off">
+          <span>원</span>
+        </div>
+      </div>
+      <button class="ghostBtn valSave" id="assetValSave">이 날짜로 평가금액 저장</button>
+      <div class="valDelta">
+        <span class="vdFirst" id="assetValDeltaFirst">—</span>
+        <span class="vdPrev" id="assetValDeltaPrev">—</span>
+      </div>
+      <div class="valChartWrap">
+        <svg class="valChart" id="assetValChart" viewBox="0 0 320 132" preserveAspectRatio="none" role="img" aria-label="평가금액 추이 그래프"></svg>
+        <div class="valChartFoot">
+          <span id="assetValLow">—</span>
+          <span id="assetValHigh">—</span>
+        </div>
+      </div>
+      <div class="valListHead">최근 기록</div>
+      <div class="valList" id="assetValList"></div>
+    </div>
     <div class="amRecent" id="assetRecent" hidden>
       <div class="fLabel" style="margin-top:8px">최근 내역</div>
       <div class="amRecentList" id="assetRecentList"></div>
@@ -1299,6 +1381,20 @@
     <input class="textInput" id="assetName" placeholder="예: 생활비 통장" autocomplete="off" />
     <div class="fLabel">분류</div>
     <div class="chips" id="assetKinds"></div>
+    <label class="toggleRow trackRow" id="assetTrackRow">
+      <span class="tx"><b>추이 그래프 사용</b><em>증권·연금처럼 매일 평가금액이 바뀌는 계좌</em></span>
+      <input type="checkbox" id="assetTrack"><i class="sw"></i>
+    </label>
+    <div class="badgeEdit">
+      <span class="aIcon" id="assetBadgePreview">🏦</span>
+      <div class="badgeEditMain">
+        <div class="fLabel" style="margin:0 0 6px">아이콘<em class="opt">고르지 않으면 분류 기본</em></div>
+        <div class="iconGrid" id="assetIcons"></div>
+        <div class="fLabel" style="margin:0 0 6px">뱃지 색</div>
+        <div class="colorRow" id="assetColors"></div>
+        <input class="textInput badgeCustom" id="assetIconCustom" maxlength="4" placeholder="직접 입력 — 이모지나 1글자" autocomplete="off">
+      </div>
+    </div>
     <div id="assetInitWrap">
       <div class="fLabel">초기 잔액</div>
       <div class="amountField">
@@ -1743,9 +1839,13 @@ function weekState(){
 
 /* ---------- 자산 계산 (오늘까지) ---------- */
 function balanceOf(a){
-  let bal = a.init || 0;
+  /* 평가금액 추이를 쓰는 계좌는 가장 최근 평가금액이 잔액의 기준이 돼요.
+     그 뒤에 기록한 입출금은 그대로 더해 줍니다. */
+  const snap = a ? latestSnapshotOf(a) : null;
+  let bal = snap ? snap.v : (a.init || 0);
   cur().data.forEach(e => {
     if (e.d > TODAY_KEY) return;
+    if (snap && e.d <= snap.d) return;
     if (e.type === "transfer"){
       if (e.toId === a.id) bal += e.amt;
       if (e.fromId === a.id) bal -= e.amt;
@@ -1835,7 +1935,7 @@ function renderAll(){
   document.body.dataset.screen = assetsOn ? "assets" : statsOn ? "stats" : "calendar";
   document.getElementById("assetsPanel").hidden = !assetsOn;
   document.getElementById("statCard").hidden = !statsOn;
-  if (!statsOn) document.getElementById("statDetailWrap").hidden = true;
+  if (!statsOn){ document.getElementById("statDetailWrap").hidden = true; Overlay.hide("statDetail"); }
   document.getElementById("summaryCard").hidden = assetsOn || statsOn;
   document.getElementById("livingCard").hidden = assetsOn || statsOn || !l.living;
   document.getElementById("calCard").hidden = assetsOn || statsOn;
@@ -2192,7 +2292,8 @@ function renderStatDetail(st){
   const g = st.arr.find(x => x.cat === state.statCat) || null;
   const show = !!g && (isPC() || state.statDetailOpen);
   wrap.hidden = !show;
-  if (!show){ statEntries = []; box.innerHTML = ""; return; }
+  if (!show){ statEntries = []; box.innerHTML = ""; Overlay.hide("statDetail"); return; }
+  if (!isPC()) Overlay.show("statDetail", closeStatDetail);
 
   /* 세부 분류별 합계 — 고른 세부 분류로 목록을 걸러 볼 수 있습니다 */
   const keyOf = s => s === "__none" ? "" : s;
@@ -2239,6 +2340,12 @@ function renderStatDetail(st){
 function openStatAdd(){
   openAdd({ type: state.statType, cat: state.statCat });
 }
+/* 모바일 통계 상세 시트 — 뒤로가기로 닫힐 수 있게 Overlay 에도 알립니다 */
+function closeStatDetail(){
+  state.statDetailOpen = false;
+  document.getElementById("statDetailWrap").hidden = true;
+  Overlay.hide("statDetail");
+}
 
 document.getElementById("statTypeSeg").addEventListener("click", ev => {
   const b = ev.target.closest("button[data-stype]");
@@ -2267,8 +2374,7 @@ document.getElementById("statDetail").addEventListener("click", ev => {
   }
   if (ev.target.closest('[data-sdact="add"]')){ openStatAdd(); return; }
   if (ev.target.closest('[data-sdact="close"]')){
-    state.statDetailOpen = false;
-    document.getElementById("statDetailWrap").hidden = true;
+    closeStatDetail();
     return;
   }
   const row = ev.target.closest(".sdRow[data-ei]");
@@ -2277,10 +2383,7 @@ document.getElementById("statDetail").addEventListener("click", ev => {
   if (e) openEntryModal(e);
 });
 
-document.getElementById("statBackdrop").addEventListener("click", () => {
-  state.statDetailOpen = false;
-  document.getElementById("statDetailWrap").hidden = true;
-});
+document.getElementById("statBackdrop").addEventListener("click", closeStatDetail);
 
 /* 창 폭이 PC↔모바일로 바뀌면 통계 배치를 다시 그립니다 */
 try{
@@ -2318,23 +2421,111 @@ function cardMetaTarget(a){
   const t = Math.round(Number(m.target) || 0);
   return t > 0 ? t : 0;
 }
-function setCardMetaTarget(id, target){
+/* 자산 하나에 붙은 설정(혜택 기준·아이콘·색) — settings.cardMeta[id] */
+function cardMetaOf(id){
+  return (id && settings.cardMeta && settings.cardMeta[id]) || {};
+}
+/* 넘긴 값만 반영하고, 비우면(null) 그 항목만 지웁니다 */
+function setCardMeta(id, patch){
   if (!id) return;
   settings.cardMeta = settings.cardMeta || {};
-  const t = Math.round(Number(target) || 0);
-  if (t > 0) settings.cardMeta[id] = { target: t };
+  const next = Object.assign({}, settings.cardMeta[id] || {});
+  Object.keys(patch || {}).forEach(k => {
+    const v = patch[k];
+    if (v === null || v === undefined || v === "") delete next[k];
+    else next[k] = v;
+  });
+  if (Object.keys(next).length) settings.cardMeta[id] = next;
   else delete settings.cardMeta[id];
+}
+function setCardMetaTarget(id, target){
+  if (!id) return;
+  const t = Math.round(Number(target) || 0);
+  setCardMeta(id, { target: t > 0 ? t : null });
+}
+/* 화면에 보이는 아이콘·색 — 직접 고른 값이 있으면 그 값을, 없으면 분류 기본값 */
+function assetIcon(a){
+  const m = cardMetaOf(a.id);
+  return m.icon || a.e || (GROUP_STYLE[a.group] || {}).e || "🏦";
+}
+function assetColor(a){
+  const m = cardMetaOf(a.id);
+  return m.color || a.c || (GROUP_STYLE[a.group] || {}).c || "#7C8CF8";
 }
 function cardMetaPayload(){
   const known = new Set();
   LEDGERS.forEach(l => (l.assetsList || []).forEach(a => known.add(a.id)));
   const out = {};
   Object.keys(settings.cardMeta || {}).forEach(id => {
-    const t = Math.round(Number((settings.cardMeta[id] || {}).target) || 0);
-    if (t > 0 && known.has(id)) out[id] = { target: t };
+    if (!known.has(id)) return;
+    const m = settings.cardMeta[id] || {};
+    const row = {};
+    const t = Math.round(Number(m.target) || 0);
+    const icon = (typeof m.icon === "string") ? m.icon.trim() : "";
+    const color = (typeof m.color === "string") ? m.color.trim().toUpperCase() : "";
+    if (t > 0) row.target = t;
+    if (icon) row.icon = icon;
+    if (/^#[0-9A-F]{6}$/.test(color)) row.color = color;
+    if (m.trackGraph) row.trackGraph = true;
+    const list = seriesOf(id);
+    if (list.length) row.series = list;
+    if (Object.keys(row).length) out[id] = row;
   });
   return out;
 }
+/* =========================================================
+   변동 자산(증권·연금 등) — 매일 평가금액 기록
+   ---------------------------------------------------------
+   settings.cardMeta[id] = { target, icon, color, trackGraph, series }
+   · series: [{ d:"YYYY-MM-DD", v:평가금액 }] — 날짜별 하루 한 칸
+   · 가장 최근 날짜의 평가금액이 그 자산의 현재 잔액이 되고,
+     그 이후에 기록한 입출금은 잔액에 더해집니다(balanceOf).
+   ========================================================= */
+/* 시트 설정 칸(JSON)이 너무 커지지 않도록 최근 1년치만 보관합니다 */
+const MAX_SNAPSHOTS = 366;
+const isDayKey = s => /^\d{4}-\d{2}-\d{2}$/.test(String(s || ""));
+function seriesOf(id){
+  const m = cardMetaOf(id);
+  const arr = Array.isArray(m.series) ? m.series : [];
+  return arr.filter(s => s && isDayKey(s.d) && isFinite(Number(s.v)))
+            .map(s => ({ d: s.d, v: Math.round(Number(s.v)) }))
+            .sort((a, b) => a.d.localeCompare(b.d));
+}
+const isTracked = a => !!(a && cardMetaOf(a.id).trackGraph);
+/* 그 날짜의 평가금액을 저장합니다 (같은 날짜는 덮어쓰기) */
+function saveSnapshot(id, d, v){
+  if (!id || !isDayKey(d)) return null;
+  const list = seriesOf(id).filter(s => s.d !== d);
+  list.push({ d, v: Math.round(Number(v) || 0) });
+  list.sort((a, b) => a.d.localeCompare(b.d));
+  setCardMeta(id, { trackGraph: true, series: list.slice(-MAX_SNAPSHOTS) });
+  return list;
+}
+function removeSnapshot(id, d){
+  if (!id) return;
+  const list = seriesOf(id).filter(s => s.d !== d);
+  setCardMeta(id, { series: list });
+}
+/* 가장 최근 기록 — 오늘까지의 기록을 우선하고, 없으면 마지막 기록 */
+function latestSnapshotOf(a){
+  if (!a || !cardMetaOf(a.id).trackGraph) return null;
+  const list = seriesOf(a.id);
+  if (!list.length) return null;
+  const upto = list.filter(s => s.d <= TODAY_KEY);
+  return upto.length ? upto[upto.length - 1] : list[list.length - 1];
+}
+/* 직전 기록 대비 변동 — 목록에 작게 보여 줄 때 씁니다 */
+function trendOf(a){
+  const list = seriesOf(a && a.id);
+  if (list.length < 2) return null;
+  const prev = list[list.length - 2], last = list[list.length - 1];
+  const diff = last.v - prev.v;
+  return { prev, last, diff,
+           pct: prev.v ? (diff / Math.abs(prev.v)) * 100 : null };
+}
+const signedWon = n => (n > 0 ? "+" : n < 0 ? "−" : "") + won(Math.abs(n));
+const pctText = p => (p === null || p === undefined) ? "" : ` (${p > 0 ? "+" : p < 0 ? "−" : ""}${Math.abs(p).toFixed(1)}%)`;
+
 /* 이번 기간 사용액으로 혜택 기준 달성도를 계산 (기준이 없으면 null) */
 function cardBenefit(a, start, end, target){
   const t = Number(target) || cardMetaTarget(a);
@@ -2355,7 +2546,7 @@ function benefitLine(b){
    · 카드는 오른쪽에 「남은 결제 예정 금액」, 그 아래에 사용·즉시결제 한 줄,
      혜택 기준 금액을 정해 두었으면 얇은 진행 막대와 달성 상태를 붙입니다. */
 function assetRowHtml(a, start, end){
-  let sub = "", val = "", extra = "";
+  let sub = "", val = "", extra = "", trend = "";
   if (isCardAsset(a)){
     const u = cardUsageOf(a, start, end);
     sub = `사용 ${won(u.used)} · 즉시결제 ${won(u.prepaid)}`;
@@ -2370,12 +2561,19 @@ function assetRowHtml(a, start, end){
     const bal = balanceOf(a);
     sub = a.note || "";
     val = `<b class="${bal < 0 ? "neg":""}">${won(bal)}</b><span>잔액</span>`;
+    if (isTracked(a)){
+      const t = trendOf(a);
+      if (t && t.diff !== 0){
+        trend = `<span class="aTrend ${t.diff > 0 ? "up" : "dn"}">${t.diff > 0 ? "▲" : "▼"} ${signedWon(t.diff)}</span>`;
+      }
+    }
   }
   return `<button class="assetRow" data-asset="${a.id}">
-      <span class="aIcon" style="background:${a.c}1A;color:${a.c}">${a.e}</span>
+      <span class="aIcon" style="background:${assetColor(a)}1A;color:${assetColor(a)}">${assetIcon(a)}</span>
       <span class="aMain">
         <span class="aName">${esc(a.name)}</span>
         ${sub ? `<span class="aSub">${esc(sub)}</span>` : ""}
+        ${trend}
         ${extra}
       </span>
       <span class="aVal">${val}</span>
@@ -2624,8 +2822,12 @@ function renderCatRowSub(){
 function openLedgerSheet(){
   renderLedgerList();
   ledgerSheet.hidden = false;
+  Overlay.show("ledgerSheet", closeLedgerSheet);
 }
-function closeLedgerSheet(){ ledgerSheet.hidden = true; }
+function closeLedgerSheet(){
+  ledgerSheet.hidden = true;
+  Overlay.hide("ledgerSheet");
+}
 
 function switchLedger(id){
   const l = ledgerById(id);
@@ -2641,6 +2843,19 @@ function switchLedger(id){
   ASSETS = l.assetsList || [];
   saveAll();
   renderAll();
+  syncScreenLayer();
+}
+
+/* 통계·자산 탭도 뒤로가기로 달력에 돌아오게 맞춥니다 */
+function goCalendar(){
+  state.screen = "calendar";
+  state.statDetailOpen = false;
+  renderAll();
+  syncScreenLayer();
+}
+function syncScreenLayer(){
+  if (state.screen === "calendar") Overlay.hide("screen");
+  else Overlay.show("screen", goCalendar);
 }
 
 document.getElementById("ledgerBtn").addEventListener("click", openLedgerSheet);
@@ -2666,12 +2881,17 @@ function openRename(id){
   document.getElementById("renameInput").value = l.name;
   closeLedgerSheet();
   document.getElementById("renameModal").hidden = false;
+  Overlay.show("renameModal", closeRename);
   setTimeout(() => {
     const el = document.getElementById("renameInput");
     el.focus(); el.select();
   }, 120);
 }
-function closeRename(){ document.getElementById("renameModal").hidden = true; renameTarget = null; }
+function closeRename(){
+  document.getElementById("renameModal").hidden = true;
+  renameTarget = null;
+  Overlay.hide("renameModal");
+}
 function saveRename(){
   const el = document.getElementById("renameInput");
   const v = el.value.trim();
@@ -2705,8 +2925,13 @@ function openCatSheet(){
   closeLedgerSheet();
   renderCatSheet();
   document.getElementById("catSheet").hidden = false;
+  Overlay.show("catSheet", closeCatSheet);
 }
-function closeCatSheet(){ document.getElementById("catSheet").hidden = true; catDraft.addKey = null; }
+function closeCatSheet(){
+  document.getElementById("catSheet").hidden = true;
+  catDraft.addKey = null;
+  Overlay.hide("catSheet");
+}
 function renderCatSheet(){
   const type = catDraft.type;
   document.querySelectorAll("#catSeg button").forEach(b =>
@@ -2802,9 +3027,13 @@ function openNewLedger(){
   document.getElementById("nlAssets").checked = true;
   renderNlForm();
   document.getElementById("newLedgerWrap").hidden = false;
+  Overlay.show("newLedgerWrap", closeNewLedger);
   setTimeout(()=> document.getElementById("nlName").focus(), 120);
 }
-function closeNewLedger(){ document.getElementById("newLedgerWrap").hidden = true; }
+function closeNewLedger(){
+  document.getElementById("newLedgerWrap").hidden = true;
+  Overlay.hide("newLedgerWrap");
+}
 
 document.getElementById("addLedgerBtn").addEventListener("click", openNewLedger);
 document.getElementById("nlClose").addEventListener("click", closeNewLedger);
@@ -2851,6 +3080,7 @@ document.getElementById("viewTabs").addEventListener("click", ev => {
   state.screen = s;
   if (s !== "stats") state.statDetailOpen = false;
   renderAll();
+  syncScreenLayer();
 });
 
 document.getElementById("viewSeg").addEventListener("click", ev => {
@@ -2915,10 +3145,14 @@ function openAdd(opts){
   });
   renderChips();
   addScreen.hidden = false;
+  Overlay.show("addScreen", closeAdd);
   document.querySelector("#addScreen .fullBody").scrollTop = 0;
   setTimeout(()=> document.getElementById("amtInput").focus(), 90);
 }
-function closeAdd(){ addScreen.hidden = true; }
+function closeAdd(){
+  addScreen.hidden = true;
+  Overlay.hide("addScreen");
+}
 
 function renderChips(){
   const f = state.form;
@@ -2932,9 +3166,9 @@ function renderChips(){
     if (!ids.includes(f.fromId)) f.fromId = ids[0] || null;
     if (!f.toId || f.toId === f.fromId) f.toId = ids.find(id => id !== f.fromId) || null;
     document.getElementById("fromChips").innerHTML = ASSETS.map(a =>
-      `<button class="chip ${a.id === f.fromId ? "on":""}" data-from="${a.id}">${a.e} ${a.name}</button>`).join("");
+      `<button class="chip ${a.id === f.fromId ? "on":""}" data-from="${a.id}">${assetIcon(a)} ${a.name}</button>`).join("");
     document.getElementById("toChips").innerHTML = ASSETS.filter(a => a.id !== f.fromId).map(a =>
-      `<button class="chip ${a.id === f.toId ? "on":""}" data-to="${a.id}">${a.e} ${a.name}</button>`).join("");
+      `<button class="chip ${a.id === f.toId ? "on":""}" data-to="${a.id}">${assetIcon(a)} ${a.name}</button>`).join("");
     document.getElementById("memoInput").placeholder = f.toId ? `예: ${assetName(f.toId)}으로 이체` : "예: 이체";
     return;
   }
@@ -2953,7 +3187,7 @@ function renderChips(){
     const pool = f.type === "income" ? acctAssets() : payAssets();
     if (!pool.some(a => a.id === f.acct)) f.acct = pool.length ? pool[0].id : null;
     document.getElementById("payChips").innerHTML = pool.length
-      ? pool.map(a => `<button class="chip ${a.id === f.acct ? "on":""}" data-acct="${a.id}">${a.e} ${a.name}</button>`).join("")
+      ? pool.map(a => `<button class="chip ${a.id === f.acct ? "on":""}" data-acct="${a.id}">${assetIcon(a)} ${a.name}</button>`).join("")
       : `<span class="note" style="padding:0">통장·카드가 없어요. 자산·카드 화면에서 먼저 추가해 주세요.</span>`;
   } else {
     const pays = (cur().pays && cur().pays.length) ? cur().pays : ["현금","카드","계좌이체"];
@@ -3055,13 +3289,7 @@ document.getElementById("pcAddBtn").addEventListener("click", () => openAdd());
 document.getElementById("addClose").addEventListener("click", closeAdd);
 document.addEventListener("keydown", ev => {
   if (ev.key !== "Escape") return;
-  if (!document.getElementById("adjustModal").hidden) closeAdjustModal(true);
-  else if (!document.getElementById("prepayModal").hidden) closePrepayModal(true);
-  else if (!document.getElementById("newLedgerWrap").hidden) closeNewLedger();
-  else if (!ledgerSheet.hidden) closeLedgerSheet();
-  else if (!addScreen.hidden) closeAdd();
-  else if (!document.getElementById("entryModal").hidden) closeEntryModal();
-  else if (!document.getElementById("assetModal").hidden) document.getElementById("assetModal").hidden = true;
+  Overlay.escape();
 });
 
 document.getElementById("saveBtn").addEventListener("click", () => {
@@ -3131,11 +3359,14 @@ function openBudgetModal(){
   document.getElementById("budgetPresets").innerHTML = BUDGET_PRESETS.map(v =>
     `<button class="chip ${v === settings.weekBudget ? "on":""}" data-budget="${v}">${nf.format(v)}원</button>`).join("");
   document.getElementById("budgetModal").hidden = false;
+  Overlay.show("budgetModal", closeBudgetModal);
+}
+function closeBudgetModal(){
+  document.getElementById("budgetModal").hidden = true;
+  Overlay.hide("budgetModal");
 }
 document.getElementById("budgetBtn").addEventListener("click", openBudgetModal);
-document.getElementById("budgetBackdrop").addEventListener("click", () => {
-  document.getElementById("budgetModal").hidden = true;
-});
+document.getElementById("budgetBackdrop").addEventListener("click", closeBudgetModal);
 document.getElementById("budgetPresets").addEventListener("click", ev => {
   const b = ev.target.closest("[data-budget]");
   if (!b) return;
@@ -3151,7 +3382,7 @@ document.getElementById("budgetSave").addEventListener("click", () => {
   if (!v){ document.getElementById("budgetInput").focus(); return; }
   settings.weekBudget = v;
   saveAll();
-  document.getElementById("budgetModal").hidden = true;
+  closeBudgetModal();
   renderLiving();
   showToast(`이번 주 생활비 예산 ${won(v)}로 바꿨어요`);
 });
@@ -3184,7 +3415,17 @@ function openAssetModal(id){
   document.getElementById("assetModalTitle").textContent = a ? "자산 수정" : "자산 추가";
   document.getElementById("assetName").value = a ? a.name : "";
   document.getElementById("assetInit").value = nf.format(a ? (a.init || 0) : 0);
-  assetDraft = { group: a ? a.group : "은행" };
+  const meta = cardMetaOf(id);
+  assetDraft = {
+    group: a ? a.group : "은행",
+    icon: (typeof meta.icon === "string" && meta.icon) ? meta.icon : null,
+    color: (typeof meta.color === "string" && meta.color) ? meta.color : null,
+    trackGraph: a ? meta.trackGraph === true : false,
+    trackTouched: false
+  };
+  document.getElementById("assetValDate").value = TODAY_KEY;
+  document.getElementById("assetValInput").value = "";
+  syncValDateText();
   renderAssetTarget(a && isCardAsset(a) ? cardMetaTarget(a) : 0);
   renderAssetKinds();
 
@@ -3240,7 +3481,12 @@ function openAssetModal(id){
   }
 
   document.getElementById("assetModal").hidden = false;
+  Overlay.show("assetModal", closeAssetModal);
   if (!a) setTimeout(()=> document.getElementById("assetName").focus(), 60);
+}
+function closeAssetModal(){
+  document.getElementById("assetModal").hidden = true;
+  Overlay.hide("assetModal");
 }
 function renderAssetKinds(){
   document.getElementById("assetKinds").innerHTML = ASSET_GROUPS.map(g =>
@@ -3252,7 +3498,170 @@ function renderAssetKinds(){
   acts.hidden = !assetEditing;
   document.getElementById("assetAdjustBtn").hidden = isCard;
   document.getElementById("assetPrepayBtn").hidden = !isCard;
+  /* 투자 계좌는 새로 만들 때 추이 그래프를 기본으로 켜 둡니다 */
+  document.getElementById("assetTrackRow").hidden = isCard;
+  if (!assetEditing && !assetDraft.trackTouched) assetDraft.trackGraph = (assetDraft.group === "투자");
+  document.getElementById("assetTrack").checked = !isCard && !!assetDraft.trackGraph;
+  renderAssetBadge();
+  renderAssetValue();
   updateAssetBenefit();
+}
+
+/* ---------- 자산 벳지: 아이콘·색 직접 고르기 ----------
+   고른 값은 settings.cardMeta[id] = { target, icon, color } 로 저장되고
+   구글 시트 설정 탭의 card_meta(JSON)와도 그대로 오갑니다. */
+const ASSET_ICON_CHOICES = ["🏦","💳","💵","💰","🐥","🌿","🍎","⭐","🏠","💍","🐷","📈","🚗","✈️"];
+const ASSET_COLOR_CHOICES = [
+  { c:"#3182F6", n:"파랑" },
+  { c:"#03C75A", n:"초록" },
+  { c:"#FFB020", n:"노랑" },
+  { c:"#F04452", n:"빨강" },
+  { c:"#FF7A45", n:"주황" },
+  { c:"#7C5CFC", n:"보라" },
+  { c:"#12B8A6", n:"청록" },
+  { c:"#E0588C", n:"분홍" },
+  { c:"#9AA3AE", n:"회색" },
+  { c:"#1E3A5F", n:"남색" }
+];
+const firstChar = s => { const t = String(s || "").trim(); return t ? Array.from(t)[0] : ""; };
+const sameHex = (a, b) => String(a || "").toUpperCase() === String(b || "").toUpperCase();
+
+function autoAssetIcon(){
+  const a = assetEditing ? assetById(assetEditing) : null;
+  return (a && a.e) || (GROUP_STYLE[assetDraft.group] || GROUP_STYLE["은행"]).e;
+}
+function autoAssetColor(){
+  const a = assetEditing ? assetById(assetEditing) : null;
+  return (a && a.c) || (GROUP_STYLE[assetDraft.group] || GROUP_STYLE["은행"]).c;
+}
+function renderAssetBadge(){
+  const icons = document.getElementById("assetIcons");
+  if (!icons) return;
+  const pick = assetDraft.icon || "";
+  const color = assetDraft.color || "";
+  icons.innerHTML =
+    `<button type="button" class="auto${pick ? "" : " on"}" data-aicon="">자동</button>` +
+    ASSET_ICON_CHOICES.map(i =>
+      `<button type="button" class="${pick === i ? "on" : ""}" data-aicon="${i}" aria-label="아이콘 ${i}">${i}</button>`).join("");
+  document.getElementById("assetColors").innerHTML =
+    `<button type="button" class="auto${color ? "" : " on"}" data-acolor="">자동</button>` +
+    ASSET_COLOR_CHOICES.map(p =>
+      `<button type="button" class="${sameHex(color, p.c) ? "on" : ""}" data-acolor="${p.c}" style="background:${p.c}" aria-label="${p.n}" title="${p.n}"></button>`).join("");
+  const useColor = color || autoAssetColor();
+  const prev = document.getElementById("assetBadgePreview");
+  prev.textContent = pick || autoAssetIcon();
+  prev.style.background = useColor + "1A";
+  prev.style.color = useColor;
+  const custom = document.getElementById("assetIconCustom");
+  if (custom && document.activeElement !== custom)
+    custom.value = (pick && ASSET_ICON_CHOICES.indexOf(pick) < 0) ? pick : "";
+}
+
+/* ---------- 변동 자산: 평가금액 기록 · 꺾은선 그래프 ---------- */
+function trendChartSvg(list, color){
+  const W = 320, H = 132, PX = 12, PY = 16;
+  if (!list.length)
+    return `<text class="vEmpty" x="${W / 2}" y="${H / 2}" text-anchor="middle">기록을 넣으면 추이가 그려져요</text>`;
+  const vals = list.map(s => s.v);
+  let min = Math.min(...vals), max = Math.max(...vals);
+  if (min === max){ min -= 1; max += 1; }
+  const n = list.length;
+  const x = i => n === 1 ? W / 2 : PX + (W - PX * 2) * (i / (n - 1));
+  const y = v => H - PY - (H - PY * 2) * ((v - min) / (max - min));
+  const pts = list.map((s, i) => `${x(i).toFixed(1)},${y(s.v).toFixed(1)}`);
+  const grid = [0, 0.5, 1].map(k => {
+    const gy = (PY + (H - PY * 2) * k).toFixed(1);
+    return `<line class="vGrid" x1="${PX}" y1="${gy}" x2="${W - PX}" y2="${gy}"></line>`;
+  }).join("");
+  const dots = n <= 31
+    ? list.map((s, i) => `<circle class="vDot" cx="${x(i).toFixed(1)}" cy="${y(s.v).toFixed(1)}" r="2.6" fill="${color}"></circle>`).join("")
+    : "";
+  const area = `M ${x(0).toFixed(1)},${(H - PY).toFixed(1)} L ${pts.join(" L ")} L ${x(n - 1).toFixed(1)},${(H - PY).toFixed(1)} Z`;
+  return `${grid}
+    <path class="vArea" d="${area}" fill="${color}"></path>
+    <polyline class="vLine" points="${pts.join(" ")}" stroke="${color}"></polyline>
+    ${dots}`;
+}
+/* 평가금액을 기록하면 모달 상단의 「현재 잔액」도 바로 맞춰 줍니다 */
+function refreshAssetSub(){
+  const a = assetEditing ? assetById(assetEditing) : null;
+  const sub = document.getElementById("assetModalSub");
+  if (!a || !sub || isCardAsset(a)) return;
+  const { start, end } = currentRange();
+  const { up, down } = flowsInRange(a, start, end);
+  setAssetFlow(1, "이번 기간 입금", `+${won(up)}`, "up");
+  setAssetFlow(2, "이번 기간 출금", `−${won(down)}`, "dn");
+  sub.textContent = [a.name, a.note, `현재 잔액 ${won(balanceOf(a))}`].filter(Boolean).join(" · ");
+}
+function syncValDateText(){
+  const el = document.getElementById("assetValDate");
+  const txt = document.getElementById("assetValDateText");
+  if (!el || !txt) return;
+  const d = parseKey(el.value || TODAY_KEY);
+  txt.textContent = `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())} (${DOW[d.getDay()]})`;
+}
+function renderAssetValue(){
+  const box = document.getElementById("assetValueBox");
+  if (!box) return;
+  const a = assetEditing ? assetById(assetEditing) : null;
+  const on = !!a && isTracked(a);
+  box.hidden = !on;
+  if (!on) return;
+
+  const list = seriesOf(a.id);
+  const color = assetColor(a);
+  document.getElementById("assetValCount").textContent = list.length ? `${list.length}일 기록` : "기록 없음";
+  document.getElementById("assetValChart").innerHTML = trendChartSvg(list, color);
+
+  const firstEl = document.getElementById("assetValDeltaFirst");
+  const prevEl = document.getElementById("assetValDeltaPrev");
+  if (!list.length){
+    firstEl.textContent = "아직 기록이 없어요";
+    firstEl.className = "vdFirst";
+    prevEl.textContent = "오늘 평가금액을 넣어 보세요";
+    prevEl.className = "vdPrev";
+  } else {
+    const first = list[0], last = list[list.length - 1], prev = list[list.length - 2];
+    const df = last.v - first.v;
+    firstEl.textContent = list.length > 1
+      ? `첫 기록 대비 ${signedWon(df)}${pctText(first.v ? df / Math.abs(first.v) * 100 : null)}`
+      : `첫 기록 ${won(last.v)}`;
+    firstEl.className = "vdFirst" + (df > 0 ? " up" : df < 0 ? " dn" : "");
+    if (prev){
+      const dp = last.v - prev.v;
+      prevEl.textContent = `직전 대비 ${signedWon(dp)}${pctText(prev.v ? dp / Math.abs(prev.v) * 100 : null)}`;
+      prevEl.className = "vdPrev" + (dp > 0 ? " up" : dp < 0 ? " dn" : "");
+    } else {
+      prevEl.textContent = "직전 기록이 없어요";
+      prevEl.className = "vdPrev";
+    }
+  }
+
+  const lowEl = document.getElementById("assetValLow");
+  const highEl = document.getElementById("assetValHigh");
+  if (list.length){
+    const lo = list.reduce((m, s) => s.v < m.v ? s : m, list[0]);
+    const hi = list.reduce((m, s) => s.v > m.v ? s : m, list[0]);
+    lowEl.innerHTML = `최저 <b>${won(lo.v)}</b> · ${mdLabel(parseKey(lo.d))}`;
+    highEl.innerHTML = `최고 <b>${won(hi.v)}</b> · ${mdLabel(parseKey(hi.d))}`;
+  } else {
+    lowEl.textContent = "—";
+    highEl.textContent = "—";
+  }
+
+  const rows = list.map((s, i) => ({ s, i })).reverse().slice(0, 8).map(({ s, i }) => {
+    const before = i > 0 ? list[i - 1].v : null;
+    const diff = before === null ? null : s.v - before;
+    const d = parseKey(s.d);
+    return `<div class="valItem" data-vedit="${s.d}">
+      <span class="vd">${d.getMonth() + 1}/${d.getDate()}${s.d === TODAY_KEY ? " 오늘" : ""}</span>
+      <span class="vv">${won(s.v)}</span>
+      <span class="vc ${diff > 0 ? "up" : diff < 0 ? "dn" : ""}">${diff === null ? "" : signedWon(diff)}</span>
+      <button class="vdel" data-vdel="${s.d}" aria-label="${s.d} 기록 지우기">×</button>
+    </div>`;
+  }).join("");
+  document.getElementById("assetValList").innerHTML = rows ||
+    `<div class="valEmptyNote">아직 기록이 없어요. 위에 오늘 평가금액을 넣으면 그날부터 추이가 그려져요.</div>`;
 }
 
 /* 혜택 기준 금액 입력칸 + 빠른 선택 + 지금 사용액 기준 달성도 미리보기 */
@@ -3292,6 +3701,79 @@ document.getElementById("assetKinds").addEventListener("click", ev => {
   assetDraft.group = b.dataset.group;
   renderAssetKinds();
 });
+document.getElementById("assetIcons").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-aicon]");
+  if (!b) return;
+  assetDraft.icon = b.dataset.aicon || null;
+  renderAssetBadge();
+});
+document.getElementById("assetColors").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-acolor]");
+  if (!b) return;
+  assetDraft.color = b.dataset.acolor || null;
+  renderAssetBadge();
+});
+document.getElementById("assetIconCustom").addEventListener("input", ev => {
+  const v = firstChar(ev.target.value);
+  if (ev.target.value !== v) ev.target.value = v;
+  assetDraft.icon = v || null;
+  renderAssetBadge();
+});
+/* 추이 그래프 켜기·끄기 — 이미 있는 자산은 바로 저장해 기록을 넣을 수 있게 합니다 */
+document.getElementById("assetTrack").addEventListener("change", ev => {
+  const on = !!ev.target.checked;
+  assetDraft.trackGraph = on;
+  assetDraft.trackTouched = true;
+  if (assetEditing){
+    setCardMeta(assetEditing, { trackGraph: on ? true : null });
+    saveAll();
+    renderAssetValue();
+    refreshAssetSub();
+    renderAll();
+    if (on) setTimeout(() => document.getElementById("assetValInput").focus(), 80);
+  }
+});
+
+/* ---------- 평가금액 기록 입력 ---------- */
+document.getElementById("assetValDate").addEventListener("input", syncValDateText);
+document.getElementById("assetValInput").addEventListener("input", ev => {
+  const digits = ev.target.value.replace(/[^\d]/g, "");
+  ev.target.value = digits ? nf.format(Number(digits)) : "";
+});
+document.getElementById("assetValSave").addEventListener("click", () => {
+  if (!assetEditing) return;
+  const raw = document.getElementById("assetValInput").value.replace(/[^\d]/g, "");
+  if (!raw){ document.getElementById("assetValInput").focus(); showToast("평가금액을 넣어 주세요", true); return; }
+  const d = document.getElementById("assetValDate").value || TODAY_KEY;
+  saveSnapshot(assetEditing, d, Number(raw));
+  saveAll();
+  document.getElementById("assetValInput").value = "";
+  renderAll();
+  renderAssetValue();
+  refreshAssetSub();
+  showToast(`${mdLabel(parseKey(d))} 평가금액 ${won(Number(raw))} 저장 · 잔액에 반영했어요`);
+});
+document.getElementById("assetValueBox").addEventListener("click", ev => {
+  const del = ev.target.closest("[data-vdel]");
+  if (del){
+    if (!assetEditing) return;
+    removeSnapshot(assetEditing, del.dataset.vdel);
+    saveAll();
+    renderAll();
+    renderAssetValue();
+    refreshAssetSub();
+    showToast("그날 기록을 지웠어요");
+    return;
+  }
+  const ed = ev.target.closest("[data-vedit]");
+  if (ed && assetEditing){
+    const d = ed.dataset.vedit;
+    document.getElementById("assetValDate").value = d;
+    syncValDateText();
+    const rec = seriesOf(assetEditing).find(s => s.d === d);
+    if (rec) document.getElementById("assetValInput").value = nf.format(rec.v);
+  }
+});
 document.getElementById("assetTargetPresets").addEventListener("click", ev => {
   const b = ev.target.closest("[data-target]");
   if (!b) return;
@@ -3309,9 +3791,7 @@ document.getElementById("assetInit").addEventListener("input", ev => {
   const digits = ev.target.value.replace(/[^\d]/g, "");
   ev.target.value = digits ? nf.format(Number(digits)) : "";
 });
-document.getElementById("assetBackdrop").addEventListener("click", () => {
-  document.getElementById("assetModal").hidden = true;
-});
+document.getElementById("assetBackdrop").addEventListener("click", closeAssetModal);
 document.getElementById("assetSave").addEventListener("click", () => {
   const name = document.getElementById("assetName").value.trim();
   if (!name){ document.getElementById("assetName").focus(); return; }
@@ -3336,8 +3816,10 @@ document.getElementById("assetSave").addEventListener("click", () => {
     savedId = na.id;
   }
   setCardMetaTarget(savedId, group === "카드" ? target : 0);
+  setCardMeta(savedId, { icon: assetDraft.icon, color: assetDraft.color,
+                         trackGraph: (!isCardAsset({ group, kind }) && assetDraft.trackGraph) ? true : null });
   saveAll();
-  document.getElementById("assetModal").hidden = true;
+  closeAssetModal();
   renderAll();
   showToast(`${name} 저장했어요`);
 });
@@ -3375,12 +3857,14 @@ function openAdjustModal(id){
     "실제 잔액을 넣으면 차액만큼 «잔액 맞추기» 내역이 하나 추가돼 정확히 맞춰져요.";
   document.getElementById("assetModal").hidden = true;
   document.getElementById("adjustModal").hidden = false;
+  Overlay.show("adjustModal", () => closeAdjustModal(true));
   setTimeout(() => document.getElementById("adjustInput").focus(), 80);
 }
 function closeAdjustModal(reopen){
   document.getElementById("adjustModal").hidden = true;
   const a = adjustTarget;
   adjustTarget = null;
+  Overlay.hide("adjustModal");
   if (reopen && a) openAssetModal(a.id);
 }
 function updateAdjustDiff(){
@@ -3455,16 +3939,18 @@ function openPrepayModal(id){
   document.getElementById("prepaySub").textContent = `${a.name}로 이체하면 즉시결제로 집계돼요.`;
   document.getElementById("prepayAmt").value = "";
   document.getElementById("prepayFromChips").innerHTML = pool.map(x =>
-    `<button class="chip ${x.id === prepayFrom ? "on":""}" data-from="${x.id}">${x.e} ${esc(x.name)}</button>`).join("");
+    `<button class="chip ${x.id === prepayFrom ? "on":""}" data-from="${x.id}">${assetIcon(x)} ${esc(x.name)}</button>`).join("");
   updatePrepayNote();
   document.getElementById("assetModal").hidden = true;
   document.getElementById("prepayModal").hidden = false;
+  Overlay.show("prepayModal", () => closePrepayModal(true));
   setTimeout(() => document.getElementById("prepayAmt").focus(), 80);
 }
 function closePrepayModal(reopen){
   document.getElementById("prepayModal").hidden = true;
   const a = prepayTarget;
   prepayTarget = null;
+  Overlay.hide("prepayModal");
   if (reopen && a) openAssetModal(a.id);
 }
 document.getElementById("prepayFromChips").addEventListener("click", ev => {
@@ -3552,7 +4038,7 @@ function renderEntryChips(){
     const pool = f.type === "income" ? acctAssets() : payAssets();
     if (!pool.some(a => a.id === f.acct)) f.acct = pool.length ? pool[0].id : null;
     document.getElementById("entryPayChips").innerHTML = pool.map(a =>
-      `<button class="chip ${a.id === f.acct ? "on" : ""}" data-eacct="${a.id}">${a.e} ${esc(a.name)}</button>`).join("");
+      `<button class="chip ${a.id === f.acct ? "on" : ""}" data-eacct="${a.id}">${assetIcon(a)} ${esc(a.name)}</button>`).join("");
   } else {
     const pays = (cur().pays && cur().pays.length) ? cur().pays : ["현금","카드","계좌이체"];
     if (!pays.includes(f.acct)) f.acct = pays[0];
@@ -3586,6 +4072,7 @@ function openEntryModal(e){
   del.textContent = "이 내역 삭제";
   del.classList.remove("armed");
   document.getElementById("entryModal").hidden = false;
+  Overlay.show("entryModal", closeEntryModal);
 }
 
 function closeEntryModal(){
@@ -3593,6 +4080,7 @@ function closeEntryModal(){
   entryEditing = null;
   entryDeleteArmed = false;
   clearTimeout(entryDeleteTimer);
+  Overlay.hide("entryModal");
 }
 
 document.getElementById("entryModal").addEventListener("click", ev => {
@@ -3706,6 +4194,97 @@ function showToast(msg, warn){
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=> t.classList.remove("on"), 1900);
 }
+
+/* =========================================================
+   뒤로가기 — 열려 있는 모달·시트만 닫기
+   ---------------------------------------------------------
+   · 오버레이(모달·바텀시트·풀스크린)가 열려 있으면 히스토리에
+     표시(state.ghOverlay)를 하나 쌓아 둡니다. 안드로이드 뒤로가기가
+     오면 그 표시가 소비되면서 맨 위 오버레이 하나만 닫히고,
+     원래 화면(달력 등)에 그대로 머뭅니다.
+   · 오버레이가 모두 닫히면 표시도 함께 정리해, 달력 화면에서는
+     뒤로가기 한 번에 앱을 나가도록 맞춥니다.
+   · ×·취소·배경 클릭·저장으로 닫은 경우에는 표시 정리를 잠깐(0ms)
+     뒤로 미룹니다. 그 사이 다음 오버레이가 열리면(장부 목록 → 이름
+     수정처럼) 표시를 그대로 이어 써서 히스토리가 꼬이지 않습니다.
+   ========================================================= */
+const Overlay = (function(){
+  const stack = [];        // 열려 있는 오버레이 [{id, close, esc}] — 아래에서 위로
+  let holdsState = false;  // 히스토리에 표시를 쌓아 둔 상태인가
+  let skipPop = 0;         // 우리가 직접 back()한 만큼 popstate 무시
+  let dropping = null;     // 표시 정리 예약
+  let popping = false;     // 뒤로가기로 닫는 중 (show/hide가 히스토리를 건드리지 않게)
+
+  const el = id => document.getElementById(id);
+
+  function pushMarker(){
+    let st = {};
+    try{ st = Object.assign({}, history.state || {}); }catch(e){ st = {}; }
+    st.ghOverlay = true;
+    try{ history.pushState(st, ""); holdsState = true; }catch(e){ holdsState = false; }
+  }
+
+  function scheduleDrop(){
+    if (dropping) return;
+    dropping = setTimeout(function(){
+      dropping = null;
+      /* 그 사이 오버레이가 다시 열렸으면 표시를 그대로 이어 씁니다 */
+      if (stack.length || !holdsState) return;
+      holdsState = false;
+      skipPop++;
+      try{ history.back(); }catch(e){ skipPop--; }
+    }, 0);
+  }
+  function cancelDrop(){
+    if (dropping){ clearTimeout(dropping); dropping = null; }
+  }
+
+  /* 뒤로가기 — 맨 위 오버레이 하나를 닫습니다 */
+  function backLayer(){
+    if (!stack.length) return false;
+    const top = stack.pop();
+    holdsState = false;            // 방금 표시 하나를 뒤로가기가 소비했어요
+    popping = true;
+    try{ if (top.close) top.close(); }finally{ popping = false; }
+    /* 아래에 아직 오버레이가 남아 있으면 다음 뒤로가기를 위해 표시를 다시 쌓아요 */
+    if (stack.length) pushMarker();
+    return true;
+  }
+
+  window.addEventListener("popstate", function(){
+    if (skipPop > 0){ skipPop--; return; }
+    backLayer();
+  });
+
+  return {
+    /* 오버레이를 열었을 때 */
+    show(id, close){
+      /* 'screen' 은 통계·자산 탭 자체를 가리키는 가상 레이어예요 */
+      if (id !== "screen" && !el(id)) return;
+      cancelDrop();
+      const i = stack.findIndex(o => o.id === id);
+      if (i >= 0) stack.splice(i, 1);
+      stack.push({ id, close, esc: id !== "screen" });
+      if (!popping && !holdsState) pushMarker();
+    },
+    /* 오버레이를 닫았을 때 (뒤로가기로 닫히는 중이면 히스토리는 그대로) */
+    hide(id){
+      const i = stack.findIndex(o => o.id === id);
+      if (i >= 0) stack.splice(i, 1);
+      if (popping) return;
+      if (!stack.length) scheduleDrop();
+    },
+    back: backLayer,
+    /* Esc — 맨 위 오버레이를 닫습니다 */
+    escape(){
+      const top = stack[stack.length - 1];
+      if (!top || top.esc === false || !top.close) return false;
+      top.close();
+      return true;
+    },
+    size(){ return stack.length; }
+  };
+})();
 
 /* ---------- 저장 (새로고침해도 유지) ----------
    v3는 장부 전체(내역·통장카드·카테고리·색·기능)를 한 곳에 저장합니다.
@@ -4064,8 +4643,25 @@ function applyRemote(remote, opts){
       const next = {};
       Object.keys(meta).forEach(id => {
         const v = meta[id];
-        const t = Math.round(Number(v && typeof v === "object" ? v.target : v) || 0);
-        if (t > 0) next[id] = { target: t };
+        const obj = (v && typeof v === "object") ? v : {};
+        const t = Math.round(Number(obj.target !== undefined ? obj.target : v) || 0);
+        const row = {};
+        if (t > 0) row.target = t;
+        if (typeof obj.icon === "string"){
+          const icon = Array.from(obj.icon.trim())[0];
+          if (icon) row.icon = icon;
+        }
+        if (typeof obj.color === "string" && /^#[0-9A-Fa-f]{6}$/.test(obj.color.trim()))
+          row.color = obj.color.trim().toUpperCase();
+        if (obj.trackGraph === true || obj.trackGraph === "true") row.trackGraph = true;
+        if (Array.isArray(obj.series)){
+          const list = obj.series
+            .filter(s => s && isDayKey(s.d) && isFinite(Number(s.v)))
+            .map(s => ({ d: s.d, v: Math.round(Number(s.v)) }))
+            .sort((a, b) => a.d.localeCompare(b.d));
+          if (list.length) row.series = list.slice(-MAX_SNAPSHOTS);
+        }
+        if (Object.keys(row).length) next[id] = row;
       });
       settings.cardMeta = next;
     }
@@ -4315,8 +4911,12 @@ function openSyncModal(){
   document.getElementById("syncPin").value = SYNC.pin;
   paintSync();
   document.getElementById("syncModal").hidden = false;
+  Overlay.show("syncModal", closeSyncModal);
 }
-function closeSyncModal(){ document.getElementById("syncModal").hidden = true; }
+function closeSyncModal(){
+  document.getElementById("syncModal").hidden = true;
+  Overlay.hide("syncModal");
+}
 
 function wireSyncUI(){
   document.getElementById("syncRow").addEventListener("click", openSyncModal);
@@ -4324,9 +4924,6 @@ function wireSyncUI(){
   document.getElementById("syncConnectBtn").addEventListener("click", syncConnect);
   document.getElementById("syncPushBtn").addEventListener("click", () => syncPush(true));
   document.getElementById("syncOffBtn").addEventListener("click", syncDisconnect);
-  document.addEventListener("keydown", ev => {
-    if (ev.key === "Escape" && !document.getElementById("syncModal").hidden) closeSyncModal();
-  });
   window.addEventListener("online", () => {
     if (!syncOn()) return;
     setSyncStatus(SYNC.dirty ? "syncing" : "ok");
