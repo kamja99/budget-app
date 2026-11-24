@@ -526,14 +526,14 @@
   .segType button.on[data-type="income"]{color:var(--income)}
   .segType button.on[data-type="expense"]{color:var(--expense)}
   .segType button.on[data-type="transfer"]{color:var(--transfer)}
-  .amountField{display:flex;align-items:center;gap:6px;border-bottom:2px solid #E9EBEF;padding:4px 0 6px;margin-bottom:14px}
+  .amountField{display:flex;align-items:center;gap:6px;border-bottom:2px solid #E9EBEF;padding:4px 0 6px;margin-bottom:14px;min-width:0}
   .amountField input{
-    flex:1;border:none;outline:none;font-family:inherit;text-align:right;font-size:26px;font-weight:800;
+    flex:1 1 0;min-width:0;width:100%;border:none;outline:none;font-family:inherit;text-align:right;font-size:26px;font-weight:800;
     letter-spacing:-.04em;font-variant-numeric:tabular-nums;color:#191F28;background:transparent;
     padding:0;height:38px;line-height:38px;
   }
   .amountField input::placeholder{color:#C9CFD7}
-  .amountField span{font-size:14px;font-weight:700;color:#8B95A1}
+  .amountField span{flex:0 0 auto;font-size:14px;font-weight:700;color:#8B95A1}
   .fLabel{font-size:11px;font-weight:700;color:#8B95A1;margin:0 0 7px;letter-spacing:-.01em}
   .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
   .chip{
@@ -607,6 +607,54 @@
 
   .lsSync{border-top:1px solid var(--hair);border-radius:0;padding-top:12px;padding-bottom:12px;margin-top:4px}
   .lsArrow{flex:0 0 auto;font-size:15px;color:#C3CAD2;font-weight:800;line-height:1}
+  .lsEdit{
+    flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:#F2F4F6;color:#5A6472;font-size:12px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;z-index:1;
+  }
+  .lsEdit:active{background:#E9EBEF}
+
+  /* ---------- 카테고리 · 세부 분류 ---------- */
+  .catCard{max-height:90dvh}
+  .catSeg{display:flex;background:#E9EBEF;border-radius:10px;padding:2px;gap:2px;margin:0 2px 10px;flex:0 0 auto}
+  .catSeg button{
+    flex:1;border:none;background:transparent;font-family:inherit;font-size:11.5px;font-weight:700;
+    color:#7C8695;padding:7px 0;border-radius:8px;cursor:pointer;
+  }
+  .catSeg button.on{background:#fff;box-shadow:0 1px 3px rgba(20,25,35,.12);color:var(--theme-ink)}
+  .catList{overflow-y:auto;scrollbar-width:none;margin:0 -4px;padding:0 4px 4px}
+  .catList::-webkit-scrollbar{display:none}
+  .catManage{border:1px solid #EEF0F3;border-radius:13px;padding:10px 11px;margin-bottom:8px}
+  .cmHead{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+  .cmHead .ci{width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;flex:0 0 auto}
+  .cmHead b{font-size:12.5px;font-weight:800;letter-spacing:-.02em}
+  .cmHead em{font-style:normal;font-size:10px;font-weight:700;color:#AEB6C0;margin-left:auto}
+  .catManage .chips{margin-bottom:0}
+  .chip .x{margin-left:4px;color:#C3CAD2;font-style:normal;font-weight:800;font-size:11px}
+  .chip.subAdd{border-style:dashed;color:#8B95A1;background:#fff}
+  .chip.subAdd.on{color:#fff;background:var(--theme);border-style:solid;border-color:var(--theme)}
+  .subAddRow{display:flex;gap:6px;align-items:center;flex:1 1 100%;min-width:0}
+  .subInput{
+    flex:1 1 0;min-width:0;width:100%;border:1px solid #E9EBEF;border-radius:10px;padding:7px 9px;
+    font-family:inherit;font-size:11.5px;outline:none;background:#FBFBFC;color:#191F28;
+  }
+  .subInput:focus{border-color:var(--theme);background:#fff}
+  .subOk{
+    flex:0 0 auto;border:none;border-radius:10px;background:var(--theme);color:#fff;font-family:inherit;
+    font-size:11.5px;font-weight:800;padding:8px 12px;cursor:pointer;
+  }
+  .fLabel em.opt{font-style:normal;font-size:9.5px;color:#B6BEC8;font-weight:700;margin-left:4px}
+
+  .subFilter{display:flex;gap:6px;overflow-x:auto;padding:2px 0 9px;scrollbar-width:none}
+  .subFilter::-webkit-scrollbar{display:none}
+  .subChip{
+    flex:0 0 auto;border:1px solid #E9EBEF;background:#fff;border-radius:99px;padding:6px 11px;
+    font-family:inherit;font-size:11px;font-weight:700;color:#5A6472;cursor:pointer;white-space:nowrap;letter-spacing:-.01em;
+  }
+  .subChip.on{background:var(--theme-soft);border-color:var(--theme);color:var(--theme-ink)}
+  .subChip i{font-style:normal;color:#AEB6C0;margin-left:4px;font-weight:800;font-size:10px}
+  .subLine{display:flex;flex-wrap:wrap;gap:3px 10px;margin:4px 0 0 40px;font-size:10.5px;color:#8B95A1;letter-spacing:-.01em}
+  .subLine span{white-space:nowrap}
+  .subLine b{font-weight:800;color:#6B7480}
 
   .syncCard{max-height:88dvh;overflow-y:auto;scrollbar-width:none}
   .syncCard::-webkit-scrollbar{display:none}
@@ -1035,6 +1083,10 @@
     <div id="expenseFields">
       <div class="fLabel">카테고리</div>
       <div class="chips" id="catChips"></div>
+      <div id="subBlock">
+        <div class="fLabel">세부 분류<em class="opt">선택</em></div>
+        <div class="chips" id="subChips"></div>
+      </div>
       <div class="fLabel" id="payLabel">결제수단</div>
       <div class="chips" id="payChips"></div>
     </div>
@@ -1063,6 +1115,11 @@
       <p>장부마다 내역과 설정이 따로 저장돼요.</p>
     </div>
     <div class="lsList" id="ledgerList"></div>
+    <button class="lsRow lsSync" id="catRow">
+      <span class="lsIcon" style="background:#F2F4F6">🏷</span>
+      <span class="lsMain"><b>카테고리 · 세부 분류</b><span id="catRowSub">카테고리와 세부 분류를 관리해요</span></span>
+      <span class="lsArrow">›</span>
+    </button>
     <button class="lsRow lsSync" id="syncRow">
       <span class="lsIcon" style="background:#F2F4F6">🔗</span>
       <span class="lsMain"><b>구글 시트 연동</b><span id="syncRowSub">연결 안 됨</span></span>
@@ -1106,6 +1163,34 @@
       </label>
     </div>
     <button class="saveBtn" id="nlSave">장부 만들기</button>
+  </div>
+</div>
+
+<div class="lsWrap" id="catSheet" hidden>
+  <div class="backdrop" id="catBackdrop"></div>
+  <div class="lsCard catCard">
+    <div class="handle"></div>
+    <div class="lsHead">
+      <h2>카테고리 · 세부 분류</h2>
+      <p>카테고리마다 세부 분류를 넣어 두면 내역을 더 자세히 나눌 수 있어요. (선택 사항)</p>
+    </div>
+    <div class="catSeg" id="catSeg">
+      <button data-ct="expense" class="on">지출</button>
+      <button data-ct="income">수입</button>
+    </div>
+    <div class="catList" id="catList"></div>
+  </div>
+</div>
+
+<div class="modalWrap" id="renameModal" hidden>
+  <div class="backdrop" id="renameBackdrop"></div>
+  <div class="modalCard">
+    <div class="handle" style="margin-bottom:8px"></div>
+    <h2>장부 이름 수정</h2>
+    <div class="modalDate">바꾼 이름은 구글 시트 연동 시 장부목록에도 함께 반영돼요.</div>
+    <div class="fLabel">장부 이름</div>
+    <input class="textInput" id="renameInput" maxlength="20" autocomplete="off" placeholder="예: 생활비">
+    <button class="saveBtn" id="renameSave">저장</button>
   </div>
 </div>
 
@@ -1203,6 +1288,10 @@
     </div>
     <div class="fLabel">카테고리</div>
     <div class="chips" id="entryCatChips"></div>
+    <div id="entrySubBlock">
+      <div class="fLabel">세부 분류<em class="opt">선택</em></div>
+      <div class="chips" id="entrySubChips"></div>
+    </div>
     <div class="fLabel" id="entryPayLabel">결제수단</div>
     <div class="chips" id="entryPayChips"></div>
     <div class="fLabel">내용</div>
@@ -1367,12 +1456,39 @@ const state = {
   tab:"all",
   statType:"expense",       // 통계 기준: "expense" | "income"
   statCat:null,             // 통계에서 고른 카테고리
+  statSub:null,             // 통계 상세에서 고른 세부 분류 (null이면 전체)
   statDetailOpen:false,     // 모바일: 카테고리 내역 시트 열림
   form:{ type:"expense", cat:null, acct:null, fromId:null, toId:null }
 };
 
 const catOf = (kind, name) =>
   (cur().cats[kind] || []).find(c => c.k === name) || {k:name, e:"•", c:"#B0B8C1"};
+
+/* ---------- 세부 분류 (카테고리 안의 하위 분류) ----------
+   카테고리 객체의 subs 배열에 이름만 담습니다. 내역에는 선택 사항이고,
+   쓰지 않는 카테고리는 subs가 없어도 그대로 동작합니다. */
+const catObjOf = (type, k) => (cur().cats[type] || []).find(c => c.k === k) || null;
+function subsOf(type, k){
+  const c = catObjOf(type, k);
+  return (c && Array.isArray(c.subs)) ? c.subs : [];
+}
+function addSub(type, k, name){
+  const c = catObjOf(type, k);
+  const v = String(name || "").trim().replace(/\s+/g, " ");
+  if (!c || !v) return false;
+  if (!Array.isArray(c.subs)) c.subs = [];
+  if (c.subs.indexOf(v) >= 0) return false;
+  c.subs.push(v);
+  return true;
+}
+function removeSub(type, k, name){
+  const c = catObjOf(type, k);
+  if (!c || !Array.isArray(c.subs)) return false;
+  const i = c.subs.indexOf(name);
+  if (i < 0) return false;
+  c.subs.splice(i, 1);
+  return true;
+}
 
 const entriesOf = (ledger, dateKey) =>
   cur().data.filter(e => e.d === dateKey).sort((a,b)=> a.t.localeCompare(b.t));
@@ -1805,7 +1921,7 @@ function renderSheet(){
         <div class="emoji" style="background:${c.c}1A">${c.e}</div>
         <div class="rowMain">
           <div class="m">${e.memo}</div>
-          <div class="s">${e.cat} · ${payLabel}</div>
+          <div class="s">${e.cat}${e.sub ? " · " + esc(e.sub) : ""} · ${payLabel}</div>
         </div>
         <div class="rowAmt">
           <div class="a ${e.type === "income" ? "inc":"exp"}">${sign}${nf.format(e.amt)}원</div>
@@ -1847,6 +1963,15 @@ function renderCategory(body, list, inc, exp, trf){
     const c = catOf(g.type, g.cat);
     const pct = total ? Math.round(g.amt / total * 100) : 0;
     const share = (g.amt / (g.type === "income" ? (inc || 1) : (exp || 1))) * 100;
+    /* 세부 분류가 있으면 카테고리 아래에 작은 합계를 붙입니다 */
+    const subTotals = {};
+    list.filter(e => e.type === g.type && e.cat === g.cat && e.sub).forEach(e => {
+      subTotals[e.sub] = (subTotals[e.sub] || 0) + e.amt;
+    });
+    const subLine = Object.keys(subTotals).length
+      ? `<div class="subLine">` + Object.entries(subTotals).sort((a,b) => b[1] - a[1])
+          .map(([s,v]) => `<span><b>${esc(s)}</b> ${nf.format(v)}</span>`).join("") + `</div>`
+      : "";
     return `<div class="catRow">
       <div class="catHead">
         <div class="emoji" style="background:${c.c}1A;width:30px;height:30px;font-size:14px;border-radius:10px">${c.e}</div>
@@ -1854,7 +1979,7 @@ function renderCategory(body, list, inc, exp, trf){
         <div class="am" style="color:${g.type==="income" ? "var(--income)" : "var(--expense)"}">${g.type==="income"?"+":"−"}${nf.format(g.amt)}</div>
         <div class="pc">${pct}%</div>
       </div>
-      <div class="bar"><i style="width:${Math.max(share,3)}%;background:${c.c}"></i></div>
+      <div class="bar"><i style="width:${Math.max(share,3)}%;background:${c.c}"></i></div>${subLine}
     </div>`;
   }).join("");
 
@@ -1983,24 +2108,45 @@ function renderStatDetail(st){
   wrap.hidden = !show;
   if (!show){ statEntries = []; box.innerHTML = ""; return; }
 
-  statEntries = g.items;
+  /* 세부 분류별 합계 — 고른 세부 분류로 목록을 걸러 볼 수 있습니다 */
+  const keyOf = s => s === "__none" ? "" : s;
+  const subTotals = new Map();
+  g.items.forEach(e => {
+    const k = e.sub || "";
+    subTotals.set(k, (subTotals.get(k) || 0) + e.amt);
+  });
+  if (state.statSub && !subTotals.has(keyOf(state.statSub))) state.statSub = null;
+  const items = state.statSub ? g.items.filter(e => (e.sub || "") === keyOf(state.statSub)) : g.items;
+  const sum = items.reduce((s,e) => s + e.amt, 0);
+  const subKeys = [...subTotals.keys()].filter(k => k).sort((a,b) => subTotals.get(b) - subTotals.get(a));
+  const filter = subKeys.length
+    ? `<div class="subFilter">
+        <button class="subChip ${!state.statSub ? "on" : ""}" data-subf="__all">전체 <i>${nf.format(g.amt)}</i></button>` +
+      subKeys.map(k => `<button class="subChip ${keyOf(state.statSub) === k && state.statSub ? "on" : ""}" data-subf="${esc(k)}">${esc(k)} <i>${nf.format(subTotals.get(k))}</i></button>`).join("") +
+      (subTotals.has("") ? `<button class="subChip ${state.statSub === "__none" ? "on" : ""}" data-subf="__none">미지정 <i>${nf.format(subTotals.get(""))}</i></button>` : "") +
+      `</div>`
+    : "";
+
+  statEntries = items;
   const c = catOf(st.type, g.cat);
-  const rows = g.items.map((e, i) => {
+  const rows = items.map((e, i) => {
     const d = parseKey(e.d);
     const pay = cur().assets ? assetName(e.acct) : e.pay;
     return `<button class="sdRow" data-ei="${i}">
       <span class="sdDate">${d.getMonth()+1}/${d.getDate()}<em>${DOW[d.getDay()]}</em></span>
-      <span class="sdMain"><b>${esc(e.memo)}</b><span>${e.t} · ${esc(pay || (e.type === "income" ? "수입" : "지출"))}</span></span>
+      <span class="sdMain"><b>${esc(e.memo)}</b><span>${e.sub ? esc(e.sub) + " · " : ""}${e.t} · ${esc(pay || (e.type === "income" ? "수입" : "지출"))}</span></span>
       <span class="sdAmt ${e.type === "income" ? "inc" : "exp"}">${e.type === "income" ? "+" : "−"}${nf.format(e.amt)}</span>
     </button>`;
   }).join("");
 
+  const titleSub = state.statSub ? ` · ${esc(state.statSub === "__none" ? "미지정" : state.statSub)}` : "";
   box.innerHTML = `<div class="sdHead">
       <span class="sdIcon" style="background:${g.color}1F;color:${g.color}">${c.e}</span>
-      <div class="sdTitle"><b>${esc(g.cat)}</b><span>${won(g.amt)} · ${g.n}건 · ${g.pctR}%</span></div>
+      <div class="sdTitle"><b>${esc(g.cat)}${titleSub}</b><span>${won(sum)} · ${items.length}건${state.statSub ? "" : ` · ${g.pctR}%`}</span></div>
       <button class="addBtn" data-sdact="add"><span class="plus">＋</span>내역 추가</button>
       <button class="sdClose" data-sdact="close" aria-label="닫기">✕</button>
     </div>
+    ${filter}
     <div class="sdList">${rows || `<div class="sdEmpty">내역이 없어요.</div>`}</div>`;
 }
 
@@ -2021,11 +2167,18 @@ document.getElementById("statCatList").addEventListener("click", ev => {
   const row = ev.target.closest(".statRow[data-cat]");
   if (!row) return;
   state.statCat = row.dataset.cat;
+  state.statSub = null;
   if (!isPC()) state.statDetailOpen = true;
   renderStats();
 });
 
 document.getElementById("statDetail").addEventListener("click", ev => {
+  const subf = ev.target.closest("[data-subf]");
+  if (subf){
+    state.statSub = subf.dataset.subf === "__all" ? null : subf.dataset.subf;
+    renderStats();
+    return;
+  }
   if (ev.target.closest('[data-sdact="add"]')){ openStatAdd(); return; }
   if (ev.target.closest('[data-sdact="close"]')){
     state.statDetailOpen = false;
@@ -2310,12 +2463,22 @@ function renderLedgerList(){
     const sub = l.data.length
       ? `${y}년 ${m}월 지출 ${won(monthExpenseOf(l))} · 내역 ${nf.format(l.data.length)}건`
       : "아직 내역이 없어요";
-    return `<button class="lsRow ${l.id === state.ledger ? "on" : ""}" data-id="${l.id}">
+    return `<div class="lsRow ${l.id === state.ledger ? "on" : ""}" data-id="${l.id}" role="button" tabindex="0">
       <span class="lsIcon" style="background:${l.theme}1A;color:${l.theme}">${l.icon}</span>
       <span class="lsMain"><b>${esc(l.name)}</b><span>${sub}</span></span>
+      <span class="lsEdit" data-edit="${l.id}" role="button" tabindex="0" aria-label="${esc(l.name)} 이름 수정" title="이름 수정">✎</span>
       <span class="lsCheck">✓</span>
-    </button>`;
+    </div>`;
   }).join("");
+  renderCatRowSub();
+}
+function renderCatRowSub(){
+  const el = document.getElementById("catRowSub");
+  if (!el) return;
+  const e = (cur().cats.expense || []).length, i = (cur().cats.income || []).length;
+  const n = (cur().cats.expense || []).concat(cur().cats.income || [])
+    .reduce((s,c) => s + ((c.subs || []).length), 0);
+  el.textContent = n ? `카테고리 ${e+i}개 · 세부 분류 ${n}개` : "카테고리와 세부 분류를 관리해요";
 }
 function openLedgerSheet(){
   renderLedgerList();
@@ -2329,6 +2492,8 @@ function switchLedger(id){
   state.ledger = id;
   state.screen = "calendar";
   state.tab = "all";
+  state.statCat = null;
+  state.statSub = null;
   if (!l.cycle) state.mode = "month";
   sorting = false;
   document.body.classList.remove("sorting");
@@ -2340,6 +2505,8 @@ function switchLedger(id){
 document.getElementById("ledgerBtn").addEventListener("click", openLedgerSheet);
 document.getElementById("ledgerBackdrop").addEventListener("click", closeLedgerSheet);
 document.getElementById("ledgerList").addEventListener("click", ev => {
+  const ed = ev.target.closest("[data-edit]");
+  if (ed){ openRename(ed.dataset.edit); return; }
   const row = ev.target.closest("[data-id]");
   if (!row) return;
   const same = row.dataset.id === state.ledger;
@@ -2347,6 +2514,122 @@ document.getElementById("ledgerList").addEventListener("click", ev => {
   if (same) return;
   switchLedger(row.dataset.id);
   showToast(`${cur().icon} ${cur().name} 장부로 바꿨어요`);
+});
+
+/* ---------- 장부 이름 수정 ---------- */
+let renameTarget = null;
+function openRename(id){
+  const l = ledgerById(id);
+  if (!l) return;
+  renameTarget = l;
+  document.getElementById("renameInput").value = l.name;
+  closeLedgerSheet();
+  document.getElementById("renameModal").hidden = false;
+  setTimeout(() => {
+    const el = document.getElementById("renameInput");
+    el.focus(); el.select();
+  }, 120);
+}
+function closeRename(){ document.getElementById("renameModal").hidden = true; renameTarget = null; }
+function saveRename(){
+  const el = document.getElementById("renameInput");
+  const v = el.value.trim();
+  if (!v){ el.focus(); showToast("장부 이름을 넣어 주세요", true); return; }
+  const l = renameTarget;
+  if (!l){ closeRename(); return; }
+  if (v === l.name){ closeRename(); return; }
+  l.name = v;
+  closeRename();
+  saveAll();
+  renderAll();
+  if (!ledgerSheet.hidden) renderLedgerList();
+  showToast(`장부 이름을 '${v}'${josaRo(v)} 바꿨어요`);
+}
+/* 받침 유무에 따라 '로 / 으로' */
+function josaRo(s){
+  const c = String(s).slice(-1).charCodeAt(0);
+  if (c < 0xAC00 || c > 0xD7A3) return "(으)로";
+  return ((c - 0xAC00) % 28) ? "으로" : "로";
+}
+document.getElementById("renameBackdrop").addEventListener("click", closeRename);
+document.getElementById("renameSave").addEventListener("click", saveRename);
+document.getElementById("renameInput").addEventListener("keydown", ev => {
+  if (ev.key === "Enter"){ ev.preventDefault(); saveRename(); }
+});
+
+/* ---------- 카테고리 · 세부 분류 관리 ---------- */
+let catDraft = { type:"expense", addKey:null };
+function openCatSheet(){
+  catDraft = { type: catDraft.type || "expense", addKey:null };
+  closeLedgerSheet();
+  renderCatSheet();
+  document.getElementById("catSheet").hidden = false;
+}
+function closeCatSheet(){ document.getElementById("catSheet").hidden = true; catDraft.addKey = null; }
+function renderCatSheet(){
+  const type = catDraft.type;
+  document.querySelectorAll("#catSeg button").forEach(b =>
+    b.classList.toggle("on", b.dataset.ct === type));
+  const cats = cur().cats[type] || [];
+  document.getElementById("catList").innerHTML = cats.map(c => {
+    const subs = Array.isArray(c.subs) ? c.subs : [];
+    const chips = subs.map(s =>
+      `<button class="chip" data-catk="${esc(c.k)}" data-delsub="${esc(s)}">${esc(s)}<i class="x">×</i></button>`).join("");
+    const add = (catDraft.addKey === c.k)
+      ? `<span class="subAddRow"><input class="subInput" id="catSubInput" maxlength="14" placeholder="세부 분류 이름"><button class="subOk" data-addok="${esc(c.k)}">추가</button></span>`
+      : `<button class="chip subAdd" data-addopen="${esc(c.k)}">＋ 세부 분류</button>`;
+    return `<div class="catManage">
+      <div class="cmHead"><span class="ci" style="background:${c.c}1A;color:${c.c}">${c.e}</span><b>${esc(c.k)}</b><em>${subs.length ? subs.length + "개" : ""}</em></div>
+      <div class="chips">${chips}${add}</div>
+    </div>`;
+  }).join("");
+  const el = document.getElementById("catSubInput");
+  if (el) el.focus();
+  renderCatRowSub();
+}
+document.getElementById("catRow").addEventListener("click", openCatSheet);
+document.getElementById("catBackdrop").addEventListener("click", closeCatSheet);
+document.getElementById("catSeg").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-ct]");
+  if (!b) return;
+  catDraft.type = b.dataset.ct;
+  catDraft.addKey = null;
+  renderCatSheet();
+});
+document.getElementById("catList").addEventListener("click", ev => {
+  const del = ev.target.closest("[data-delsub]");
+  if (del){
+    const k = del.dataset.catk, s = del.dataset.delsub;
+    if (removeSub(catDraft.type, k, s)){
+      saveAll();
+      renderCatSheet();
+      showToast(`'${s}' 세부 분류를 지웠어요`);
+    }
+    return;
+  }
+  const open = ev.target.closest("[data-addopen]");
+  if (open){ catDraft.addKey = open.dataset.addopen; renderCatSheet(); return; }
+  const ok = ev.target.closest("[data-addok]");
+  if (ok){
+    const inp = document.getElementById("catSubInput");
+    const v = inp ? inp.value.trim() : "";
+    if (!v){ if (inp) inp.focus(); return; }
+    if (addSub(catDraft.type, ok.dataset.addok, v)){
+      saveAll();
+      catDraft.addKey = null;
+      renderCatSheet();
+      showToast(`'${v}' 세부 분류를 추가했어요`);
+    } else {
+      showToast("이미 있는 세부 분류예요", true);
+    }
+  }
+});
+document.getElementById("catList").addEventListener("keydown", ev => {
+  if (ev.key === "Enter" && ev.target.id === "catSubInput"){
+    ev.preventDefault();
+    const ok = document.querySelector("#catList [data-addok]");
+    if (ok) ok.click();
+  }
 });
 
 const NL_ICONS = ["💰","💍","⛪","🏠","✈️","🎓","🐶","🚗","👶","🎁","🛒","📚","🏥","🌱","☕","📒"];
@@ -2482,7 +2765,8 @@ function openAdd(opts){
   const ids = ASSETS.map(a => a.id);
   const fromId = ids[0] || null;
   const toId = ids.find(id => id !== fromId) || null;
-  state.form = { type:type0, cat:opts.cat || null, acct:null, fromId, toId };
+  state.form = { type:type0, cat:opts.cat || null, sub:null, acct:null, fromId, toId };
+  subAddOpen = false;
   const canTransfer = !!cur().assets && ids.length > 1;
   document.querySelectorAll("#typeSeg button").forEach(b => {
     b.classList.toggle("on", b.dataset.type === state.form.type);
@@ -2523,6 +2807,7 @@ function renderChips(){
     `<button class="chip ${c.k === f.cat ? "on":""}" data-cat="${esc(c.k)}">${c.e} ${esc(c.k)}</button>`).join("");
 
   document.getElementById("payLabel").textContent = f.type === "income" ? "입금 계좌" : "결제수단";
+  renderSubChips();
   if (hasAssets){
     const pool = f.type === "income" ? acctAssets() : payAssets();
     if (!pool.some(a => a.id === f.acct)) f.acct = pool.length ? pool[0].id : null;
@@ -2537,11 +2822,56 @@ function renderChips(){
   }
 }
 
+/* 세부 분류 칩 — 고른 카테고리에 세부 분류가 있으면 고를 수 있고, 없으면 그냥 넘어가요.
+   ＋ 세부 분류 를 누르면 바로 이름을 넣어 카테고리에 추가합니다. */
+let subAddOpen = false;
+function renderSubChips(){
+  const f = state.form;
+  const block = document.getElementById("subBlock");
+  if (!block) return;
+  if (f.type === "transfer"){ block.hidden = true; return; }
+  block.hidden = false;
+  const subs = subsOf(f.type, f.cat);
+  if (f.sub && subs.indexOf(f.sub) < 0) f.sub = null;
+  document.getElementById("subChips").innerHTML =
+    subs.map(s => `<button class="chip ${s === f.sub ? "on" : ""}" data-sub="${esc(s)}">${esc(s)}</button>`).join("") +
+    (subAddOpen
+      ? `<span class="subAddRow"><input class="subInput" id="subNewInput" maxlength="14" placeholder="세부 분류 이름" autocomplete="off"><button class="subOk" data-subok="1">추가</button></span>`
+      : `<button class="chip subAdd" data-subopen="1">＋ 세부 분류</button>`);
+  if (subAddOpen){
+    const el = document.getElementById("subNewInput");
+    if (el) el.focus();
+  }
+}
+
 addScreen.addEventListener("click", ev => {
-  const el = ev.target.closest("[data-cat],[data-acct],[data-from],[data-to]");
+  const el = ev.target.closest("[data-cat],[data-acct],[data-from],[data-to],[data-sub],[data-subopen],[data-subok]");
   if (!el) return;
+  if (el.dataset.subopen){
+    subAddOpen = true;
+    renderSubChips();
+    return;
+  }
+  if (el.dataset.subok){
+    const inp = document.getElementById("subNewInput");
+    const v = inp ? inp.value.trim() : "";
+    if (!v){ if (inp) inp.focus(); return; }
+    if (addSub(state.form.type, state.form.cat, v)) saveAll();
+    else showToast("이미 있는 세부 분류예요", true);
+    state.form.sub = v;
+    subAddOpen = false;
+    renderSubChips();
+    return;
+  }
+  if (el.dataset.sub !== undefined && el.closest("#subChips")){
+    state.form.sub = (state.form.sub === el.dataset.sub) ? null : el.dataset.sub;
+    renderChips();
+    return;
+  }
   if (el.dataset.cat){
     state.form.cat = el.dataset.cat;
+    state.form.sub = null;
+    subAddOpen = false;
   }
   if (el.dataset.acct) state.form.acct = el.dataset.acct;
   if (el.dataset.from){
@@ -2553,12 +2883,22 @@ addScreen.addEventListener("click", ev => {
   renderChips();
 });
 
+addScreen.addEventListener("keydown", ev => {
+  if (ev.key === "Enter" && ev.target.id === "subNewInput"){
+    ev.preventDefault();
+    const ok = document.querySelector("#subChips [data-subok]");
+    if (ok) ok.click();
+  }
+});
+
 document.getElementById("typeSeg").addEventListener("click", ev => {
   const b = ev.target.closest("button[data-type]");
   if (!b || b.style.display === "none") return;
   state.form.type = b.dataset.type;
   state.form.cat = null;
+  state.form.sub = null;
   state.form.acct = null;
+  subAddOpen = false;
   document.querySelectorAll("#typeSeg button").forEach(x => x.classList.toggle("on", x.dataset.type === state.form.type));
   renderChips();
 });
@@ -2600,11 +2940,11 @@ document.getElementById("saveBtn").addEventListener("click", () => {
               memo: memoRaw || `${assetName(f.fromId)} → ${assetName(f.toId)}`, amt };
   } else if (cur().assets){
     if (!f.acct){ showToast("결제수단을 골라 주세요", true); return; }
-    entry = { d:dateVal, t:timeVal, type:f.type, cat:f.cat, acct:f.acct,
+    entry = { d:dateVal, t:timeVal, type:f.type, cat:f.cat, sub:f.sub || "", acct:f.acct,
               pay: assetName(f.acct),
               memo: memoRaw || (f.type === "income" ? `${c.k} 입금` : c.k), amt };
   } else {
-    entry = { d:dateVal, t:timeVal, type:f.type, cat:f.cat, pay:f.acct,
+    entry = { d:dateVal, t:timeVal, type:f.type, cat:f.cat, sub:f.sub || "", pay:f.acct,
               memo: memoRaw || (f.type === "income" ? `${c.k} 입금` : c.k), amt };
   }
   cur().data.push(entry);
@@ -2803,7 +3143,8 @@ document.getElementById("addAssetBtn").addEventListener("click", () => openAsset
    삭제는 두 번 눌러야 실행됩니다.
    ========================================================= */
 let entryEditing = null;
-let entryDraft = { type:"expense", cat:null, acct:null };
+let entryDraft = { type:"expense", cat:null, acct:null, sub:null };
+let entrySubOpen = false;
 let entryDeleteArmed = false;
 let entryDeleteTimer = null;
 
@@ -2822,6 +3163,19 @@ function renderEntryChips(){
   if (!cats.some(c => c.k === f.cat)) f.cat = cats.length ? cats[0].k : "";
   document.getElementById("entryCatChips").innerHTML = cats.map(c =>
     `<button class="chip ${c.k === f.cat ? "on" : ""}" data-ecat="${esc(c.k)}">${c.e} ${esc(c.k)}</button>`).join("");
+
+  /* 세부 분류 — 목록에 없어도 지금 내역에 붙은 값은 지우지 않고 그대로 보여 줍니다 */
+  const subs = subsOf(f.type, f.cat).slice();
+  if (f.sub && subs.indexOf(f.sub) < 0) subs.push(f.sub);
+  document.getElementById("entrySubChips").innerHTML =
+    subs.map(s => `<button class="chip ${s === f.sub ? "on" : ""}" data-esub="${esc(s)}">${esc(s)}</button>`).join("") +
+    (entrySubOpen
+      ? `<span class="subAddRow"><input class="subInput" id="entrySubInput" maxlength="14" placeholder="세부 분류 이름" autocomplete="off"><button class="subOk" data-esubok="1">추가</button></span>`
+      : `<button class="chip subAdd" data-esubopen="1">＋ 세부 분류</button>`);
+  if (entrySubOpen){
+    const el = document.getElementById("entrySubInput");
+    if (el) el.focus();
+  }
 
   document.getElementById("entryPayLabel").textContent = f.type === "income" ? "입금 계좌" : "결제수단";
   if (cur().assets){
@@ -2843,8 +3197,10 @@ function openEntryModal(e){
   entryDraft = {
     type: e.type,
     cat: e.cat,
+    sub: e.sub || null,
     acct: cur().assets ? (e.acct || acctIdFor(e.pay, ASSETS)) : (e.pay || null)
   };
+  entrySubOpen = false;
   document.getElementById("entryTitle").textContent = e.type === "income" ? "수입 수정" : "지출 수정";
   document.getElementById("entrySub").textContent =
     `${e.type === "income" ? "수입" : "지출"} · ${catOf(e.type, e.cat).k}`;
@@ -2872,6 +3228,27 @@ function closeEntryModal(){
 document.getElementById("entryModal").addEventListener("click", ev => {
   if (ev.target.closest("[data-ecat]")){
     entryDraft.cat = ev.target.closest("[data-ecat]").dataset.ecat;
+    entryDraft.sub = null;
+    entrySubOpen = false;
+    renderEntryChips(); return;
+  }
+  if (ev.target.closest("[data-esubopen]")){
+    entrySubOpen = true;
+    renderEntryChips(); return;
+  }
+  if (ev.target.closest("[data-esubok]")){
+    const inp = document.getElementById("entrySubInput");
+    const v = inp ? inp.value.trim() : "";
+    if (!v){ if (inp) inp.focus(); return; }
+    if (addSub(entryDraft.type, entryDraft.cat, v)) saveAll();
+    else showToast("이미 있는 세부 분류예요", true);
+    entryDraft.sub = v;
+    entrySubOpen = false;
+    renderEntryChips(); return;
+  }
+  const subEl = ev.target.closest("[data-esub]");
+  if (subEl){
+    entryDraft.sub = (entryDraft.sub === subEl.dataset.esub) ? null : subEl.dataset.esub;
     renderEntryChips(); return;
   }
   if (ev.target.closest("[data-eacct]")){
@@ -2881,6 +3258,13 @@ document.getElementById("entryModal").addEventListener("click", ev => {
   if (ev.target.closest("[data-epay]")){
     entryDraft.acct = ev.target.closest("[data-epay]").dataset.epay;
     renderEntryChips();
+  }
+});
+document.getElementById("entryModal").addEventListener("keydown", ev => {
+  if (ev.key === "Enter" && ev.target.id === "entrySubInput"){
+    ev.preventDefault();
+    const ok = document.querySelector("#entrySubChips [data-esubok]");
+    if (ok) ok.click();
   }
 });
 
@@ -2902,6 +3286,8 @@ document.getElementById("entrySave").addEventListener("click", () => {
   e.d = document.getElementById("entryDate").value || e.d;
   e.t = document.getElementById("entryTime").value || e.t;
   e.cat = c.k;
+  e.sub = entryDraft.sub || "";
+  if (!e.sub) delete e.sub;
   e.memo = document.getElementById("entryMemo").value.trim() || c.k;
   if (cur().assets){
     e.acct = entryDraft.acct;
@@ -3145,7 +3531,7 @@ function buildPayload(){
     });
     (l.data || []).forEach(e => {
       const row = { id:e.id, ledger:l.id, d:e.d, t:e.t,
-                    type:e.type, cat:e.cat || "", amt:Number(e.amt) || 0 };
+                    type:e.type, cat:e.cat || "", sub:e.sub || "", amt:Number(e.amt) || 0 };
       if (e.type === "transfer"){
         row.pay = assetNameIn(l, e.fromId);
         row.toPay = assetNameIn(l, e.toId);
@@ -3162,8 +3548,29 @@ function buildPayload(){
   });
   return {
     ledgers, assets, entries,
-    settings: { weekly_budget: Number(settings.weekBudget) || 0, payday: Number(settings.payday) || 25 }
+    settings: {
+      weekly_budget: Number(settings.weekBudget) || 0,
+      payday: Number(settings.payday) || 25,
+      cat_subs: JSON.stringify(catSubsPayload())
+    }
   };
+}
+
+/* 카테고리별 세부 분류 목록 — 설정 탭에 한 칸으로 같이 저장해 기기 사이에 유지합니다 */
+function catSubsPayload(){
+  const out = {};
+  LEDGERS.forEach(l => {
+    const m = {};
+    ["expense", "income"].forEach(t => {
+      (l.cats[t] || []).forEach(c => {
+        if (Array.isArray(c.subs) && c.subs.length){
+          (m[t] = m[t] || {})[c.k] = c.subs.slice();
+        }
+      });
+    });
+    if (Object.keys(m).length) out[l.id] = m;
+  });
+  return out;
 }
 
 function remoteEntryToLocal(e, l){
@@ -3174,6 +3581,7 @@ function remoteEntryToLocal(e, l){
     memo: e.memo || e.note || "",
     amt: Number(e.amt) || 0
   };
+  if (e.sub) out.sub = String(e.sub);
   if (type === "transfer"){
     out.fromId = assetIdByName(l, e.pay);
     out.toId = assetIdByName(l, e.toPay);
@@ -3273,6 +3681,22 @@ function applyRemote(remote, opts){
   if (isFinite(budget) && budget > 0) settings.weekBudget = budget;
   const pd = Number(st.payday);
   if (isFinite(pd) && pd >= 1 && pd <= 28) settings.payday = pd;
+  if (typeof st.cat_subs === "string" && st.cat_subs){
+    try{
+      const m = JSON.parse(st.cat_subs);
+      Object.keys(m || {}).forEach(lid => {
+        const l = ledgerById(lid);
+        if (!l) return;
+        ["expense", "income"].forEach(t => {
+          const src = (m[lid] && m[lid][t]) || {};
+          Object.keys(src).forEach(k => {
+            const c = (l.cats[t] || []).find(x => x.k === k);
+            if (c && Array.isArray(src[k])) c.subs = src[k].map(String).filter(Boolean);
+          });
+        });
+      });
+    }catch(e){}
+  }
 
   if (!ledgerById(state.ledger) && LEDGERS.length) state.ledger = LEDGERS[0].id;
   ASSETS = cur().assetsList || [];
