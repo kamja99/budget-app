@@ -1731,8 +1731,9 @@ function weekState(){
   const {mon, sun} = weekRange(today);
   const mk = iso(mon), sk = iso(sun);
   const p = ledgerById("personal");
+  /* 잔액 맞추기로 생긴 「잔액조정」 내역은 실제 소비가 아니므로 생활비에서 빼집니다 */
   const spent = (p ? p.data : [])
-    .filter(e => e.type === "expense" && e.d >= mk && e.d <= sk)
+    .filter(e => e.type === "expense" && e.d >= mk && e.d <= sk && e.cat !== "잔액조정")
     .reduce((s,e)=> s + e.amt, 0);
   const budget = settings.weekBudget;
   const left = budget - spent;
