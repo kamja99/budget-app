@@ -288,6 +288,61 @@
   .statEmpty .e{font-size:24px;margin-bottom:8px}
   .statEmpty p{font-size:12px;margin:0 0 12px;letter-spacing:-.01em;line-height:1.5}
 
+  /* 통계: 주간 추이 (월~일 8주) */
+  .wkCard{flex:0 0 auto;margin-top:4px;padding-top:8px;border-top:1px solid var(--hair)}
+  .wkCard[hidden]{display:none}
+  .wkHead{display:flex;align-items:center;gap:6px}
+  .wkTitle{
+    font-size:10.5px;font-weight:800;color:#4B5563;letter-spacing:-.02em;
+    display:flex;align-items:baseline;gap:5px;white-space:nowrap;
+  }
+  .wkTitle em{font-style:normal;font-size:9.5px;font-weight:700;color:#B0B8C1}
+  .wkRange{
+    margin-left:auto;font-size:9.5px;font-weight:700;color:#AEB6C0;
+    letter-spacing:-.01em;font-variant-numeric:tabular-nums;white-space:nowrap;
+  }
+  .wkChips{
+    display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;
+    margin:6px -2px 0;padding:1px 2px 2px;scroll-padding:0 2px;
+  }
+  .wkChips::-webkit-scrollbar{display:none}
+  .wkChips.more{mask-image:linear-gradient(to right,#000 calc(100% - 16px),rgba(0,0,0,.15));-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 16px),rgba(0,0,0,.15))}
+  .wkChip{
+    flex:0 0 auto;border:1px solid #E6EAEF;background:#fff;color:#6B7684;
+    font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:-.02em;
+    line-height:1.1;padding:5px 9px;border-radius:99px;cursor:pointer;white-space:nowrap;
+  }
+  .wkChip:active{background:#F5F7F9}
+  .wkChip.on{background:var(--theme-soft);border-color:var(--theme);color:var(--theme-ink)}
+  .wkChip.on:active{background:var(--theme-soft)}
+  .wkPlotWrap{position:relative;margin-top:3px;min-width:0}
+  .wkPlot{width:100%}
+  .wkPlot svg{display:block;width:100%;height:auto}
+  .wkPlot .wkCol{cursor:pointer}
+  .wkFoot{
+    display:flex;align-items:center;gap:5px;margin-top:1px;min-height:17px;
+    font-size:10px;font-weight:700;color:#8B95A1;letter-spacing:-.01em;
+    font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;
+  }
+  .wkFoot .wkFlt{flex:1 1 auto;min-width:0;display:flex;align-items:baseline;gap:5px;overflow:hidden;text-overflow:ellipsis}
+  .wkFoot b{font-size:11px;font-weight:800;color:#2B3440;letter-spacing:-.03em}
+  .wkFoot em{font-style:normal;font-size:9px;font-weight:700;color:#B0B8C1;letter-spacing:-.01em;flex:0 0 auto}
+  .wkFoot .wkDiff{flex:0 0 auto;font-weight:800;letter-spacing:-.02em}
+  .wkFoot .wkDiff.bad{color:var(--expense)}
+  .wkFoot .wkDiff.good{color:var(--income)}
+  .wkTip{
+    position:absolute;top:3px;left:0;z-index:5;transform:translate(-50%,0);
+    background:#20262F;color:#fff;border-radius:10px;padding:6px 9px;
+    font-size:9.5px;font-weight:700;line-height:1.35;letter-spacing:-.01em;
+    white-space:nowrap;pointer-events:none;box-shadow:0 8px 20px rgba(16,20,28,.24);
+  }
+  .wkTip[hidden]{display:none}
+  .wkTip b{display:block;font-size:11px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .wkTip i{display:block;font-style:normal;font-size:9px;font-weight:700;color:#C2CBD6;margin-top:1px}
+  .wkTip .wkDiff{font-weight:800}
+  .wkTip .wkDiff.bad{color:#FF9AA4}
+  .wkTip .wkDiff.good{color:#8FE0C4}
+
   /* 통계: 선택한 카테고리 내역 (모바일 바텀시트 / PC 오른쪽 패널) */
   .statDetailWrap{position:fixed;inset:0;z-index:18;display:flex;align-items:flex-end}
   .statDetailWrap[hidden]{display:none}
@@ -940,6 +995,17 @@
     .statHeroText .k{font-size:12.5px}
     .statHeroText b{font-size:21px;margin-top:5px}
     .statHeroText .s{font-size:11.5px;margin-top:6px}
+    .wkCard{margin-top:6px;padding-top:11px}
+    .wkTitle{font-size:11.5px}
+    .wkTitle em{font-size:10.5px}
+    .wkRange{font-size:10.5px}
+    .wkChips{gap:6px;margin:8px -2px 0;padding:1px 2px 3px}
+    .wkChip{font-size:11.5px;padding:6px 11px}
+    .wkChip:hover{background:#F5F7F9}
+    .wkChip.on:hover{background:var(--theme-soft)}
+    .wkPlotWrap{margin-top:5px}
+    .wkFoot{margin-top:2px;font-size:11px;min-height:19px}
+    .wkFoot b{font-size:12px}
     .statCatList{margin:4px -6px 0;padding:0 6px 8px}
     .statRow{padding:9px 10px;gap:11px}
     .statRow:hover{background:#F7F8FA}
@@ -1119,6 +1185,18 @@
         <span class="s" id="statHeroS">—</span>
       </div>
     </div>
+    <section class="wkCard" id="wkCard" aria-labelledby="wkTitle">
+      <div class="wkHead">
+        <div class="wkTitle" id="wkTitle">주간 지출 추이 <em>월~일</em></div>
+        <div class="wkRange" id="wkRange">최근 8주</div>
+      </div>
+      <div class="wkChips" id="wkChips" role="group" aria-label="주간 추이 카테고리"></div>
+      <div class="wkPlotWrap">
+        <div class="wkPlot" id="wkPlot"></div>
+        <div class="wkTip" id="wkTip" hidden></div>
+      </div>
+      <div class="wkFoot" id="wkFoot"></div>
+    </section>
     <div class="statCatList" id="statCatList"></div>
   </section>
 
@@ -1639,6 +1717,8 @@ const state = {
   statCat:null,             // 통계에서 고른 카테고리
   statSub:null,             // 통계 상세에서 고른 세부 분류 (null이면 전체)
   statDetailOpen:false,     // 모바일: 카테고리 내역 시트 열림
+  trendCat:null,            // 주간 추이에서 고른 카테고리 (null이면 전체)
+  trendWeek:null,           // 주간 추이에서 고른 주 (월요일 날짜 키)
   form:{ type:"expense", cat:null, acct:null, fromId:null, toId:null }
 };
 
@@ -2277,6 +2357,7 @@ function renderStats(){
     }).join("");
   }
 
+  renderWeekTrend();
   renderStatDetail(st);
   /* 스크롤이 필요한 목록은 아래를 살짝 흐리게 */
   requestAnimationFrame(() => {
@@ -2337,6 +2418,225 @@ function renderStatDetail(st){
     <div class="sdList">${rows || `<div class="sdEmpty">내역이 없어요.</div>`}</div>`;
 }
 
+/* =========================================================
+   주간 추이 — 월~일 8주 지출(수입) 비교
+   ---------------------------------------------------------
+   · 전체: 이번 주 생활비와 같은 기준(이체·잔액조정 제외)
+   · 칩: 이 장부의 카테고리별 주간 추이로 바로 전환
+   · 지출 전체에서는 주간 생활비 예산을 점선 기준선으로 함께 그림
+   ========================================================= */
+const TREND_WEEKS = 8;
+let trendSeq = [];        // 지금 그린 주별 값 (클릭·툴팁에 씁니다)
+let trendGeom = null;     // 막대 중심 x (툴팁 위치 계산)
+let trendW = 0;           // 마지막으로 그린 가로 폭
+
+const trendType = () => state.statType === "income" ? "income" : "expense";
+const mdShort = d => `${d.getMonth()+1}/${d.getDate()}`;
+const trendRangeLabel = w => `${mdShort(w.mon)}~${mdShort(w.sun)}`;
+
+function trendCats(){
+  return (cur().cats[trendType()] || []).filter(c => trendType() !== "expense" || c.k !== "잔액조정");
+}
+function trendSeries(){
+  const type = trendType(), cat = state.trendCat;
+  const {mon} = weekRange(today);
+  const out = [];
+  for (let i = TREND_WEEKS - 1; i >= 0; i--){
+    const m = addDays(mon, -7 * i), s = addDays(m, 6);
+    const mk = iso(m), sk = iso(s);
+    let amt = 0, n = 0;
+    cur().data.forEach(e => {
+      if (e.type !== type || e.d < mk || e.d > sk) return;
+      if (type === "expense" && e.cat === "잔액조정") return;   // 생활비와 같은 기준
+      if (cat && e.cat !== cat) return;
+      amt += e.amt; n += 1;
+    });
+    out.push({ mon:m, sun:s, mk, sk, amt, n, now: i === 0 });
+  }
+  return out;
+}
+/* 축에 쓰는 짧은 금액 — 15만 / 1.2억 처럼 */
+function wonShort(v){
+  v = Math.abs(v);
+  if (v >= 100000000) return (v / 100000000).toFixed(v % 100000000 ? 1 : 0) + "억";
+  if (v >= 10000) return (v / 10000).toFixed(v % 10000 ? 1 : 0) + "만";
+  return nf.format(Math.round(v));
+}
+/* 축 최대값을 읽기 좋은 숫자로 올려 줍니다 */
+function niceCeil(v){
+  if (!(v > 0)) return 1;
+  const p = Math.pow(10, Math.floor(Math.log10(v)));
+  const n = v / p;
+  const m = n <= 1 ? 1 : n <= 1.5 ? 1.5 : n <= 2 ? 2 : n <= 3 ? 3 : n <= 4 ? 4 : n <= 5 ? 5 : n <= 8 ? 8 : 10;
+  return m * p;
+}
+const trendDiffClass = (type, diff) =>
+  (diff === null || diff === 0) ? "" : ((type === "expense" ? diff > 0 : diff < 0) ? "bad" : "good");
+
+function trendSvg(series, color, budget){
+  const host = document.getElementById("wkPlot");
+  const W = Math.max(232, Math.round(host.clientWidth || 300));
+  const H = Math.round(Math.min(170, Math.max(124, W * 0.4)));
+  const PL = 2, PR = 2, PT = 20, PB = 18;
+  const pw = W - PL - PR, ph = H - PT - PB, baseY = PT + ph;
+  const maxVal = Math.max(...series.map(w => w.amt), budget || 0);
+  const max = niceCeil(maxVal > 0 ? maxVal * 1.07 : 10000);
+  const yOf = v => baseY - ph * (v / max);
+  const slot = pw / series.length;
+  const bw = Math.max(7, Math.min(46, slot * 0.56));
+  const focus = state.trendWeek || series[series.length - 1].mk;
+  const soft = cur().soft || "#E8F2F0", ink = cur().ink || "#17665A";
+  const fs = W >= 420 ? 9.5 : 8.6;
+
+  const anyData = series.some(w => w.amt > 0);
+  const band = !anyData ? "" : series.map((w, i) => w.mk === focus
+    ? `<rect x="${(PL + slot * i + 1).toFixed(1)}" y="${PT - 3}" width="${(slot - 2).toFixed(1)}" height="${ph + 3}" rx="8" fill="${soft}"></rect>`
+    : "").join("");
+
+  const grid = [0.5, 1].map(k =>
+    `<line x1="${PL}" y1="${(PT + ph * (1 - k)).toFixed(1)}" x2="${W - PR}" y2="${(PT + ph * (1 - k)).toFixed(1)}" stroke="#F1F3F6" stroke-width="1"></line>`).join("");
+
+  const bars = series.map((w, i) => {
+    const cx = PL + slot * (i + 0.5);
+    const h = w.amt > 0 ? Math.max(3, baseY - yOf(w.amt)) : 0;
+    const on = w.mk === focus;
+    if (!h)
+      return `<rect x="${(cx - bw / 2).toFixed(1)}" y="${baseY - 2}" width="${bw.toFixed(1)}" height="2" rx="1" fill="#EDEFF3"></rect>`;
+    return `<rect x="${(cx - bw / 2).toFixed(1)}" y="${(baseY - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="${Math.min(5, bw / 2).toFixed(1)}" fill="${color}" fill-opacity="${on ? 1 : 0.5}"></rect>`;
+  }).join("");
+
+  const labels = series.map((w, i) => {
+    const cx = PL + slot * (i + 0.5), on = w.mk === focus;
+    return `<text x="${cx.toFixed(1)}" y="${(baseY + fs + 4).toFixed(1)}" text-anchor="middle" font-size="${fs}" font-weight="${on ? 800 : 700}" fill="${on ? ink : "#AEB6C0"}">${mdShort(w.mon)}</text>`;
+  }).join("");
+
+  const budgetLine = budget
+    ? `<line x1="${PL}" y1="${yOf(budget).toFixed(1)}" x2="${W - PR}" y2="${yOf(budget).toFixed(1)}" stroke="#9AA3AE" stroke-width="1" stroke-dasharray="4 3" stroke-linecap="round"></line>`
+    : "";
+  const budgetKey = budget
+    ? `<g><line x1="${PL + 1}" y1="7" x2="${PL + 13}" y2="7" stroke="#9AA3AE" stroke-width="1.4" stroke-dasharray="3 2.4" stroke-linecap="round"></line>` +
+      `<text x="${PL + 17}" y="${(7 + fs * 0.36).toFixed(1)}" font-size="${fs}" font-weight="800" fill="#8B95A1">예산 ${wonShort(budget)}</text></g>`
+    : "";
+  const maxKey = `<text x="${W - PR}" y="${(7 + fs * 0.36).toFixed(1)}" text-anchor="end" font-size="${fs}" font-weight="700" fill="#C3CAD2">${wonShort(max)}</text>`;
+
+  /* 막대가 가늘어도 누르기 쉽도록 주(週) 칸 전체를 누름 영역으로 씌웁니다 */
+  const hits = series.map((w, i) =>
+    `<rect class="wkCol" data-w="${i}" x="${(PL + slot * i).toFixed(1)}" y="${PT - 4}" width="${slot.toFixed(1)}" height="${(ph + PB).toFixed(1)}" fill="transparent" pointer-events="all" role="button" tabindex="0" aria-label="${trendRangeLabel(w)} ${won(w.amt)}"></rect>`).join("");
+
+  trendGeom = { W, bar: series.map((w, i) => (PL + slot * (i + 0.5)) / W * 100) };
+  trendW = W;
+
+  const typeK = trendType() === "income" ? "수입" : "지출";
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="최근 ${series.length}주 ${typeK} 추이">
+    ${band}${grid}
+    <line x1="${PL}" y1="${baseY}" x2="${W - PR}" y2="${baseY}" stroke="#E9ECF0" stroke-width="1"></line>
+    ${bars}${budgetLine}${labels}${budgetKey}${maxKey}${hits}
+  </svg>`;
+}
+
+function renderTrendFoot(series){
+  const key = state.trendWeek || series[series.length - 1].mk;
+  const i = Math.max(0, series.findIndex(w => w.mk === key));
+  const w = series[i];
+  const diff = i > 0 ? w.amt - series[i - 1].amt : null;
+  const cls = trendDiffClass(trendType(), diff);
+  document.getElementById("wkFoot").innerHTML =
+    `<span class="wkFlt"><b>${trendRangeLabel(w)}</b> ${won(w.amt)}${w.now ? "<em>이번 주 진행 중</em>" : ""}</span>` +
+    (diff === null
+      ? `<span class="wkDiff">비교할 전주가 없어요</span>`
+      : `<span class="wkDiff ${cls}">전주 대비 ${diff === 0 ? "전주와 같아요" : signedWon(diff)}</span>`);
+}
+
+function renderWeekTrend(){
+  const type = trendType(), cats = trendCats();
+  if (state.trendCat && !cats.some(c => c.k === state.trendCat)) state.trendCat = null;
+  const series = trendSeries();
+  trendSeq = series;
+
+  document.getElementById("wkTitle").innerHTML =
+    `주간 ${type === "income" ? "수입" : "지출"} 추이 <em>월~일</em>`;
+  document.getElementById("wkRange").textContent =
+    `${mdShort(series[0].mon)}~${mdShort(series[series.length - 1].sun)}`;
+
+  const allLabel = type === "income" ? "수입 전체" : (cur().living ? "생활비 전체" : "지출 전체");
+  const chips = [{ k:"", label:allLabel }].concat(cats.map(c => ({ k:c.k, label:c.k })));
+  const chipBox = document.getElementById("wkChips");
+  chipBox.innerHTML = chips.map(c => {
+    const on = (state.trendCat || "") === c.k;
+    return `<button class="wkChip ${on ? "on" : ""}" data-tcat="${esc(c.k)}" aria-pressed="${on}">${esc(c.label)}</button>`;
+  }).join("");
+  const syncChipFade = () => chipBox.classList.toggle("more",
+    chipBox.scrollWidth - chipBox.scrollLeft - chipBox.clientWidth > 2);
+  requestAnimationFrame(syncChipFade);
+  if (!chipBox.dataset.fadeOn){
+    chipBox.dataset.fadeOn = "1";
+    chipBox.addEventListener("scroll", syncChipFade, { passive: true });
+  }
+
+  const isAll = !state.trendCat;
+  const budget = (type === "expense" && isAll && cur().living) ? (Number(settings.weekBudget) || 0) : 0;
+  const color = state.trendCat ? catOf(type, state.trendCat).c : cur().theme;
+  document.getElementById("wkPlot").innerHTML = trendSvg(series, color, budget);
+  document.getElementById("wkTip").hidden = true;
+  renderTrendFoot(series);
+}
+
+function placeTrendTip(i){
+  const tip = document.getElementById("wkTip");
+  const w = trendSeq[i];
+  if (!w || !trendGeom){ tip.hidden = true; return; }
+  const diff = i > 0 ? w.amt - trendSeq[i - 1].amt : null;
+  const cls = trendDiffClass(trendType(), diff);
+  tip.innerHTML = `<b>${won(w.amt)}</b>` +
+    `<i>${trendRangeLabel(w)}${w.now ? " · 진행 중" : ""}${w.n ? ` · ${w.n}건` : ""}</i>` +
+    (diff === null ? "" : `<i class="wkDiff ${cls}">전주 대비 ${diff === 0 ? "전주와 같아요" : signedWon(diff)}</i>`);
+  tip.style.left = Math.min(86, Math.max(14, trendGeom.bar[i] || 50)) + "%";
+  tip.hidden = false;
+}
+
+const wkPlotEl = document.getElementById("wkPlot");
+wkPlotEl.addEventListener("pointerover", ev => {
+  const col = ev.target.closest ? ev.target.closest("[data-w]") : null;
+  if (col) placeTrendTip(Number(col.dataset.w));
+});
+wkPlotEl.addEventListener("pointerleave", () => { document.getElementById("wkTip").hidden = true; });
+function selectTrendWeek(i){
+  const w = trendSeq[i];
+  if (!w) return;
+  state.trendWeek = state.trendWeek === w.mk ? null : w.mk;
+  renderWeekTrend();
+  placeTrendTip(i);
+}
+wkPlotEl.addEventListener("click", ev => {
+  const col = ev.target.closest ? ev.target.closest("[data-w]") : null;
+  if (col) selectTrendWeek(Number(col.dataset.w));
+});
+wkPlotEl.addEventListener("keydown", ev => {
+  if (ev.key !== "Enter" && ev.key !== " ") return;
+  const col = ev.target.closest ? ev.target.closest("[data-w]") : null;
+  if (!col) return;
+  ev.preventDefault();
+  selectTrendWeek(Number(col.dataset.w));
+});
+document.getElementById("wkChips").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-tcat]");
+  if (!b) return;
+  const k = b.dataset.tcat || null;
+  if (k === state.trendCat) return;
+  state.trendCat = k;
+  state.trendWeek = null;
+  renderWeekTrend();
+});
+/* 창 폭이 바뀌어도 그래프 글자가 늘어나지 않게 실제 폭으로 다시 그립니다 */
+try{
+  new ResizeObserver(() => {
+    if (state.screen !== "stats") return;
+    const w = Math.round(document.getElementById("wkPlot").clientWidth || 0);
+    if (!w || Math.abs(w - trendW) < 1) return;
+    renderWeekTrend();
+  }).observe(document.getElementById("wkCard"));
+}catch(e){}
+
 function openStatAdd(){
   openAdd({ type: state.statType, cat: state.statCat });
 }
@@ -2352,6 +2652,7 @@ document.getElementById("statTypeSeg").addEventListener("click", ev => {
   if (!b || b.dataset.stype === state.statType) return;
   state.statType = b.dataset.stype;
   state.statCat = null;
+  state.trendWeek = null;
   renderStats();
 });
 
@@ -2837,6 +3138,8 @@ function switchLedger(id){
   state.tab = "all";
   state.statCat = null;
   state.statSub = null;
+  state.trendCat = null;
+  state.trendWeek = null;
   if (!l.cycle) state.mode = "month";
   sorting = false;
   document.body.classList.remove("sorting");
