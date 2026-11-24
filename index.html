@@ -574,6 +574,38 @@
   .amA.dn{color:var(--expense)}
   .amA.trf{color:var(--transfer)}
   .amNone{font-size:11px;color:#AEB6C0;letter-spacing:-.01em;padding:7px 2px}
+  .amFlows.three .amFlow{padding:9px 10px 10px}
+  .amFlows.three .amFlow b{font-size:12.5px}
+  .amFlow b.trf{color:var(--transfer)}
+  /* 자산 상세 모달: 잔액 맞추기 · 즉시결제 기록 */
+  .assetActs{display:flex;gap:8px;margin:12px 0 2px}
+  .assetActs[hidden]{display:none}
+  .actBtn{
+    flex:1 1 0;min-width:0;border:1px solid #E9EBEF;background:#FBFBFC;color:#3E4A5A;font-family:inherit;
+    font-size:11.5px;font-weight:800;letter-spacing:-.02em;padding:10px 6px;border-radius:12px;cursor:pointer;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .actBtn:active{background:#F2F4F6}
+  .actBtn[hidden]{display:none}
+  /* 카드 혜택 기준 금액(목표 실적) */
+  .cCard{margin-top:2px}
+  .cCard[hidden]{display:none}
+  .cBen{margin:-4px 0 14px;background:#F7F8FA;border-radius:12px;padding:10px 12px 11px}
+  .cBen[hidden]{display:none}
+  .cBenTop{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+  .cBenTop b{font-size:11.5px;font-weight:800;letter-spacing:-.02em;color:#3E4A5A}
+  .cBenTop span{font-size:10.5px;font-weight:700;color:#8B95A1;letter-spacing:-.01em;font-variant-numeric:tabular-nums;text-align:right}
+  .cBen.done .cBenTop b,.cBen.done .cBenTop span{color:var(--theme-ink)}
+  .cBenBar{height:6px;border-radius:99px;background:#E9EBEF;margin-top:8px;overflow:hidden}
+  .cBenBar i{display:block;height:100%;border-radius:99px;background:var(--theme);transition:width .25s ease}
+  .cBenBar i.ok{background:#12A075}
+  /* 카드 줄: 진행 막대 + 혜택 상태 */
+  .aBar{display:block;height:4px;border-radius:99px;background:#F1F3F6;margin-top:6px;overflow:hidden}
+  .aBar i{display:block;height:100%;border-radius:99px;background:var(--theme);transition:width .25s ease}
+  .aBar i.ok{background:#12A075}
+  .aBen{display:block;font-size:9.5px;font-weight:700;color:#8B95A1;margin-top:4px;letter-spacing:-.01em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+  .aBen.ok{color:var(--theme-ink)}
   .amEditHead{
     display:flex;align-items:center;gap:7px;margin:14px 0 10px;padding-top:12px;
     border-top:1px solid var(--hair);font-size:11px;font-weight:800;color:#8B95A1;letter-spacing:-.01em;
@@ -1252,6 +1284,11 @@
     <div class="amFlows" id="assetFlows" hidden>
       <div class="amFlow"><span id="assetFlowK1">이번 기간 입금</span><b id="assetFlowV1" class="up">+0원</b></div>
       <div class="amFlow"><span id="assetFlowK2">이번 기간 출금</span><b id="assetFlowV2" class="dn">−0원</b></div>
+      <div class="amFlow" id="assetFlow3" hidden><span id="assetFlowK3">남은 결제</span><b id="assetFlowV3" class="nt">0원</b></div>
+    </div>
+    <div class="assetActs" id="assetActs" hidden>
+      <button class="actBtn" id="assetAdjustBtn">⚖️ 잔액 맞추기</button>
+      <button class="actBtn" id="assetPrepayBtn">💸 즉시결제 기록</button>
     </div>
     <div class="amRecent" id="assetRecent" hidden>
       <div class="fLabel" style="margin-top:8px">최근 내역</div>
@@ -1269,7 +1306,55 @@
         <span>원</span>
       </div>
     </div>
+    <div class="cCard" id="assetCardWrap" hidden>
+      <div class="fLabel">혜택 기준 금액(목표 실적)<em class="opt">비워 두면 미사용</em></div>
+      <div class="amountField">
+        <input id="assetTarget" inputmode="numeric" placeholder="0" autocomplete="off" />
+        <span>원</span>
+      </div>
+      <div class="chips" id="assetTargetPresets"></div>
+      <div class="cBen" id="assetBen" hidden>
+        <div class="cBenTop"><b id="assetBenTitle">—</b><span id="assetBenSub">—</span></div>
+        <div class="cBenBar"><i id="assetBenFill" style="width:0%"></i></div>
+      </div>
+    </div>
     <button class="saveBtn" id="assetSave">저장</button>
+  </div>
+</div>
+<div class="modalWrap" id="adjustModal" hidden>
+  <div class="backdrop" id="adjustBackdrop"></div>
+  <div class="modalCard">
+    <div class="handle" style="margin-bottom:8px"></div>
+    <h2>잔액 맞추기</h2>
+    <div class="modalDate" id="adjustSub">—</div>
+    <div class="amFlows" style="margin-top:0">
+      <div class="amFlow"><span>현재 앱 잔액</span><b class="nt" id="adjustAppBal">0원</b></div>
+      <div class="amFlow"><span>차액</span><b class="nt" id="adjustDiff">0원</b></div>
+    </div>
+    <div class="fLabel" style="margin-top:14px">실제 현재 잔액</div>
+    <div class="amountField">
+      <input id="adjustInput" inputmode="numeric" placeholder="0" autocomplete="off" />
+      <span>원</span>
+    </div>
+    <p class="note" style="padding:0 0 14px" id="adjustNote">실제 잔액을 넣으면 차액만큼 «잔액 맞추기» 내역이 하나 추가돼 정확히 맞춰져요.</p>
+    <button class="saveBtn" id="adjustSave">차액 저장</button>
+  </div>
+</div>
+<div class="modalWrap" id="prepayModal" hidden>
+  <div class="backdrop" id="prepayBackdrop"></div>
+  <div class="modalCard">
+    <div class="handle" style="margin-bottom:8px"></div>
+    <h2>카드 즉시결제</h2>
+    <div class="modalDate" id="prepaySub">—</div>
+    <div class="fLabel">출금 통장</div>
+    <div class="chips" id="prepayFromChips"></div>
+    <div class="fLabel">즉시결제 금액</div>
+    <div class="amountField">
+      <input id="prepayAmt" inputmode="numeric" placeholder="0" autocomplete="off" />
+      <span>원</span>
+    </div>
+    <p class="note" style="padding:0 0 14px" id="prepayNote">—</p>
+    <button class="saveBtn" id="prepaySave">즉시결제로 기록</button>
   </div>
 </div>
 <div class="modalWrap" id="entryModal" hidden>
@@ -2206,26 +2291,80 @@ try{
 /* ---------- 자산 화면 ---------- */
 const isCardAsset = a => a.group === "카드" || a.kind === "card";
 
-function cardNextPayment(a){
-  return cur().data
-    .filter(e => e.type === "transfer" && e.toId === a.id && e.d > TODAY_KEY)
-    .sort((x,y) => x.d.localeCompare(y.d))[0] || null;
-}
-/* 카드: 이번 기간 사용액과 결제예정금액(다음 결제 이체가 있으면 그 금액) */
-function cardDueOf(a, start, end){
-  const next = cardNextPayment(a);
-  const used = spentInRange(a.id, start, end);
-  return { due: next ? next.amt : used, date: next ? next.d : null, used };
+/* 카드로 나간 지출 / 카드로 들어온 이체(즉시결제)를 이번 기간 기준으로 모읍니다.
+   은행 → 카드 이체를 하면 그 금액이 바로 즉시결제로 집계됩니다. */
+function cardUsageOf(a, start, end){
+  const s = iso(start), e2 = iso(end);
+  let used = 0, prepaid = 0;
+  cur().data.forEach(e => {
+    if (e.d < s || e.d > e2) return;
+    if (e.type === "expense" && e.acct === a.id) used += e.amt;
+    else if (e.type === "transfer" && e.toId === a.id) prepaid += e.amt;
+  });
+  return { used, prepaid, remain: Math.max(0, used - prepaid), over: Math.max(0, prepaid - used) };
 }
 
-/* 자산 한 줄: 아이콘 + 이름 + 용도 한 줄 + 오른쪽 현재 잔액(카드는 결제예정금액)
-   이번 기간 입출금 합계는 줄에 붙이지 않고, 행을 열었을 때 모달에서 보여 줍니다. */
+/* 카드: 이번 기간 사용액 · 즉시결제 · 남은 결제 예정 금액 */
+function cardDueOf(a, start, end){
+  const u = cardUsageOf(a, start, end);
+  return { due: u.remain, remain: u.remain, used: u.used, prepaid: u.prepaid, over: u.over, date: null };
+}
+
+/* 카드별 혜택 기준 금액(목표 실적) — settings.cardMeta 에 카드 id별로 저장되고
+   구글 시트의 설정 탭(card_meta JSON)과도 자동으로 오갑니다. */
+function cardMetaTarget(a){
+  const m = (settings.cardMeta || {})[a.id] || {};
+  const t = Math.round(Number(m.target) || 0);
+  return t > 0 ? t : 0;
+}
+function setCardMetaTarget(id, target){
+  if (!id) return;
+  settings.cardMeta = settings.cardMeta || {};
+  const t = Math.round(Number(target) || 0);
+  if (t > 0) settings.cardMeta[id] = { target: t };
+  else delete settings.cardMeta[id];
+}
+function cardMetaPayload(){
+  const known = new Set();
+  LEDGERS.forEach(l => (l.assetsList || []).forEach(a => known.add(a.id)));
+  const out = {};
+  Object.keys(settings.cardMeta || {}).forEach(id => {
+    const t = Math.round(Number((settings.cardMeta[id] || {}).target) || 0);
+    if (t > 0 && known.has(id)) out[id] = { target: t };
+  });
+  return out;
+}
+/* 이번 기간 사용액으로 혜택 기준 달성도를 계산 (기준이 없으면 null) */
+function cardBenefit(a, start, end, target){
+  const t = Number(target) || cardMetaTarget(a);
+  if (!t) return null;
+  const used = cardUsageOf(a, start, end).used;
+  const done = used >= t;
+  return { target: t, used, done,
+           left: Math.max(0, t - used), extra: Math.max(0, used - t),
+           pct: Math.min(100, Math.round(used / t * 100)) };
+}
+function benefitLine(b){
+  return b.done
+    ? `✅ 혜택 기준 ${won(b.target)} 달성! (+${won(b.extra)})`
+    : `혜택 기준 ${won(b.target)} 중 ${won(b.used)} · ${won(b.left)} 남음`;
+}
+
+/* 자산 한 줄: 아이콘 + 이름 + 용도 한 줄 + 오른쪽 금액
+   · 카드는 오른쪽에 「남은 결제 예정 금액」, 그 아래에 사용·즉시결제 한 줄,
+     혜택 기준 금액을 정해 두었으면 얇은 진행 막대와 달성 상태를 붙입니다. */
 function assetRowHtml(a, start, end){
-  let sub = "", val = "";
+  let sub = "", val = "", extra = "";
   if (isCardAsset(a)){
-    const {due, date} = cardDueOf(a, start, end);
-    sub = [a.note, date ? `${mdLabel(parseKey(date))} 결제` : "결제 예정 없음"].filter(Boolean).join(" · ");
-    val = `<b>${won(due)}</b><span>결제예정금액</span>`;
+    const u = cardUsageOf(a, start, end);
+    sub = `사용 ${won(u.used)} · 즉시결제 ${won(u.prepaid)}`;
+    if (u.over > 0) sub += ` · 초과 ${won(u.over)}`;
+    val = `<b>${won(u.remain)}</b><span>남은 결제</span>`;
+    const b = cardBenefit(a, start, end);
+    if (b){
+      extra = `<span class="aBar"><i class="${b.done ? "ok" : ""}" style="width:${b.pct}%"></i></span>
+        <span class="aBen ${b.done ? "ok" : ""}">${benefitLine(b)}</span>`;
+    }
   } else {
     const bal = balanceOf(a);
     sub = a.note || "";
@@ -2236,6 +2375,7 @@ function assetRowHtml(a, start, end){
       <span class="aMain">
         <span class="aName">${esc(a.name)}</span>
         ${sub ? `<span class="aSub">${esc(sub)}</span>` : ""}
+        ${extra}
       </span>
       <span class="aVal">${val}</span>
       <span class="agHandle" data-item-handle="${a.id}" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -2245,10 +2385,10 @@ function assetRowHtml(a, start, end){
 function groupBlockHtml(g, start, end){
   const items = ASSETS.filter(a => a.group === g);
   const isCard = g === "카드";
-  const sum = items.reduce((s,a) => s + (isCard ? cardDueOf(a, start, end).due : balanceOf(a)), 0);
+  const sum = items.reduce((s,a) => s + (isCard ? cardUsageOf(a, start, end).remain : balanceOf(a)), 0);
   return `<div class="agBlock" data-group="${g}">
     <div class="agHead">
-      <b>${g}</b><span class="agNote">${items.length}${isCard ? "장" : "곳"} · ${won(sum)}</span>
+      <b>${g}</b><span class="agNote">${items.length}${isCard ? "장 · 남은 결제 " : "곳 · "}${won(sum)}</span>
       <span class="agHandle" data-group-handle="${g}" aria-hidden="true"><i></i><i></i><i></i></span>
     </div>
     <div class="agRows">${items.map(a => assetRowHtml(a, start, end)).join("")}</div>
@@ -2914,10 +3054,13 @@ document.getElementById("pcAddBtn").addEventListener("click", () => openAdd());
 document.getElementById("addClose").addEventListener("click", closeAdd);
 document.addEventListener("keydown", ev => {
   if (ev.key !== "Escape") return;
-  if (!document.getElementById("newLedgerWrap").hidden) closeNewLedger();
+  if (!document.getElementById("adjustModal").hidden) closeAdjustModal(true);
+  else if (!document.getElementById("prepayModal").hidden) closePrepayModal(true);
+  else if (!document.getElementById("newLedgerWrap").hidden) closeNewLedger();
   else if (!ledgerSheet.hidden) closeLedgerSheet();
   else if (!addScreen.hidden) closeAdd();
   else if (!document.getElementById("entryModal").hidden) closeEntryModal();
+  else if (!document.getElementById("assetModal").hidden) document.getElementById("assetModal").hidden = true;
 });
 
 document.getElementById("saveBtn").addEventListener("click", () => {
@@ -3041,6 +3184,7 @@ function openAssetModal(id){
   document.getElementById("assetName").value = a ? a.name : "";
   document.getElementById("assetInit").value = nf.format(a ? (a.init || 0) : 0);
   assetDraft = { group: a ? a.group : "은행" };
+  renderAssetTarget(a && isCardAsset(a) ? cardMetaTarget(a) : 0);
   renderAssetKinds();
 
   const sub = document.getElementById("assetModalSub");
@@ -3051,13 +3195,18 @@ function openAssetModal(id){
   if (a){
     const {start, end} = currentRange();
     if (isCardAsset(a)){
-      const {due, used} = cardDueOf(a, start, end);
-      const next = cardNextPayment(a);
-      setAssetFlow(1, "이번 기간 사용", `−${won(used)}`, "dn");
-      setAssetFlow(2, "결제예정금액", won(due), "nt");
-      sub.textContent = [a.name, a.note, next ? `${mdLabel(parseKey(next.d))} 결제` : "결제 예정 없음"]
-        .filter(Boolean).join(" · ");
+      const u = cardUsageOf(a, start, end);
+      document.getElementById("assetFlows").classList.add("three");
+      document.getElementById("assetFlow3").hidden = false;
+      const pLabel = effMode() === "cycle" ? "이번 급여" : "이번 달";
+      setAssetFlow(1, `${pLabel} 사용`, `−${won(u.used)}`, "dn");
+      setAssetFlow(2, "즉시결제", `+${won(u.prepaid)}`, u.prepaid ? "trf" : "nt");
+      setAssetFlow(3, "남은 결제", won(u.remain), "nt");
+      sub.textContent = [a.name, a.note,
+        u.over > 0 ? `즉시결제가 사용액보다 ${won(u.over)} 많아요` : ""].filter(Boolean).join(" · ");
     } else {
+      document.getElementById("assetFlows").classList.remove("three");
+      document.getElementById("assetFlow3").hidden = true;
       const {up, down} = flowsInRange(a, start, end);
       setAssetFlow(1, "이번 기간 입금", `+${won(up)}`, "up");
       setAssetFlow(2, "이번 기간 출금", `−${won(down)}`, "dn");
@@ -3095,13 +3244,65 @@ function openAssetModal(id){
 function renderAssetKinds(){
   document.getElementById("assetKinds").innerHTML = ASSET_GROUPS.map(g =>
     `<button class="chip ${assetDraft.group === g ? "on" : ""}" data-group="${g}">${GROUP_STYLE[g].e} ${g}</button>`).join("");
-  document.getElementById("assetInitWrap").hidden = assetDraft.group === "카드";
+  const isCard = assetDraft.group === "카드";
+  document.getElementById("assetInitWrap").hidden = isCard;
+  document.getElementById("assetCardWrap").hidden = !isCard;
+  const acts = document.getElementById("assetActs");
+  acts.hidden = !assetEditing;
+  document.getElementById("assetAdjustBtn").hidden = isCard;
+  document.getElementById("assetPrepayBtn").hidden = !isCard;
+  updateAssetBenefit();
 }
+
+/* 혜택 기준 금액 입력칸 + 빠른 선택 + 지금 사용액 기준 달성도 미리보기 */
+const TARGET_PRESETS = [0, 300000, 500000, 1000000];
+function renderAssetTarget(v){
+  const t = Math.round(Number(v) || 0);
+  const el = document.getElementById("assetTarget");
+  if (el) el.value = t > 0 ? nf.format(t) : "";
+  const box = document.getElementById("assetTargetPresets");
+  if (box) box.innerHTML = TARGET_PRESETS.map(x =>
+    `<button class="chip ${x === t ? "on" : ""}" data-target="${x}">${x ? nf.format(x) + "원" : "사용 안 함"}</button>`).join("");
+  updateAssetBenefit();
+}
+function updateAssetBenefit(){
+  const box = document.getElementById("assetBen");
+  if (!box) return;
+  const a = assetEditing ? assetById(assetEditing) : null;
+  const raw = document.getElementById("assetTarget").value.replace(/[^\d]/g, "");
+  const t = Number(raw) || 0;
+  if (!a || !isCardAsset(a) || !t){ box.hidden = true; return; }
+  const {start, end} = currentRange();
+  const b = cardBenefit(a, start, end, t);
+  document.getElementById("assetBenTitle").textContent = `혜택 기준 ${won(b.target)}`;
+  document.getElementById("assetBenSub").textContent = b.done
+    ? `달성! +${won(b.extra)}`
+    : `${won(b.used)} · ${won(b.left)} 남음`;
+  const fill = document.getElementById("assetBenFill");
+  fill.style.width = b.pct + "%";
+  fill.classList.toggle("ok", b.done);
+  box.classList.toggle("done", b.done);
+  box.hidden = false;
+}
+
 document.getElementById("assetKinds").addEventListener("click", ev => {
   const b = ev.target.closest("[data-group]");
   if (!b) return;
   assetDraft.group = b.dataset.group;
   renderAssetKinds();
+});
+document.getElementById("assetTargetPresets").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-target]");
+  if (!b) return;
+  renderAssetTarget(Number(b.dataset.target));
+});
+document.getElementById("assetTarget").addEventListener("input", ev => {
+  const digits = ev.target.value.replace(/[^\d]/g, "");
+  ev.target.value = digits ? nf.format(Number(digits)) : "";
+  const t = Number(digits) || 0;
+  document.querySelectorAll("#assetTargetPresets .chip").forEach(c =>
+    c.classList.toggle("on", Number(c.dataset.target) === t));
+  updateAssetBenefit();
 });
 document.getElementById("assetInit").addEventListener("input", ev => {
   const digits = ev.target.value.replace(/[^\d]/g, "");
@@ -3117,23 +3318,191 @@ document.getElementById("assetSave").addEventListener("click", () => {
   const kind = group === "카드" ? "card" : group === "현금" ? "cash" : "account";
   const payable = group === "현금" || group === "은행" || group === "카드";
   const init = group === "카드" ? 0 : Number(document.getElementById("assetInit").value.replace(/[^\d]/g,"") || 0);
+  const target = group === "카드"
+    ? Number(document.getElementById("assetTarget").value.replace(/[^\d]/g,"") || 0) : 0;
+  let savedId = assetEditing;
   if (assetEditing){
     const a = assetById(assetEditing);
     if (a){ a.name = name; a.group = group; a.kind = kind; a.init = init; a.payable = payable; }
   } else {
     const st = GROUP_STYLE[group] || GROUP_STYLE["은행"];
-    cur().assetsList.push({
+    const na = {
       id: "a" + Date.now().toString(36), name, group, kind, init,
       c: st.c, e: st.e, note: "", payable
-    });
+    };
+    cur().assetsList.push(na);
     ASSETS = cur().assetsList;
+    savedId = na.id;
   }
+  setCardMetaTarget(savedId, group === "카드" ? target : 0);
   saveAll();
   document.getElementById("assetModal").hidden = true;
   renderAll();
   showToast(`${name} 저장했어요`);
 });
 document.getElementById("addAssetBtn").addEventListener("click", () => openAssetModal(null));
+
+/* =========================================================
+   잔액 맞추기 (포인트·소액 이자 등으로 생긴 차액 조정)
+   ---------------------------------------------------------
+   실제 잔액을 넣으면 (실제 − 앱 잔액)만큼의 내역 하나를 지금 시각으로
+   추가합니다. 잔액이 늘었으면 수입, 줄었으면 지출이고 카테고리는
+   「잔액조정」입니다(없으면 그때 만들어서 저장).
+   ========================================================= */
+let adjustTarget = null;
+
+function ensureAdjustCat(type){
+  const cats = cur().cats[type] || (cur().cats[type] = []);
+  let c = cats.find(x => x.k === "잔액조정");
+  if (!c){ c = { k:"잔액조정", e:"⚖️", c:"#8B95A1" }; cats.push(c); }
+  return c.k;
+}
+function openAdjustModal(id){
+  const a = assetById(id);
+  if (!a) return;
+  adjustTarget = a;
+  const bal = balanceOf(a);
+  document.getElementById("adjustSub").textContent = `${a.name} · ${mdLabel(today)} 기준`;
+  const balEl = document.getElementById("adjustAppBal");
+  balEl.textContent = won(bal);
+  balEl.className = "nt" + (bal < 0 ? " neg" : "");
+  document.getElementById("adjustInput").value = "";
+  const diffEl = document.getElementById("adjustDiff");
+  diffEl.textContent = "0원";
+  diffEl.className = "nt";
+  document.getElementById("adjustNote").textContent =
+    "실제 잔액을 넣으면 차액만큼 «잔액 맞추기» 내역이 하나 추가돼 정확히 맞춰져요.";
+  document.getElementById("assetModal").hidden = true;
+  document.getElementById("adjustModal").hidden = false;
+  setTimeout(() => document.getElementById("adjustInput").focus(), 80);
+}
+function closeAdjustModal(reopen){
+  document.getElementById("adjustModal").hidden = true;
+  const a = adjustTarget;
+  adjustTarget = null;
+  if (reopen && a) openAssetModal(a.id);
+}
+function updateAdjustDiff(){
+  if (!adjustTarget) return;
+  const raw = document.getElementById("adjustInput").value.replace(/[^\d]/g, "");
+  const el = document.getElementById("adjustDiff");
+  if (!raw){ el.textContent = "0원"; el.className = "nt"; return; }
+  const diff = Number(raw) - balanceOf(adjustTarget);
+  el.textContent = (diff > 0 ? "+" : diff < 0 ? "−" : "") + won(Math.abs(diff));
+  el.className = diff > 0 ? "up" : diff < 0 ? "dn" : "nt";
+}
+document.getElementById("adjustInput").addEventListener("input", ev => {
+  const digits = ev.target.value.replace(/[^\d]/g, "");
+  ev.target.value = digits ? nf.format(Number(digits)) : "";
+  updateAdjustDiff();
+});
+document.getElementById("adjustBackdrop").addEventListener("click", () => closeAdjustModal(true));
+document.getElementById("adjustSave").addEventListener("click", () => {
+  const a = adjustTarget;
+  if (!a) return;
+  const raw = document.getElementById("adjustInput").value.replace(/[^\d]/g, "");
+  if (!raw){ document.getElementById("adjustInput").focus(); return; }
+  const actual = Number(raw);
+  const diff = actual - balanceOf(a);
+  if (!diff){
+    closeAdjustModal(true);
+    showToast("이미 잔액이 같아요");
+    return;
+  }
+  const now = new Date();
+  const type = diff > 0 ? "income" : "expense";
+  cur().data.push({
+    d: TODAY_KEY, t: `${pad2(now.getHours())}:${pad2(now.getMinutes())}`,
+    type, cat: ensureAdjustCat(type), sub: "", acct: a.id, pay: a.name,
+    memo: "잔액 맞추기", amt: Math.abs(diff)
+  });
+  saveAll();
+  closeAdjustModal(false);
+  renderAll();
+  openAssetModal(a.id);
+  showToast(`${a.name} 잔액 ${won(actual)}로 맞췄어요`);
+});
+
+/* =========================================================
+   카드 즉시결제(선결제) — 출금 통장 → 카드 이체로 바로 기록
+   ========================================================= */
+let prepayTarget = null, prepayFrom = null;
+
+function prepaySourcePool(){
+  return ASSETS.filter(a => !isCardAsset(a) && a.payable !== false);
+}
+function updatePrepayNote(){
+  if (!prepayTarget) return;
+  const {start, end} = currentRange();
+  const u = cardUsageOf(prepayTarget, start, end);
+  const amt = Number(document.getElementById("prepayAmt").value.replace(/[^\d]/g, "")) || 0;
+  const el = document.getElementById("prepayNote");
+  const pLabel = effMode() === "cycle" ? "이번 급여" : "이번 달";
+  el.textContent = `${pLabel} 사용 ${won(u.used)} · 남은 결제 ${won(u.remain)}`
+    + (amt > u.remain ? ` · ${won(amt - u.remain)} 초과 선결제` : "");
+}
+function openPrepayModal(id){
+  const a = assetById(id);
+  if (!a) return;
+  const pool = prepaySourcePool();
+  if (!pool.length){
+    showToast("출금할 통장이 없어요. 자산을 먼저 추가해 주세요", true);
+    return;
+  }
+  prepayTarget = a;
+  prepayFrom = pool[0].id;
+  document.getElementById("prepaySub").textContent = `${a.name}로 이체하면 즉시결제로 집계돼요.`;
+  document.getElementById("prepayAmt").value = "";
+  document.getElementById("prepayFromChips").innerHTML = pool.map(x =>
+    `<button class="chip ${x.id === prepayFrom ? "on":""}" data-from="${x.id}">${x.e} ${esc(x.name)}</button>`).join("");
+  updatePrepayNote();
+  document.getElementById("assetModal").hidden = true;
+  document.getElementById("prepayModal").hidden = false;
+  setTimeout(() => document.getElementById("prepayAmt").focus(), 80);
+}
+function closePrepayModal(reopen){
+  document.getElementById("prepayModal").hidden = true;
+  const a = prepayTarget;
+  prepayTarget = null;
+  if (reopen && a) openAssetModal(a.id);
+}
+document.getElementById("prepayFromChips").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-from]");
+  if (!b) return;
+  prepayFrom = b.dataset.from;
+  document.querySelectorAll("#prepayFromChips .chip").forEach(c => c.classList.toggle("on", c === b));
+});
+document.getElementById("prepayAmt").addEventListener("input", ev => {
+  const digits = ev.target.value.replace(/[^\d]/g, "");
+  ev.target.value = digits ? nf.format(Number(digits)) : "";
+  updatePrepayNote();
+});
+document.getElementById("prepayBackdrop").addEventListener("click", () => closePrepayModal(true));
+document.getElementById("prepaySave").addEventListener("click", () => {
+  const a = prepayTarget;
+  if (!a) return;
+  const amt = Number(document.getElementById("prepayAmt").value.replace(/[^\d]/g, ""));
+  if (!amt){ document.getElementById("prepayAmt").focus(); return; }
+  const src = assetById(prepayFrom);
+  if (!src){ showToast("출금 통장을 골라 주세요", true); return; }
+  const now = new Date();
+  cur().data.push({
+    d: TODAY_KEY, t: `${pad2(now.getHours())}:${pad2(now.getMinutes())}`,
+    type: "transfer", fromId: src.id, toId: a.id,
+    memo: `즉시결제 · ${a.name}`, amt
+  });
+  saveAll();
+  closePrepayModal(false);
+  renderAll();
+  openAssetModal(a.id);
+  showToast(`${src.name} → ${a.name} ${won(amt)} 즉시결제로 기록했어요`);
+});
+document.getElementById("assetAdjustBtn").addEventListener("click", () => {
+  if (assetEditing) openAdjustModal(assetEditing);
+});
+document.getElementById("assetPrepayBtn").addEventListener("click", () => {
+  if (assetEditing) openPrepayModal(assetEditing);
+});
 
 /* =========================================================
    내역 수정 · 삭제
@@ -3343,13 +3712,13 @@ function showToast(msg, warn){
 const STORE_KEY = "budget-app:v3";
 const LEGACY_DATA_KEY = "budget-app:v1";
 const LEGACY_SET_KEY = "budget-app:settings:v2";
-let settings = { weekBudget: 150000, payday: 25 };
+let settings = { weekBudget: 150000, payday: 25, cardMeta: {} };
 
 function persistLocal(){
   try{
     localStorage.setItem(STORE_KEY, JSON.stringify({
       v:3, model:4, active: state.ledger, weekBudget: settings.weekBudget,
-      payday: settings.payday, ledgers: LEDGERS
+      payday: settings.payday, cardMeta: cardMetaPayload(), ledgers: LEDGERS
     }));
   }catch(e){}
 }
@@ -3405,6 +3774,7 @@ function loadAll(){
         LEDGERS = s.ledgers.map(hydrateLedger);
         if (Number(s.weekBudget) > 0) settings.weekBudget = Number(s.weekBudget);
         if (Number(s.payday) > 0) settings.payday = Number(s.payday);
+        settings.cardMeta = (s.cardMeta && typeof s.cardMeta === "object") ? s.cardMeta : {};
         if (s.active && LEDGERS.some(l => l.id === s.active)) state.ledger = s.active;
         /* v4 이전 저장값은 자산 목록만 새 6구분 기본값으로 바꿔 줍니다 (내역은 그대로) */
         if (s.model !== 4){
@@ -3551,7 +3921,9 @@ function buildPayload(){
     settings: {
       weekly_budget: Number(settings.weekBudget) || 0,
       payday: Number(settings.payday) || 25,
-      cat_subs: JSON.stringify(catSubsPayload())
+      cat_subs: JSON.stringify(catSubsPayload()),
+      /* 카드별 혜택 기준 금액(목표 실적) — 설정 탭에 한 칸(JSON)으로 저장 */
+      card_meta: JSON.stringify(cardMetaPayload())
     }
   };
 }
@@ -3681,6 +4053,22 @@ function applyRemote(remote, opts){
   if (isFinite(budget) && budget > 0) settings.weekBudget = budget;
   const pd = Number(st.payday);
   if (isFinite(pd) && pd >= 1 && pd <= 28) settings.payday = pd;
+  /* 카드별 혜택 기준 금액(목표 실적) — 설정 탭의 card_meta(JSON) */
+  if (st.card_meta !== undefined && st.card_meta !== null && st.card_meta !== ""){
+    let meta = st.card_meta;
+    if (typeof meta === "string"){
+      try{ meta = JSON.parse(meta); }catch(e){ meta = null; }
+    }
+    if (meta && typeof meta === "object"){
+      const next = {};
+      Object.keys(meta).forEach(id => {
+        const v = meta[id];
+        const t = Math.round(Number(v && typeof v === "object" ? v.target : v) || 0);
+        if (t > 0) next[id] = { target: t };
+      });
+      settings.cardMeta = next;
+    }
+  }
   if (typeof st.cat_subs === "string" && st.cat_subs){
     try{
       const m = JSON.parse(st.cat_subs);
