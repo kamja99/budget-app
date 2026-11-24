@@ -1706,14 +1706,25 @@ const PERSONAL_EXPENSE_PRESET = [
 ];
 const clonePreset = () => JSON.parse(JSON.stringify(PERSONAL_EXPENSE_PRESET));
 
+/* ---------- 기본 수입 카테고리 프리셋 ----------
+   편한가계부 수입 화면에 맞춘 구성 — 월급은 월급날(25일) 기준 입력에
+   자주 쓰여 함께 두고, 나머지는 수입 통계에 실제로 잡히는 순서대로
+   이체 · 금융소득 · 잔액수정 · 기타 입니다.                */
+const PERSONAL_INCOME_PRESET = [
+  {k:"월급",    e:"💰", c:"#2F7CF6"},
+  {k:"이체",    e:"📥", c:"#6B5BE0"},
+  {k:"금융소득", e:"🏦", c:"#5D8BD0"},
+  {k:"잔액수정", e:"⚖️", c:"#8B95A1"},
+  {k:"기타",    e:"✨", c:"#E0A72B"}
+];
+const cloneIncomePreset = () => JSON.parse(JSON.stringify(PERSONAL_INCOME_PRESET));
+/* 예전 기본 수입 카테고리 — model 6 정리에서 쓰이지 않으면 목록에서 빠집니다 */
+const OLD_PERSONAL_INCOME = ["급여", "부수입", "이자"];
+
 const CATS = {
   personal: {
     expense: clonePreset(),
-    income: [
-      {k:"급여",   e:"💼", c:"#2F7CF6"},
-      {k:"부수입", e:"💰", c:"#12A075"},
-      {k:"이자",   e:"🏦", c:"#5D8BD0"}
-    ]
+    income: cloneIncomePreset()
   },
   church: {
     expense: [
@@ -1762,11 +1773,7 @@ const DATA = { personal: [], church: [] };
    ========================================================= */
 const DEFAULT_CATS = {
   expense: clonePreset(),
-  income: [
-    {k:"수입", e:"💰", c:"#2F7CF6"},
-    {k:"부수입", e:"💵", c:"#12A075"},
-    {k:"이자", e:"🏦", c:"#5D8BD0"}
-  ]
+  income: cloneIncomePreset()
 };
 const cloneCats = src => JSON.parse(JSON.stringify(src));
 
@@ -1972,6 +1979,28 @@ function applyExpensePreset(l){
   l.cats.expense = next;
 }
 
+/* 기본 수입 카테고리 구성을 적용합니다. 이미 내역이 있는 카테고리와
+   사용자가 직접 추가한 카테고리는 목록 끝에 그대로 살립니다.
+   (내역의 카테고리 이름은 어느 경우에도 바뀌지 않습니다) */
+function applyIncomePreset(l){
+  if (!l || !l.cats || !Array.isArray(l.cats.income)) return false;
+  const list = l.cats.income.slice();
+  const used = new Set((l.data || []).filter(e => e.type === "income").map(e => e.cat));
+  const next = cloneIncomePreset().map(p => {
+    const old = list.find(c => c.k === p.k);
+    if (old){ p.e = old.e || p.e; p.c = old.c || p.c; }
+    return p;
+  });
+  list.forEach(c => {
+    if (!c || !c.k || next.some(n => n.k === c.k)) return;
+    /* 내역이 쓰는 이름, 그리고 직접 추가한 이름은 잃지 않습니다 */
+    if (used.has(c.k) || OLD_PERSONAL_INCOME.indexOf(c.k) < 0) next.push(c);
+  });
+  const changed = JSON.stringify(next) !== JSON.stringify(l.cats.income);
+  l.cats.income = next;
+  return changed;
+}
+
 const entriesOf = (ledger, dateKey) =>
   cur().data.filter(e => e.d === dateKey).sort((a,b)=> a.t.localeCompare(b.t));
 
@@ -2128,9 +2157,9 @@ function weekState(){
   const {mon, sun} = weekRange(today);
   const mk = iso(mon), sk = iso(sun);
   const p = ledgerById("personal");
-  /* 잔액 맞추기로 생긴 「잔액조정」 내역은 실제 소비가 아니므로 생활비에서 빼집니다 */
+  /* 잔액 맞추기로 생긴 「잔액수정」 내역은 실제 소비가 아니므로 생활비에서 빼집니다 */
   const spent = (p ? p.data : [])
-    .filter(e => e.type === "expense" && e.d >= mk && e.d <= sk && e.cat !== "잔액조정")
+    .filter(e => e.type === "expense" && e.d >= mk && e.d <= sk && !isAdjustCat(e.cat))
     .reduce((s,e)=> s + e.amt, 0);
   const budget = settings.weekBudget;
   const left = budget - spent;
@@ -2677,7 +2706,7 @@ const mdShort = d => `${d.getMonth()+1}/${d.getDate()}`;
 const trendRangeLabel = w => `${mdShort(w.mon)}~${mdShort(w.sun)}`;
 
 function trendCats(){
-  return (cur().cats[trendType()] || []).filter(c => trendType() !== "expense" || c.k !== "잔액조정");
+  return (cur().cats[trendType()] || []).filter(c => trendType() !== "expense" || !isAdjustCat(c.k));
 }
 function trendSeries(){
   const type = trendType(), cat = state.trendCat;
@@ -2689,7 +2718,7 @@ function trendSeries(){
     let amt = 0, n = 0;
     cur().data.forEach(e => {
       if (e.type !== type || e.d < mk || e.d > sk) return;
-      if (type === "expense" && e.cat === "잔액조정") return;   // 생활비와 같은 기준
+      if (type === "expense" && isAdjustCat(e.cat)) return;   // 생활비와 같은 기준
       if (cat && e.cat !== cat) return;
       amt += e.amt; n += 1;
     });
@@ -4601,14 +4630,20 @@ document.getElementById("addAssetBtn").addEventListener("click", () => openAsset
    ---------------------------------------------------------
    실제 잔액을 넣으면 (실제 − 앱 잔액)만큼의 내역 하나를 지금 시각으로
    추가합니다. 잔액이 늘었으면 수입, 줄었으면 지출이고 카테고리는
-   「잔액조정」입니다(없으면 그때 만들어서 저장).
+   「잔액수정」입니다(없으면 그때 만들어서 저장). 예전 저장값에 있던
+   「잔액조정」 카테고리도 같은 것으로 봅니다.
    ========================================================= */
 let adjustTarget = null;
 
+/* 잔액 맞추기로 생긴 내역인지 — 생활비·추이 통계에서 빼는 기준 */
+function isAdjustCat(k){
+  return k === "잔액수정" || k === "잔액조정";
+}
+
 function ensureAdjustCat(type){
   const cats = cur().cats[type] || (cur().cats[type] = []);
-  let c = cats.find(x => x.k === "잔액조정");
-  if (!c){ c = { k:"잔액조정", e:"⚖️", c:"#8B95A1" }; cats.push(c); }
+  let c = cats.find(x => x.k === "잔액수정") || cats.find(x => x.k === "잔액조정");
+  if (!c){ c = { k:"잔액수정", e:"⚖️", c:"#8B95A1" }; cats.push(c); }
   return c.k;
 }
 function openAdjustModal(id){
@@ -5067,11 +5102,14 @@ const STORE_KEY = "budget-app:v3";
 const LEGACY_DATA_KEY = "budget-app:v1";
 const LEGACY_SET_KEY = "budget-app:settings:v2";
 let settings = { weekBudget: 150000, payday: 25, cardMeta: {} };
+/* model 6 — 시트에서 예전 cat_config 가 내려와도 새 기본 수입 카테고리를
+   이번 실행에서 한 번은 반영하기 위한 표시 */
+let NEED_INCOME_MIGRATION = false;
 
 function persistLocal(){
   try{
     localStorage.setItem(STORE_KEY, JSON.stringify({
-      v:3, model:5, active: state.ledger, weekBudget: settings.weekBudget,
+      v:3, model:6, active: state.ledger, weekBudget: settings.weekBudget,
       payday: settings.payday, cardMeta: cardMetaPayload(), ledgers: LEDGERS
     }));
   }catch(e){}
@@ -5167,6 +5205,12 @@ function loadAll(){
         if (Number(s.model) < 5){
           const p = ledgerById("personal");
           if (p && p.cats && Array.isArray(p.cats.expense)) applyExpensePreset(p);
+        }
+        /* v6 — 개인 가계부의 기본 수입 카테고리를 편한가계부 구성으로 한 번 정리합니다.
+           내역이 쓰는 이름·직접 추가한 카테고리는 그대로 살리므로 내역은 안전합니다. */
+        if (Number(s.model) < 6){
+          applyIncomePreset(ledgerById("personal"));
+          NEED_INCOME_MIGRATION = true;
         }
         loaded = true;
       }
@@ -5558,6 +5602,12 @@ function applyRemote(remote, opts){
   }
 
   if (!ledgerById(state.ledger) && LEDGERS.length) state.ledger = LEDGERS[0].id;
+  /* 새 기본 수입 카테고리(model 6) — 시트의 예전 cat_config 가 내려온 경우에도
+     이번 한 번은 반영하고, 바뀐 구성은 다시 시트로 올립니다(pendingPush). */
+  if (NEED_INCOME_MIGRATION){
+    NEED_INCOME_MIGRATION = false;
+    if (applyIncomePreset(ledgerById("personal"))) pending = true;
+  }
   ASSETS = cur().assetsList || [];
   normalizePersonal();
   return { pendingPush: pending };
