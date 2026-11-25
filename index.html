@@ -475,21 +475,109 @@
     padding:6px 10px;border-radius:99px;white-space:nowrap;letter-spacing:-.01em;max-width:158px;
     overflow:hidden;text-overflow:ellipsis;transition:background .25s ease,color .25s ease;
   }
-  .fullBody{flex:1 1 auto;min-height:0;overflow-y:auto;padding:6px 18px 8px;scrollbar-width:none;display:flex;flex-direction:column;justify-content:space-between}
-  .topGroup{display:flex;flex-direction:column;flex:0 0 auto}
-  .fullBody #expenseFields,.fullBody #transferFields{margin-bottom:2px}
-  .memoBlock{margin-top:0;padding-top:0}
+  .fullBody{flex:1 1 auto;min-height:0;overflow-y:auto;padding:6px 18px 8px;scrollbar-width:none;display:flex;flex-direction:column;justify-content:flex-start}
+  .fullBody #addRows{margin-bottom:2px}
   .fullBody::-webkit-scrollbar{display:none}
-  .fullBody .amountField{margin:2px 0 16px}
-  .fullBody .amountField input{font-size:31px;height:44px;line-height:44px;letter-spacing:-.05em}
   .fullFoot{flex:0 0 auto;padding:10px 18px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--hair);background:#fff}
-  .dateRow{display:flex;gap:8px;margin-bottom:16px}
   .dateBox{flex:1 1 0;position:relative;border:1px solid #E9EBEF;border-radius:12px;background:#FBFBFC;padding:7px 11px 8px}
   .dateBox span{display:block;font-size:10px;font-weight:700;color:#98A1AD;letter-spacing:-.01em;margin-bottom:1px}
   .dateBox b{display:block;font-size:12.5px;font-weight:700;color:#191F28;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}
   .dateBox input{
     position:absolute;inset:0;opacity:0;width:100%;height:100%;border:none;background:transparent;
     padding:0;margin:0;cursor:pointer;-webkit-appearance:none;appearance:none;
+  }
+
+  /* ---------- 내역 추가·수정: 세로 줄 입력 ----------
+     항목은 라벨 · 값 한 줄로 늘어놓고, 누르면 아래 선택창이 올라옵니다. */
+  .fRows{display:flex;flex-direction:column;flex:0 0 auto;margin:2px 0 8px}
+  .fRow{
+    display:flex;align-items:center;gap:10px;width:100%;min-height:52px;margin:0;padding:0;
+    border:none;border-bottom:1px solid #F2F4F6;background:transparent;font-family:inherit;
+    text-align:left;color:#191F28;cursor:pointer;transition:background .14s ease;
+  }
+  .fRow[hidden]{display:none}
+  .fRow:active{background:#FAFBFC}
+  .fRow .fLab{flex:0 0 72px;font-size:12px;font-weight:700;color:#98A1AD;letter-spacing:-.01em}
+  .fRow .fVal{
+    flex:1 1 auto;min-width:0;font-size:13.5px;font-weight:700;color:#191F28;letter-spacing:-.025em;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .fRow .fVal.ph{color:#C3CAD2}
+  .fRow .fGo{flex:0 0 auto;color:#C9CFD7;font-size:15px;font-weight:700;line-height:1;padding-left:2px}
+  .fRow input{
+    width:100%;min-width:0;border:none;outline:none;background:transparent;padding:0;margin:0;
+    font-family:inherit;font-size:13.5px;font-weight:700;color:#191F28;letter-spacing:-.025em;
+  }
+  .fRow input::placeholder{color:#C3CAD2;font-weight:700}
+  .fRow .fAmtBox{display:flex;align-items:baseline;gap:4px;flex:1 1 auto;min-width:0}
+  .fRow .fAmtBox input{text-align:left;font-size:19px;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+  .fRow .fAmtBox i{font-style:normal;flex:0 0 auto;font-size:11.5px;font-weight:700;color:#AEB6C0}
+  .srOnly{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0;padding:0;margin:-1px;overflow:hidden}
+
+  /* ---------- 하단 선택창 (분류 · 자산 · 날짜) ---------- */
+  .pickWrap{position:fixed;inset:0;z-index:55;display:flex;align-items:flex-end}
+  .pickWrap[hidden]{display:none}
+  .pickCard{
+    position:relative;width:100%;max-height:84dvh;display:flex;flex-direction:column;
+    background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -10px 44px rgba(16,20,28,.18);
+    animation:up .22s ease;overflow:hidden;
+  }
+  .pickCard .handle{width:36px;height:4px;border-radius:99px;background:#E3E6EA;margin:8px auto 0;flex:0 0 auto}
+  .pickHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 18px 7px;flex:0 0 auto}
+  .pickHead b{font-size:15px;font-weight:800;letter-spacing:-.03em}
+  .pickClose{
+    width:30px;height:30px;border-radius:50%;border:none;background:#F2F4F6;color:#5A6472;font-family:inherit;
+    font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex:0 0 auto;
+  }
+  .pickClose:active{background:#E9EBEF}
+  .pickBody{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:none;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+  .pickBody::-webkit-scrollbar{display:none}
+  .pickPane[hidden]{display:none}
+  /* 분류 — 왼쪽 대분류 · 오른쪽 세부 분류 2단 */
+  .twin{display:flex;height:min(56dvh,440px);border-top:1px solid #F1F3F5;overflow:hidden}
+  .twinCol{overflow-y:auto;scrollbar-width:none;min-width:0}
+  .twinCol::-webkit-scrollbar{display:none}
+  #catChips{flex:0 0 47%;border-right:1px solid #EFF1F4;padding:2px 0}
+  #subChips{flex:1 1 auto;padding:2px 0}
+  .pickRow{
+    display:flex;align-items:center;gap:9px;width:100%;min-height:49px;border:none;background:#fff;
+    font-family:inherit;text-align:left;padding:0 13px;font-size:13px;font-weight:700;color:#3D4652;
+    letter-spacing:-.025em;cursor:pointer;transition:background .14s ease;
+  }
+  .pickRow:active{background:#F6F8FA}
+  .pickRow.on{background:var(--theme-soft);color:var(--theme-ink)}
+  #subChips .pickRow{padding-left:14px}
+  .pickIc{
+    flex:0 0 auto;width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+    font-size:14px;background:#F4F6F8;
+  }
+  .pickTx{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pickGo{flex:0 0 auto;color:#C6CDD6;font-size:14px;font-weight:700;line-height:1}
+  .pickRow.on .pickGo{color:var(--theme)}
+  .pickCheck{opacity:0;font-size:12px;font-weight:800;color:var(--theme)}
+  .pickRow.on .pickCheck{opacity:1}
+  .pickRow.subNone{color:#8B95A1}
+  .pickRow.subAdd{color:#8B95A1}
+  .poolG{
+    font-size:10px;font-weight:800;color:#AEB6C0;letter-spacing:.02em;padding:11px 16px 4px;
+    background:#FCFCFD;border-bottom:1px solid #F4F6F8;
+  }
+  .poolG:first-child{padding-top:8px}
+  #payChips,#fromChips,#toChips{padding-bottom:4px}
+  /* 날짜·시간 */
+  .whenRow{display:flex;gap:8px;padding:12px 18px 2px}
+  .whenBox{flex:1 1 0;position:relative;border:1px solid #E9EBEF;border-radius:13px;background:#FBFBFC;padding:8px 12px 9px}
+  .whenBox span{display:block;font-size:10px;font-weight:700;color:#98A1AD;letter-spacing:-.01em;margin-bottom:2px}
+  .whenBox b{display:block;font-size:13px;font-weight:800;color:#191F28;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .whenBox input{
+    position:absolute;inset:0;opacity:0;width:100%;height:100%;border:none;background:transparent;
+    padding:0;margin:0;cursor:pointer;-webkit-appearance:none;appearance:none;
+  }
+  .quickRow{display:flex;gap:6px;padding:12px 18px 0;flex-wrap:wrap}
+  .pickDone{
+    display:block;width:calc(100% - 36px);margin:14px 18px calc(6px + env(safe-area-inset-bottom));padding:13px 0;
+    border:none;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-family:inherit;
+    font-size:13.5px;font-weight:800;cursor:pointer;letter-spacing:-.02em;
   }
 
   /* ---------- 장부 선택 시트 ---------- */
@@ -682,7 +770,6 @@
     padding:7px 11px;border-radius:99px;cursor:pointer;letter-spacing:-.01em;
   }
   .chip.on{background:var(--theme-soft);border-color:var(--theme);color:var(--theme-ink)}
-  #transferFields .chip.on{background:var(--transfer-soft);border-color:var(--transfer);color:var(--transfer)}
   .chipArrow{margin:-7px 0 9px;text-align:center;color:#C3CAD2;font-size:11px;line-height:1}
   .textInput{
     width:100%;border:1px solid #E9EBEF;border-radius:12px;padding:11px 12px;font-family:inherit;font-size:13px;
@@ -752,6 +839,18 @@
     border-top:1px solid var(--hair);font-size:11px;font-weight:800;color:#8B95A1;letter-spacing:-.01em;
   }
   .amEditHead[hidden]{display:none}
+  /* 초기 잔액 — 자산을 처음 추가할 때만 입력하면 되므로,
+     이미 만든 자산에서는 한 줄 요약만 보이고 누를 때만 입력칸이 열립니다 */
+  .initRow{
+    display:flex;align-items:center;gap:8px;width:100%;margin:0 0 10px;padding:10px 12px;
+    border:1px solid #EFF1F4;border-radius:12px;background:#FCFCFD;font-family:inherit;
+    text-align:left;cursor:pointer;color:#4B5563;
+  }
+  .initRow[hidden]{display:none}
+  .initRow:active{background:#F5F7F9}
+  .initRow .initK{flex:1 1 auto;font-size:11.5px;font-weight:700;color:#8B95A1;letter-spacing:-.01em}
+  .initRow b{flex:0 0 auto;font-size:12.5px;font-weight:800;color:#191F28;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .initRow .initEdit{flex:0 0 auto;font-style:normal;font-size:10.5px;font-weight:800;color:var(--theme);letter-spacing:-.01em}
   .entryDel{
     width:100%;margin-top:9px;padding:12px 0;border-radius:14px;border:1px solid #F3D7DA;background:#fff;
     color:#D63A48;font-family:inherit;font-size:12.5px;font-weight:800;letter-spacing:-.02em;cursor:pointer;
@@ -1221,10 +1320,14 @@
     .fullClose{width:32px;height:32px;font-size:13px}
     .fullTag{font-size:11px;padding:7px 11px}
     .fullBody{padding:4px 20px 6px;display:block;overflow-y:auto}
-    .fullBody .amountField{margin:2px 0 16px}
-    .fullBody .amountField input{font-size:32px;height:44px;line-height:44px}
     .fullFoot{padding:12px 20px 16px}
-    .dateRow{margin-bottom:16px}
+    /* 하단 선택창도 PC에서는 가운데 작은 카드로 */
+    .pickWrap{align-items:flex-end;justify-content:center;padding:0 0 27px}
+    .pickCard{width:460px;max-width:100%;border-radius:20px;max-height:74dvh}
+    .pickCard .handle{display:none}
+    .pickHead{padding:14px 18px 8px}
+    .twin{height:min(50dvh,380px)}
+    .pickDone{width:calc(100% - 32px);margin:12px 16px 4px}
 
     /* ---------- 장부 선택 · 새 장부 · 예산 시트도 중앙 카드로 ---------- */
     .lsWrap{align-items:center;justify-content:center;padding:24px}
@@ -1399,44 +1502,90 @@
     <span class="fullTag" id="addTag">💰 개인 가계부</span>
   </div>
   <div class="fullBody">
-    <div class="topGroup">
     <div class="segType" id="typeSeg">
       <button class="on" data-type="expense">지출</button>
       <button data-type="income">수입</button>
       <button data-type="transfer">이체</button>
     </div>
-    <div class="amountField">
-      <input id="amtInput" inputmode="numeric" placeholder="0" autocomplete="off" />
-      <span>원</span>
+    <div class="fRows" id="addRows">
+      <button class="fRow" type="button" data-pick="when">
+        <span class="fLab">날짜</span>
+        <span class="fVal" id="rowWhenVal">—</span>
+        <span class="fGo">›</span>
+      </button>
+      <label class="fRow" for="amtInput">
+        <span class="fLab">금액</span>
+        <span class="fAmtBox"><input id="amtInput" inputmode="numeric" placeholder="0" autocomplete="off" aria-label="금액" /><i>원</i></span>
+      </label>
+      <button class="fRow" type="button" data-pick="cat" id="rowCat">
+        <span class="fLab">카테고리</span>
+        <span class="fVal" id="rowCatVal">선택</span>
+        <span class="fGo">›</span>
+      </button>
+      <button class="fRow" type="button" data-pick="acct" id="rowAcct">
+        <span class="fLab" id="payLabel">결제수단</span>
+        <span class="fVal" id="rowAcctVal">선택</span>
+        <span class="fGo">›</span>
+      </button>
+      <button class="fRow" type="button" data-pick="from" id="rowFrom" hidden>
+        <span class="fLab">출금계좌</span>
+        <span class="fVal" id="rowFromVal">선택</span>
+        <span class="fGo">›</span>
+      </button>
+      <button class="fRow" type="button" data-pick="to" id="rowTo" hidden>
+        <span class="fLab">입금계좌</span>
+        <span class="fVal" id="rowToVal">선택</span>
+        <span class="fGo">›</span>
+      </button>
+      <label class="fRow" for="memoInput">
+        <span class="fLab">내용</span>
+        <span class="fVal"><input id="memoInput" placeholder="예: 점심 김치찌개" autocomplete="off" aria-label="내용" /></span>
+      </label>
     </div>
-    <div class="dateRow">
-      <label class="dateBox"><span>날짜</span><b id="dateText">—</b><input type="date" id="dateInput" aria-label="날짜" /></label>
-      <label class="dateBox"><span>시간</span><b id="timeText">—</b><input type="time" id="timeInput" aria-label="시간" /></label>
-    </div>
-    </div>
-    <div id="expenseFields">
-      <div class="fLabel">카테고리</div>
-      <div class="chips" id="catChips"></div>
-      <div id="subBlock">
-        <div class="fLabel">세부 분류<em class="opt">선택</em></div>
-        <div class="chips" id="subChips"></div>
-      </div>
-      <div class="fLabel" id="payLabel">결제수단</div>
-      <div class="chips" id="payChips"></div>
-    </div>
-    <div id="transferFields" hidden>
-      <div class="fLabel">출금 계좌</div>
-      <div class="chips" id="fromChips"></div>
-      <div class="fLabel" style="margin-top:10px">입금 계좌</div>
-      <div class="chips" id="toChips"></div>
-    </div>
-    <div class="memoBlock">
-      <div class="fLabel">내용</div>
-      <input class="textInput" id="memoInput" placeholder="예: 점심 김치찌개" autocomplete="off" />
-    </div>
+    <input type="date" id="dateInput" class="srOnly" aria-label="날짜" tabindex="-1" />
+    <input type="time" id="timeInput" class="srOnly" aria-label="시간" tabindex="-1" />
   </div>
   <div class="fullFoot">
     <button class="saveBtn" id="saveBtn">저장</button>
+  </div>
+</div>
+
+<!-- 하단 선택창 — 날짜·카테고리·계좌를 한 곳에서 고릅니다 (내역 추가·수정 공용) -->
+<div class="pickWrap" id="pickWrap" hidden>
+  <div class="backdrop" id="pickBackdrop"></div>
+  <div class="pickCard" role="dialog" aria-modal="true" aria-label="선택">
+    <div class="handle"></div>
+    <div class="pickHead">
+      <b id="pickTitle">분류</b>
+      <button class="pickClose" id="pickClose" aria-label="닫기">✕</button>
+    </div>
+    <div class="pickBody" id="pickBody">
+      <div class="pickPane" id="paneWhen" hidden>
+        <div class="whenRow">
+          <label class="whenBox"><span>날짜</span><b id="pickDateText">—</b><input type="date" id="pickDate" aria-label="날짜" /></label>
+          <label class="whenBox"><span>시간</span><b id="pickTimeText">—</b><input type="time" id="pickTime" aria-label="시간" /></label>
+        </div>
+        <div class="quickRow" id="whenQuick">
+          <button class="chip" type="button" data-day="0">오늘</button>
+          <button class="chip" type="button" data-day="-1">어제</button>
+          <button class="chip" type="button" data-day="-2">그저께</button>
+        </div>
+        <button class="pickDone" id="whenDone" type="button">완료</button>
+      </div>
+      <div class="pickPane twin" id="paneCat" hidden>
+        <div class="twinCol" id="catChips"></div>
+        <div class="twinCol" id="subChips"></div>
+      </div>
+      <div class="pickPane" id="paneAcct" hidden>
+        <div id="payChips"></div>
+      </div>
+      <div class="pickPane" id="paneFrom" hidden>
+        <div id="fromChips"></div>
+      </div>
+      <div class="pickPane" id="paneTo" hidden>
+        <div id="toChips"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1743,10 +1892,17 @@
       </div>
     </div>
     <div id="assetInitWrap">
-      <div class="fLabel">초기 잔액</div>
-      <div class="amountField">
-        <input id="assetInit" inputmode="numeric" placeholder="0" autocomplete="off" />
-        <span>원</span>
+      <button class="initRow" id="assetInitToggle" type="button" hidden>
+        <span class="initK">초기 잔액</span>
+        <b id="assetInitVal">0원</b>
+        <i class="initEdit">고치기</i>
+      </button>
+      <div id="assetInitField">
+        <div class="fLabel" id="assetInitLabel">초기 잔액</div>
+        <div class="amountField">
+          <input id="assetInit" inputmode="numeric" placeholder="0" autocomplete="off" />
+          <span>원</span>
+        </div>
       </div>
     </div>
     <div class="cCard" id="assetCardWrap" hidden>
@@ -1762,6 +1918,7 @@
       </div>
     </div>
     <button class="saveBtn" id="assetSave">저장</button>
+    <button class="entryDel" id="assetDelete" hidden>이 자산 삭제</button>
   </div>
 </div>
 <div class="modalWrap" id="adjustModal" hidden>
@@ -1802,28 +1959,37 @@
 </div>
 <div class="modalWrap" id="entryModal" hidden>
   <div class="backdrop" id="entryBackdrop"></div>
-  <div class="modalCard">
+  <div class="modalCard entryCard">
     <div class="handle" style="margin-bottom:8px"></div>
     <h2 id="entryTitle">내역 수정</h2>
     <div class="modalDate" id="entrySub">—</div>
-    <div class="amountField">
-      <input id="entryAmt" inputmode="numeric" placeholder="0" autocomplete="off" />
-      <span>원</span>
+    <div class="fRows" id="entryRows">
+      <button class="fRow" type="button" data-pick="when">
+        <span class="fLab">날짜</span>
+        <span class="fVal" id="erowWhenVal">—</span>
+        <span class="fGo">›</span>
+      </button>
+      <label class="fRow" for="entryAmt">
+        <span class="fLab">금액</span>
+        <span class="fAmtBox"><input id="entryAmt" inputmode="numeric" placeholder="0" autocomplete="off" aria-label="금액" /><i>원</i></span>
+      </label>
+      <button class="fRow" type="button" data-pick="cat">
+        <span class="fLab">카테고리</span>
+        <span class="fVal" id="erowCatVal">선택</span>
+        <span class="fGo">›</span>
+      </button>
+      <button class="fRow" type="button" data-pick="acct" id="erowAcct">
+        <span class="fLab" id="entryPayLabel">결제수단</span>
+        <span class="fVal" id="erowAcctVal">선택</span>
+        <span class="fGo">›</span>
+      </button>
+      <label class="fRow" for="entryMemo">
+        <span class="fLab">내용</span>
+        <span class="fVal"><input id="entryMemo" placeholder="예: 점심 김치찌개" autocomplete="off" aria-label="내용" /></span>
+      </label>
     </div>
-    <div class="dateRow">
-      <label class="dateBox"><span>날짜</span><b id="entryDateText">—</b><input type="date" id="entryDate" aria-label="날짜" /></label>
-      <label class="dateBox"><span>시간</span><b id="entryTimeText">—</b><input type="time" id="entryTime" aria-label="시간" /></label>
-    </div>
-    <div class="fLabel">카테고리</div>
-    <div class="chips" id="entryCatChips"></div>
-    <div id="entrySubBlock">
-      <div class="fLabel">세부 분류<em class="opt">선택</em></div>
-      <div class="chips" id="entrySubChips"></div>
-    </div>
-    <div class="fLabel" id="entryPayLabel">결제수단</div>
-    <div class="chips" id="entryPayChips"></div>
-    <div class="fLabel">내용</div>
-    <input class="textInput" id="entryMemo" placeholder="예: 점심 김치찌개" autocomplete="off" />
+    <input type="date" id="entryDate" class="srOnly" aria-label="날짜" tabindex="-1" />
+    <input type="time" id="entryTime" class="srOnly" aria-label="시간" tabindex="-1" />
     <button class="saveBtn" id="entrySave">저장</button>
     <button class="entryDel" id="entryDelete">이 내역 삭제</button>
   </div>
@@ -2163,6 +2329,13 @@ const entriesOf = (ledger, dateKey) =>
 /* ---------- 자산 헬퍼 ---------- */
 const assetById = id => ASSETS.find(a => a.id === id);
 const assetName = id => (assetById(id) || {}).name || id;
+/* 이체 내역의 제목 — 내용을 적지 않았으면 부제목(출금 → 입금)과 겹치지 않게 「이체」 */
+function autoTransferMemo(e){ return `${assetName(e.fromId)} → ${assetName(e.toId)}`; }
+function entryTitle(e){
+  const m = String(e.memo || "").trim();
+  if (e.type !== "transfer") return m;
+  return (!m || m === autoTransferMemo(e)) ? "이체" : m;
+}
 const idByName = n => { const a = ASSETS.find(x => x.name === n); return a ? a.id : null; };
 /* 결제수단: 현금·은행·카드 구분만 (저축·투자·보험은 이체 전용) */
 const payAssets = () => ASSETS.filter(a => a.payable !== false || a.kind === "card");
@@ -2664,7 +2837,7 @@ function renderSheet(){
         return `<div class="row">
           <div class="emoji trf">⇄</div>
           <div class="rowMain">
-            <div class="m">${e.memo}</div>
+            <div class="m">${esc(entryTitle(e))}</div>
             <div class="s">${assetName(e.fromId)}<span class="to">→</span>${assetName(e.toId)}</div>
           </div>
           <div class="rowAmt">
@@ -2916,7 +3089,7 @@ function renderStatDetail(st){
     const pay = cur().assets ? assetName(e.acct) : e.pay;
     return `<button class="sdRow" data-ei="${i}">
       <span class="sdDate">${d.getMonth()+1}/${d.getDate()}<em>${DOW[d.getDay()]}</em></span>
-      <span class="sdMain"><b>${esc(e.memo)}</b><span>${e.sub ? esc(e.sub) + " · " : ""}${e.t} · ${esc(pay || (e.type === "income" ? "수입" : "지출"))}</span></span>
+      <span class="sdMain"><b>${esc(entryTitle(e))}</b><span>${e.sub ? esc(e.sub) + " · " : ""}${e.t} · ${esc(pay || (e.type === "income" ? "수입" : "지출"))}</span></span>
       <span class="sdAmt ${e.type === "income" ? "inc" : "exp"}">${e.type === "income" ? "+" : "−"}${nf.format(e.amt)}</span>
     </button>`;
   }).join("");
@@ -4274,18 +4447,24 @@ document.getElementById("todayBtn").addEventListener("click", () => {
   renderAll();
 });
 
-/* ---------- 내역 추가 (풀스크린) ---------- */
+/* ---------- 내역 추가 (풀스크린) ----------
+   화면은 지출·수입·이체 탭 아래에 「날짜 · 금액 · 카테고리 · 계좌 · 내용」을
+   한 줄씩 늘어놓은 목록입니다. 줄을 누르면 아래에서 선택창이 올라와
+   날짜·분류·계좌를 고릅니다. 금액과 내용은 줄에서 바로 입력합니다. */
 const addScreen = document.getElementById("addScreen");
 const pad2 = n => String(n).padStart(2, "0");
 
-/* 날짜·시간은 native 입력값을 그대로 저장하고, 화면에는 한국식으로 보여 줍니다 */
-function syncDateTime(){
-  const dv = document.getElementById("dateInput").value;
-  const tv = document.getElementById("timeInput").value;
+/* 날짜·시간 값은 숨은 입력에 담고, 화면에는 한국식으로 보여 줍니다 */
+function dtLabel(dv, tv){
   const dt = dv ? parseKey(dv) : parseKey(state.sel);
-  document.getElementById("dateText").textContent =
-    `${dt.getFullYear()}.${pad2(dt.getMonth()+1)}.${pad2(dt.getDate())} (${DOW[dt.getDay()]})`;
-  document.getElementById("timeText").textContent = tv || "--:--";
+  return {
+    date: `${dt.getFullYear()}.${pad2(dt.getMonth()+1)}.${pad2(dt.getDate())} (${DOW[dt.getDay()]})`,
+    time: tv || "--:--"
+  };
+}
+function syncDateTime(){
+  const l = dtLabel(document.getElementById("dateInput").value, document.getElementById("timeInput").value);
+  document.getElementById("rowWhenVal").textContent = `${l.date} ${l.time}`;
 }
 
 function openAdd(opts){
@@ -4303,13 +4482,13 @@ function openAdd(opts){
   const fromId = ids[0] || null;
   const toId = ids.find(id => id !== fromId) || null;
   state.form = { type:type0, cat:opts.cat || null, sub:null, acct:null, fromId, toId };
-  subAddOpen = false;
+  pickSubAdd = false;
   const canTransfer = !!cur().assets && ids.length > 1;
   document.querySelectorAll("#typeSeg button").forEach(b => {
     b.classList.toggle("on", b.dataset.type === state.form.type);
     if (b.dataset.type === "transfer") b.style.display = canTransfer ? "" : "none";
   });
-  renderChips();
+  renderAddForm();
   addScreen.hidden = false;
   Overlay.show("addScreen", closeAdd);
   document.querySelector("#addScreen .fullBody").scrollTop = 0;
@@ -4320,21 +4499,31 @@ function closeAdd(){
   Overlay.hide("addScreen");
 }
 
-function renderChips(){
+/* 줄에 지금 고른 값을 그대로 보여 줍니다 (고른 값이 없으면 흐린 안내 글자) */
+function setRowVal(id, txt, empty){
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = txt;
+  el.classList.toggle("ph", !!empty);
+}
+
+function renderAddForm(){
   const f = state.form;
   const isT = f.type === "transfer";
-  const hasAssets = !!cur().assets;
-  document.getElementById("expenseFields").hidden = isT;
-  document.getElementById("transferFields").hidden = !isT;
+  const hasA = !!cur().assets;
+  document.getElementById("rowCat").hidden = isT;
+  document.getElementById("rowAcct").hidden = isT;
+  document.getElementById("rowFrom").hidden = !isT;
+  document.getElementById("rowTo").hidden = !isT;
+  document.getElementById("payLabel").textContent = f.type === "income" ? "입금계좌" : "결제수단";
 
   if (isT){
     const ids = ASSETS.map(a => a.id);
     if (!ids.includes(f.fromId)) f.fromId = ids[0] || null;
     if (!f.toId || f.toId === f.fromId) f.toId = ids.find(id => id !== f.fromId) || null;
-    document.getElementById("fromChips").innerHTML = ASSETS.map(a =>
-      `<button class="chip ${a.id === f.fromId ? "on":""}" data-from="${a.id}">${assetIcon(a)} ${a.name}</button>`).join("");
-    document.getElementById("toChips").innerHTML = ASSETS.filter(a => a.id !== f.fromId).map(a =>
-      `<button class="chip ${a.id === f.toId ? "on":""}" data-to="${a.id}">${assetIcon(a)} ${a.name}</button>`).join("");
+    const fa = assetById(f.fromId), ta = assetById(f.toId);
+    setRowVal("rowFromVal", fa ? `${assetIcon(fa)} ${fa.name}` : "선택", !fa);
+    setRowVal("rowToVal", ta ? `${assetIcon(ta)} ${ta.name}` : "선택", !ta);
     document.getElementById("memoInput").placeholder = f.toId ? `예: ${assetName(f.toId)}으로 이체` : "예: 이체";
     return;
   }
@@ -4344,95 +4533,242 @@ function renderChips(){
 
   const cats = cur().cats[f.type] || [];
   if (!f.cat || !cats.some(c=>c.k===f.cat)) f.cat = cats.length ? cats[0].k : "";
-  document.getElementById("catChips").innerHTML = cats.map(c =>
-    `<button class="chip ${c.k === f.cat ? "on":""}" data-cat="${esc(c.k)}">${c.e} ${esc(c.k)}</button>`).join("");
+  if (f.sub && subsOf(f.type, f.cat).indexOf(f.sub) < 0) f.sub = null;
+  const c = catOf(f.type, f.cat);
+  setRowVal("rowCatVal", f.cat ? `${c.e || "•"} ${c.k}${f.sub ? ` · ${f.sub}` : ""}` : "선택", !f.cat);
 
-  document.getElementById("payLabel").textContent = f.type === "income" ? "입금 계좌" : "결제수단";
-  renderSubChips();
-  if (hasAssets){
+  if (hasA){
     const pool = f.type === "income" ? acctAssets() : payAssets();
     if (!pool.some(a => a.id === f.acct)) f.acct = pool.length ? pool[0].id : null;
-    document.getElementById("payChips").innerHTML = pool.length
-      ? pool.map(a => `<button class="chip ${a.id === f.acct ? "on":""}" data-acct="${a.id}">${assetIcon(a)} ${a.name}</button>`).join("")
-      : `<span class="note" style="padding:0">통장·카드가 없어요. 자산·카드 화면에서 먼저 추가해 주세요.</span>`;
+    const a = assetById(f.acct);
+    setRowVal("rowAcctVal", a ? `${assetIcon(a)} ${a.name}` : (pool.length ? "선택" : "통장·카드 없음"), !a);
   } else {
     const pays = (cur().pays && cur().pays.length) ? cur().pays : ["현금","카드","계좌이체"];
     if (!pays.includes(f.acct)) f.acct = pays[0];
-    document.getElementById("payChips").innerHTML = pays.map(p =>
-      `<button class="chip ${p === f.acct ? "on":""}" data-acct="${esc(p)}">${p}</button>`).join("");
+    setRowVal("rowAcctVal", f.acct || "선택", !f.acct);
   }
 }
 
-/* 세부 분류 칩 — 고른 카테고리에 세부 분류가 있으면 고를 수 있고, 없으면 그냥 넘어가요.
-   ＋ 세부 분류 를 누르면 바로 이름을 넣어 카테고리에 추가합니다. */
-let subAddOpen = false;
-function renderSubChips(){
-  const f = state.form;
-  const block = document.getElementById("subBlock");
-  if (!block) return;
-  if (f.type === "transfer"){ block.hidden = true; return; }
-  block.hidden = false;
-  const subs = subsOf(f.type, f.cat);
-  if (f.sub && subs.indexOf(f.sub) < 0) f.sub = null;
-  document.getElementById("subChips").innerHTML =
-    subs.map(s => {
-      const ic = subIconOf(f.type, f.cat, s);
-      return `<button class="chip ${s === f.sub ? "on" : ""}" data-sub="${esc(s)}">${ic ? esc(ic) + " " : ""}${esc(s)}</button>`;
-    }).join("") +
-    (subAddOpen
-      ? `<span class="subAddRow"><input class="subInput" id="subNewInput" maxlength="14" placeholder="세부 분류 이름" autocomplete="off"><button class="subOk" data-subok="1">추가</button></span>`
-      : `<button class="chip subAdd" data-subopen="1">＋ 세부 분류</button>`);
-  if (subAddOpen){
+/* =========================================================
+   하단 선택창 — 날짜·시간 / 카테고리 / 계좌
+   ---------------------------------------------------------
+   · 내역 추가(state.form)와 내역 수정(entryDraft)이 같은 창을 씁니다.
+   · 카테고리는 왼쪽 대분류 · 오른쪽 세부 분류 2단. 세부 분류가 없는
+     대분류는 누르는 즉시 골라지고 창이 닫힙니다.
+   · 창은 Overlay 에 한 겹으로 쌓여서, 안드로이드 뒤로가기를 누르면
+     화면 전체가 아니라 이 선택창 하나만 닫힙니다.
+   ========================================================= */
+const pickWrap = document.getElementById("pickWrap");
+let pickCtx = "add";      // "add" | "edit"
+let pickKind = null;      // "when" | "cat" | "acct" | "from" | "to"
+let pickCat = null;       // 분류 창에서 지금 보고 있는 대분류
+let pickSubAdd = false;   // 세부 분류 직접 입력칸이 열려 있는가
+
+const pickForm = () => (pickCtx === "edit" ? entryDraft : state.form);
+const pickDateEl = () => document.getElementById(pickCtx === "edit" ? "entryDate" : "dateInput");
+const pickTimeEl = () => document.getElementById(pickCtx === "edit" ? "entryTime" : "timeInput");
+
+function openPick(kind, ctx){
+  pickCtx = ctx || "add";
+  pickKind = kind;
+  const f = pickForm();
+  const title = kind === "when" ? "날짜 · 시간"
+    : kind === "cat" ? "카테고리"
+    : kind === "from" ? "출금계좌"
+    : kind === "to" ? "입금계좌"
+    : (f.type === "income" ? "입금계좌" : "결제수단");
+  document.getElementById("pickTitle").textContent = title;
+  const panes = { when:"paneWhen", cat:"paneCat", acct:"paneAcct", from:"paneFrom", to:"paneTo" };
+  Object.keys(panes).forEach(k => { document.getElementById(panes[k]).hidden = k !== kind; });
+  if (kind === "when"){
+    document.getElementById("pickDate").value = pickDateEl().value;
+    document.getElementById("pickTime").value = pickTimeEl().value;
+    syncPickWhen();
+  }
+  if (kind === "cat"){ pickCat = f.cat || null; pickSubAdd = false; }
+  renderPickLists();
+  pickWrap.hidden = false;
+  document.getElementById("pickBody").scrollTop = 0;
+  Overlay.show("pickWrap", closePick);
+}
+function closePick(){
+  pickWrap.hidden = true;
+  pickSubAdd = false;
+  Overlay.hide("pickWrap");
+}
+
+/* 선택창의 날짜·시간은 화면의 숨은 입력에 바로 반영합니다 */
+function syncPickWhen(){
+  const dv = document.getElementById("pickDate").value;
+  const tv = document.getElementById("pickTime").value;
+  const l = dtLabel(dv, tv);
+  document.getElementById("pickDateText").textContent = l.date;
+  document.getElementById("pickTimeText").textContent = l.time;
+  pickDateEl().value = dv;
+  pickTimeEl().value = tv;
+  if (pickCtx === "edit") syncEntryDateTime();
+  else syncDateTime();
+}
+
+function renderPickLists(){
+  if (pickKind === "cat"){ renderCatPick(); return; }
+  if (pickKind === "acct" || pickKind === "from" || pickKind === "to") renderAcctPick();
+}
+
+/* 카테고리 — 왼쪽 대분류 / 오른쪽 세부 분류 */
+function renderCatPick(){
+  const f = pickForm();
+  const cats = cur().cats[f.type] || [];
+  if (!pickCat || !cats.some(c => c.k === pickCat)) pickCat = f.cat || (cats[0] || {}).k || "";
+  const box = document.getElementById("catChips");
+  box.innerHTML = cats.map(c => {
+    const soft = blend(c.c || "#B0B8C1", "#FFFFFF", .87);
+    const hasSubs = subsOf(f.type, c.k).length > 0;
+    return `<button type="button" class="pickRow${c.k === pickCat ? " on" : ""}" data-cat="${esc(c.k)}">` +
+      `<span class="pickIc" style="background:${soft}">${esc(c.e || "•")}</span>` +
+      `<span class="pickTx">${esc(c.k)}</span>` +
+      (hasSubs ? `<span class="pickGo">›</span>` : "") + `</button>`;
+  }).join("");
+  renderSubPick();
+}
+
+function renderSubPick(){
+  const f = pickForm();
+  const subs = subsOf(f.type, pickCat);
+  const here = f.cat === pickCat;
+  let html = `<button type="button" class="pickRow subNone${here && !f.sub ? " on" : ""}" data-catonly="1">` +
+    `<span class="pickTx">세부 없이</span><span class="pickCheck">✓</span></button>`;
+  html += subs.map(s => {
+    const ic = subIconOf(f.type, pickCat, s);
+    const on = here && f.sub === s;
+    return `<button type="button" class="pickRow${on ? " on" : ""}" data-sub="${esc(s)}">` +
+      `<span class="pickTx">${ic ? esc(ic) + " " : ""}${esc(s)}</span>` +
+      `<span class="pickCheck">✓</span></button>`;
+  }).join("");
+  html += pickSubAdd
+    ? `<span class="subAddRow"><input class="subInput" id="subNewInput" maxlength="14" placeholder="세부 분류 이름" autocomplete="off"><button class="subOk" type="button" data-subok="1">추가</button></span>`
+    : `<button type="button" class="pickRow subAdd" data-subopen="1"><span class="pickTx">＋ 세부 분류</span></button>`;
+  document.getElementById("subChips").innerHTML = html;
+  if (pickSubAdd){
     const el = document.getElementById("subNewInput");
     if (el) el.focus();
   }
 }
 
-addScreen.addEventListener("click", ev => {
-  const el = ev.target.closest("[data-cat],[data-acct],[data-from],[data-to],[data-sub],[data-subopen],[data-subok]");
-  if (!el) return;
-  if (el.dataset.subopen){
-    subAddOpen = true;
-    renderSubChips();
+/* 계좌·카드 — 분류(현금·은행·카드…)별로 묶어 아이콘·색과 함께 보여 줍니다 */
+function renderAcctPick(){
+  const f = pickForm();
+  const kind = pickKind;
+  const boxId = kind === "from" ? "fromChips" : kind === "to" ? "toChips" : "payChips";
+  const box = document.getElementById(boxId);
+
+  if (kind === "acct" && !cur().assets){
+    const pays = (cur().pays && cur().pays.length) ? cur().pays : ["현금","카드","계좌이체"];
+    box.innerHTML = pays.map(p =>
+      `<button type="button" class="pickRow${p === f.acct ? " on" : ""}" data-acct="${esc(p)}">` +
+      `<span class="pickTx">${esc(p)}</span><span class="pickCheck">✓</span></button>`).join("");
     return;
   }
-  if (el.dataset.subok){
+
+  const pool = kind === "acct"
+    ? (f.type === "income" ? acctAssets() : payAssets())
+    : ASSETS.filter(a => (kind === "to" ? a.id !== f.fromId : true));
+  if (!pool.length){
+    box.innerHTML = `<div class="pickRow subNone" style="cursor:default;min-height:auto;padding-top:14px;padding-bottom:6px">` +
+      `<span class="pickTx">통장·카드를 먼저 추가해 주세요</span></div>` +
+      `<div class="pickRow subNone" style="cursor:default;min-height:auto;padding-top:0;font-weight:600">` +
+      `<span class="pickTx">자산·카드 탭의 ＋ 자산 추가에서 만들 수 있어요.</span></div>`;
+    return;
+  }
+  const curId = kind === "acct" ? f.acct : kind === "from" ? f.fromId : f.toId;
+  const attr = kind === "acct" ? "data-acct" : kind === "from" ? "data-from" : "data-to";
+  const groups = ASSET_GROUPS.slice();
+  pool.forEach(a => { if (groups.indexOf(a.group) < 0) groups.push(a.group || "기타"); });
+  box.innerHTML = groups.filter(g => pool.some(a => (a.group || "기타") === g)).map(g => {
+    const rows = pool.filter(a => (a.group || "기타") === g).map(a => {
+      const col = assetColor(a);
+      return `<button type="button" class="pickRow${a.id === curId ? " on" : ""}" ${attr}="${a.id}">` +
+        `<span class="pickIc" style="background:${blend(col,"#FFFFFF",.87)};color:${col}">${assetIcon(a)}</span>` +
+        `<span class="pickTx">${esc(a.name)}</span><span class="pickCheck">✓</span></button>`;
+    }).join("");
+    return `<div class="poolG">${esc(g)}</div>${rows}`;
+  }).join("");
+}
+
+/* 분류를 고르면 화면(추가·수정)에 바로 반영하고 창을 닫습니다 */
+function applyPickCat(k, sub){
+  const f = pickForm();
+  f.cat = k;
+  f.sub = sub || null;
+  pickSubAdd = false;
+  if (pickCtx === "edit") renderEntryForm();
+  else renderAddForm();
+  closePick();
+}
+function applyPickAcct(btn){
+  const f = pickForm();
+  if (btn.dataset.acct !== undefined) f.acct = btn.dataset.acct;
+  else if (btn.dataset.from !== undefined){
+    f.fromId = btn.dataset.from;
+    if (f.toId === f.fromId)
+      f.toId = ASSETS.map(a => a.id).find(id => id !== f.fromId) || null;
+  } else if (btn.dataset.to !== undefined) f.toId = btn.dataset.to;
+  if (pickCtx === "edit") renderEntryForm();
+  else renderAddForm();
+  closePick();
+}
+
+pickWrap.addEventListener("click", ev => {
+  if (ev.target.closest("#pickClose") || ev.target.closest("#pickBackdrop") || ev.target.closest("#whenDone")){
+    closePick(); return;
+  }
+  const day = ev.target.closest("#whenQuick [data-day]");
+  if (day){
+    const d = new Date();
+    d.setDate(d.getDate() + Number(day.dataset.day));
+    document.getElementById("pickDate").value = iso(d);
+    syncPickWhen(); return;
+  }
+  const catBtn = ev.target.closest("#catChips [data-cat]");
+  if (catBtn){
+    pickCat = catBtn.dataset.cat;
+    pickSubAdd = false;
+    if (!subsOf(pickForm().type, pickCat).length){ applyPickCat(pickCat, null); return; }
+    renderSubPick();
+    const col = document.getElementById("subChips");
+    if (col) col.scrollTop = 0;
+    return;
+  }
+  if (ev.target.closest("#subChips [data-catonly]")){ applyPickCat(pickCat, null); return; }
+  const subBtn = ev.target.closest("#subChips [data-sub]");
+  if (subBtn){ applyPickCat(pickCat, subBtn.dataset.sub); return; }
+  if (ev.target.closest("#subChips [data-subopen]")){ pickSubAdd = true; renderSubPick(); return; }
+  if (ev.target.closest("#subChips [data-subok]")){
     const inp = document.getElementById("subNewInput");
     const v = inp ? inp.value.trim() : "";
     if (!v){ if (inp) inp.focus(); return; }
-    if (addSub(state.form.type, state.form.cat, v)) saveAll();
+    if (addSub(pickForm().type, pickCat, v)) saveAll();
     else showToast("이미 있는 세부 분류예요", true);
-    state.form.sub = v;
-    subAddOpen = false;
-    renderSubChips();
+    applyPickCat(pickCat, v);
     return;
   }
-  if (el.dataset.sub !== undefined && el.closest("#subChips")){
-    state.form.sub = (state.form.sub === el.dataset.sub) ? null : el.dataset.sub;
-    renderChips();
-    return;
-  }
-  if (el.dataset.cat){
-    state.form.cat = el.dataset.cat;
-    state.form.sub = null;
-    subAddOpen = false;
-  }
-  if (el.dataset.acct) state.form.acct = el.dataset.acct;
-  if (el.dataset.from){
-    state.form.fromId = el.dataset.from;
-    if (state.form.toId === state.form.fromId)
-      state.form.toId = ASSETS.map(a=>a.id).find(id => id !== state.form.fromId);
-  }
-  if (el.dataset.to) state.form.toId = el.dataset.to;
-  renderChips();
+  const aBtn = ev.target.closest("[data-acct],[data-from],[data-to]");
+  if (aBtn) applyPickAcct(aBtn);
 });
-
-addScreen.addEventListener("keydown", ev => {
+pickWrap.addEventListener("keydown", ev => {
   if (ev.key === "Enter" && ev.target.id === "subNewInput"){
     ev.preventDefault();
     const ok = document.querySelector("#subChips [data-subok]");
     if (ok) ok.click();
   }
+});
+document.getElementById("pickDate").addEventListener("input", syncPickWhen);
+document.getElementById("pickTime").addEventListener("input", syncPickWhen);
+
+document.getElementById("addRows").addEventListener("click", ev => {
+  const row = ev.target.closest("[data-pick]");
+  if (!row || row.hidden) return;
+  openPick(row.dataset.pick, "add");
 });
 
 document.getElementById("typeSeg").addEventListener("click", ev => {
@@ -4442,9 +4778,9 @@ document.getElementById("typeSeg").addEventListener("click", ev => {
   state.form.cat = null;
   state.form.sub = null;
   state.form.acct = null;
-  subAddOpen = false;
+  pickSubAdd = false;
   document.querySelectorAll("#typeSeg button").forEach(x => x.classList.toggle("on", x.dataset.type === state.form.type));
-  renderChips();
+  renderAddForm();
 });
 
 document.getElementById("amtInput").addEventListener("input", ev => {
@@ -4737,6 +5073,13 @@ function openAssetModal(id){
   syncValDateText();
   renderAssetTarget(a && isCardAsset(a) ? cardMetaTarget(a) : 0);
   renderAssetKinds();
+  /* 초기 잔액은 새 자산을 만들 때 입력하는 값이라, 이미 만든 자산에서는
+     한 줄 요약으로만 보여 준다(누르면 입력칸이 열림) */
+  document.getElementById("assetInitField").hidden = !!a;
+  document.getElementById("assetInitToggle").hidden = !a;
+  document.getElementById("assetInitLabel").textContent = a ? "초기 잔액 고치기" : "초기 잔액";
+  syncAssetInitRow(a);
+  resetAssetDelete();
 
   const sub = document.getElementById("assetModalSub");
   const flows = document.getElementById("assetFlows");
@@ -4793,8 +5136,32 @@ function openAssetModal(id){
   Overlay.show("assetModal", closeAssetModal);
   if (!a) setTimeout(()=> document.getElementById("assetName").focus(), 60);
 }
+
+/* 초기 잔액 한 줄 요약 */
+function syncAssetInitRow(a){
+  const el = document.getElementById("assetInitVal");
+  if (el) el.textContent = won(a ? (a.init || 0) : 0);
+}
+
+/* 자산 삭제 — 한 번 더 눌러야 지워집니다 (5초 뒤 자동 해제) */
+let assetDeleteArmed = false;
+let assetDeleteTimer = null;
+function resetAssetDelete(){
+  assetDeleteArmed = false;
+  clearTimeout(assetDeleteTimer);
+  const btn = document.getElementById("assetDelete");
+  if (!btn) return;
+  btn.hidden = !assetEditing;
+  btn.textContent = "이 자산 삭제";
+  btn.classList.remove("armed");
+}
+function entriesOfAsset(id){
+  return cur().data.filter(e => e.type === "transfer"
+    ? (e.fromId === id || e.toId === id) : e.acct === id);
+}
 function closeAssetModal(){
   document.getElementById("assetModal").hidden = true;
+  resetAssetDelete();
   Overlay.hide("assetModal");
 }
 function renderAssetKinds(){
@@ -5101,6 +5468,49 @@ document.getElementById("assetInit").addEventListener("input", ev => {
   ev.target.value = digits ? nf.format(Number(digits)) : "";
 });
 document.getElementById("assetBackdrop").addEventListener("click", closeAssetModal);
+
+/* 초기 잔액 — 요약 줄을 누르면 입력칸을 엽니다 */
+document.getElementById("assetInitToggle").addEventListener("click", () => {
+  document.getElementById("assetInitToggle").hidden = true;
+  document.getElementById("assetInitField").hidden = false;
+  const inp = document.getElementById("assetInit");
+  inp.focus();
+});
+
+/* 자산 삭제 — 연결된 내역이 있으면 몇 건이 함께 지워지는지 알려 주고,
+   한 번 더 누를 때만 실행합니다. */
+document.getElementById("assetDelete").addEventListener("click", () => {
+  const a = assetEditing ? assetById(assetEditing) : null;
+  if (!a) return;
+  const btn = document.getElementById("assetDelete");
+  if (!assetDeleteArmed){
+    const n = entriesOfAsset(a.id).length;
+    assetDeleteArmed = true;
+    btn.classList.add("armed");
+    btn.textContent = n
+      ? `정말 삭제할까요? 내역 ${nf.format(n)}건도 함께 지워져요`
+      : "정말 삭제할까요? 한 번 더 누르세요";
+    clearTimeout(assetDeleteTimer);
+    assetDeleteTimer = setTimeout(resetAssetDelete, 5000);
+    return;
+  }
+  /* 이 자산으로 적은 내역을 함께 지우고, 자산 목록·설정에서도 빼냅니다 */
+  const list = cur().data;
+  for (let i = list.length - 1; i >= 0; i--){
+    const e = list[i];
+    const hit = e.type === "transfer" ? (e.fromId === a.id || e.toId === a.id) : e.acct === a.id;
+    if (hit) list.splice(i, 1);
+  }
+  const ai = cur().assetsList.findIndex(x => x.id === a.id);
+  if (ai >= 0) cur().assetsList.splice(ai, 1);
+  ASSETS = cur().assetsList;
+  if (settings.cardMeta) delete settings.cardMeta[a.id];
+  resetAssetDelete();
+  saveAll();
+  closeAssetModal();
+  renderAll();
+  showToast(`${a.name} 삭제했어요`);
+});
 document.getElementById("assetSave").addEventListener("click", () => {
   const name = document.getElementById("assetName").value.trim();
   if (!name){ document.getElementById("assetName").focus(); return; }
@@ -5315,53 +5725,32 @@ document.getElementById("assetPrepayBtn").addEventListener("click", () => {
    ========================================================= */
 let entryEditing = null;
 let entryDraft = { type:"expense", cat:null, acct:null, sub:null };
-let entrySubOpen = false;
 let entryDeleteArmed = false;
 let entryDeleteTimer = null;
 
 function syncEntryDateTime(){
-  const dv = document.getElementById("entryDate").value;
-  const tv = document.getElementById("entryTime").value;
-  const dt = dv ? parseKey(dv) : new Date();
-  document.getElementById("entryDateText").textContent =
-    `${dt.getFullYear()}.${pad2(dt.getMonth()+1)}.${pad2(dt.getDate())} (${DOW[dt.getDay()]})`;
-  document.getElementById("entryTimeText").textContent = tv || "--:--";
+  const l = dtLabel(document.getElementById("entryDate").value, document.getElementById("entryTime").value);
+  document.getElementById("erowWhenVal").textContent = `${l.date} ${l.time}`;
 }
 
-function renderEntryChips(){
+/* 수정 화면도 추가 화면과 같은 세로 줄 — 줄을 누르면 같은 하단 선택창이 열립니다 */
+function renderEntryForm(){
   const f = entryDraft;
   const cats = cur().cats[f.type] || [];
   if (!cats.some(c => c.k === f.cat)) f.cat = cats.length ? cats[0].k : "";
-  document.getElementById("entryCatChips").innerHTML = cats.map(c =>
-    `<button class="chip ${c.k === f.cat ? "on" : ""}" data-ecat="${esc(c.k)}">${c.e} ${esc(c.k)}</button>`).join("");
+  const c = catOf(f.type, f.cat);
+  setRowVal("erowCatVal", f.cat ? `${c.e || "•"} ${c.k}${f.sub ? ` · ${f.sub}` : ""}` : "선택", !f.cat);
 
-  /* 세부 분류 — 목록에 없어도 지금 내역에 붙은 값은 지우지 않고 그대로 보여 줍니다 */
-  const subs = subsOf(f.type, f.cat).slice();
-  if (f.sub && subs.indexOf(f.sub) < 0) subs.push(f.sub);
-  document.getElementById("entrySubChips").innerHTML =
-    subs.map(s => {
-      const ic = subIconOf(f.type, f.cat, s);
-      return `<button class="chip ${s === f.sub ? "on" : ""}" data-esub="${esc(s)}">${ic ? esc(ic) + " " : ""}${esc(s)}</button>`;
-    }).join("") +
-    (entrySubOpen
-      ? `<span class="subAddRow"><input class="subInput" id="entrySubInput" maxlength="14" placeholder="세부 분류 이름" autocomplete="off"><button class="subOk" data-esubok="1">추가</button></span>`
-      : `<button class="chip subAdd" data-esubopen="1">＋ 세부 분류</button>`);
-  if (entrySubOpen){
-    const el = document.getElementById("entrySubInput");
-    if (el) el.focus();
-  }
-
-  document.getElementById("entryPayLabel").textContent = f.type === "income" ? "입금 계좌" : "결제수단";
+  document.getElementById("entryPayLabel").textContent = f.type === "income" ? "입금계좌" : "결제수단";
   if (cur().assets){
     const pool = f.type === "income" ? acctAssets() : payAssets();
     if (!pool.some(a => a.id === f.acct)) f.acct = pool.length ? pool[0].id : null;
-    document.getElementById("entryPayChips").innerHTML = pool.map(a =>
-      `<button class="chip ${a.id === f.acct ? "on" : ""}" data-eacct="${a.id}">${assetIcon(a)} ${esc(a.name)}</button>`).join("");
+    const a = assetById(f.acct);
+    setRowVal("erowAcctVal", a ? `${assetIcon(a)} ${a.name}` : (pool.length ? "선택" : "통장·카드 없음"), !a);
   } else {
     const pays = (cur().pays && cur().pays.length) ? cur().pays : ["현금","카드","계좌이체"];
     if (!pays.includes(f.acct)) f.acct = pays[0];
-    document.getElementById("entryPayChips").innerHTML = pays.map(p =>
-      `<button class="chip ${p === f.acct ? "on" : ""}" data-epay="${esc(p)}">${esc(p)}</button>`).join("");
+    setRowVal("erowAcctVal", f.acct || "선택", !f.acct);
   }
 }
 
@@ -5374,16 +5763,16 @@ function openEntryModal(e){
     sub: e.sub || null,
     acct: cur().assets ? (e.acct || acctIdFor(e.pay, ASSETS)) : (e.pay || null)
   };
-  entrySubOpen = false;
+  pickSubAdd = false;
   document.getElementById("entryTitle").textContent = e.type === "income" ? "수입 수정" : "지출 수정";
   document.getElementById("entrySub").textContent =
-    `${e.type === "income" ? "수입" : "지출"} · ${catOf(e.type, e.cat).k}`;
+    "날짜·금액·분류·계좌·내용을 고칠 수 있어요";
   document.getElementById("entryAmt").value = nf.format(e.amt);
   document.getElementById("entryDate").value = e.d;
   document.getElementById("entryTime").value = e.t;
   document.getElementById("entryMemo").value = e.memo || "";
   syncEntryDateTime();
-  renderEntryChips();
+  renderEntryForm();
   entryDeleteArmed = false;
   clearTimeout(entryDeleteTimer);
   const del = document.getElementById("entryDelete");
@@ -5401,47 +5790,10 @@ function closeEntryModal(){
   Overlay.hide("entryModal");
 }
 
-document.getElementById("entryModal").addEventListener("click", ev => {
-  if (ev.target.closest("[data-ecat]")){
-    entryDraft.cat = ev.target.closest("[data-ecat]").dataset.ecat;
-    entryDraft.sub = null;
-    entrySubOpen = false;
-    renderEntryChips(); return;
-  }
-  if (ev.target.closest("[data-esubopen]")){
-    entrySubOpen = true;
-    renderEntryChips(); return;
-  }
-  if (ev.target.closest("[data-esubok]")){
-    const inp = document.getElementById("entrySubInput");
-    const v = inp ? inp.value.trim() : "";
-    if (!v){ if (inp) inp.focus(); return; }
-    if (addSub(entryDraft.type, entryDraft.cat, v)) saveAll();
-    else showToast("이미 있는 세부 분류예요", true);
-    entryDraft.sub = v;
-    entrySubOpen = false;
-    renderEntryChips(); return;
-  }
-  const subEl = ev.target.closest("[data-esub]");
-  if (subEl){
-    entryDraft.sub = (entryDraft.sub === subEl.dataset.esub) ? null : subEl.dataset.esub;
-    renderEntryChips(); return;
-  }
-  if (ev.target.closest("[data-eacct]")){
-    entryDraft.acct = ev.target.closest("[data-eacct]").dataset.eacct;
-    renderEntryChips(); return;
-  }
-  if (ev.target.closest("[data-epay]")){
-    entryDraft.acct = ev.target.closest("[data-epay]").dataset.epay;
-    renderEntryChips();
-  }
-});
-document.getElementById("entryModal").addEventListener("keydown", ev => {
-  if (ev.key === "Enter" && ev.target.id === "entrySubInput"){
-    ev.preventDefault();
-    const ok = document.querySelector("#entrySubChips [data-esubok]");
-    if (ok) ok.click();
-  }
+document.getElementById("entryRows").addEventListener("click", ev => {
+  const row = ev.target.closest("[data-pick]");
+  if (!row) return;
+  openPick(row.dataset.pick, "edit");
 });
 
 document.getElementById("entryAmt").addEventListener("input", ev => {
