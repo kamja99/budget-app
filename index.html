@@ -1111,12 +1111,13 @@
   .pcAddBtn{display:none}
 
   /* =========================================================
-     일별 리스트 (달력 대신 날짜별로 쭉) — 모바일·PC 공통 모양
+     일별 리스트 (달력 대신 날짜별로 쭉) — 모바일 달력 탭에서 씁니다
      ---------------------------------------------------------
      · 고른 기간(월별 / 월급 기간)의 내역을 날짜별로 묶어 최근 날짜부터 보여 줍니다.
      · 날짜 머리(11월 25일 수요일)는 스크롤해도 위에 붙어 있고,
        오른쪽에 그날 수입/지출 합계가 붙습니다.
      · 행을 누르면 지금 쓰는 내역 수정 창이 그대로 열립니다.
+     · PC는 오른쪽 패널이 선택한 날 내역을 보여 주므로 보이지 않습니다.
      ========================================================= */
   .dayList{
     flex:1 1 auto;min-height:0;margin:6px -16px 0;background:#fff;
@@ -1176,10 +1177,11 @@
 
   @media (max-width:840.98px){
     /* 바 높이는 --botH 하나로 맞춥니다 — 내용 여백과 바 높이가 같아야 틈이 안 생깁니다 */
-    .app{padding-bottom:calc(var(--botH, 54px) + env(safe-area-inset-bottom,0px))}
+    body{--botH:54px}
+    .app{padding-bottom:calc(var(--botH) + env(safe-area-inset-bottom,0px))}
     .botNav{
       display:block;position:fixed;left:0;right:0;bottom:0;z-index:15;
-      height:calc(var(--botH, 54px) + env(safe-area-inset-bottom,0px));
+      height:calc(var(--botH) + env(safe-area-inset-bottom,0px));
       background:#fff;border-top:1px solid #EDEFF2;
       padding-bottom:env(safe-area-inset-bottom,0px);
       box-shadow:0 -2px 14px rgba(23,30,45,.06);
