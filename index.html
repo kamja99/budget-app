@@ -907,6 +907,58 @@
   .subLine span{white-space:nowrap}
   .subLine b{font-weight:800;color:#6B7480}
 
+  .budgetCatsBlock{margin:2px 0 10px}
+  .budgetCatsBlock[hidden]{display:none}
+  .fLabel .fHint{font-size:10px;font-weight:700;color:#AEB6C0;margin-left:5px;letter-spacing:-.01em}
+  .budgetCats{display:flex;flex-wrap:wrap;gap:6px}
+  .budgetCats .chip{gap:3px}
+  .budgetCatsNote{margin:7px 2px 0;font-size:10.5px;line-height:1.5;color:#8B95A1;letter-spacing:-.01em}
+
+  /* 장부 목록 · 시트 연동 창의 시트 상태 칩 */
+  .lsChip{
+    flex:0 0 auto;font-size:9px;font-weight:800;letter-spacing:-.01em;padding:2px 5px;border-radius:6px;
+    background:#F2F4F6;color:#8B95A1;white-space:nowrap;
+  }
+  .lsChip.base{background:#EEF1F6;color:#6E7A8A}
+  .lsChip.rw{background:#F1EEFC;color:#6B5BE0}
+  .lsChip.ro{background:#EAF2FE;color:#2F7CF6}
+  .linkRow{
+    display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--hair);background:#fff;
+    border-radius:14px;padding:10px 11px;margin-bottom:8px;font-family:inherit;cursor:pointer;
+    text-align:left;color:inherit;
+  }
+  .linkRow:active{background:#F7F8FA}
+  .linkRow .lsMain b{font-size:12.5px}
+  .linkRow .lsIcon{width:32px;height:32px;border-radius:11px;font-size:15px}
+  /* 장부 이름·아이콘 창 안의 시트 연결 줄 */
+  .sheetLinkRow{
+    display:flex;align-items:center;gap:9px;width:100%;border:1px solid var(--hair);background:#fff;
+    border-radius:13px;padding:11px 12px;font-family:inherit;cursor:pointer;text-align:left;color:inherit;
+    margin-bottom:2px;
+  }
+  .sheetLinkRow:active{background:#F7F8FA}
+  .sheetLinkRow .sdot{position:static;display:block;box-shadow:none;width:8px;height:8px;flex:0 0 auto}
+  .slrTx{flex:1 1 auto;min-width:0}
+  .slrTx b{display:block;font-size:12px;font-weight:800;letter-spacing:-.02em}
+  .slrTx em{
+    display:block;font-style:normal;font-size:10px;color:#8B95A1;margin-top:2px;letter-spacing:-.01em;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .slrChev{flex:0 0 auto;color:#C3CAD2;font-weight:800;font-size:13px}
+  /* 장부 삭제 */
+  .ledgerDel{
+    width:100%;margin-top:10px;padding:11px 0;border-radius:13px;border:1px solid #F3D7DA;background:#fff;
+    color:#D63A48;font-family:inherit;font-size:12px;font-weight:800;letter-spacing:-.02em;cursor:pointer;
+  }
+  .ledgerDel.armed{background:#FDEEF0;border-color:#E8A3AB;color:#C22F3D}
+  .ledgerDel[disabled]{opacity:.45;cursor:default;color:#B0B8C1;border-color:#EDEFF3}
+  .ledgerDelNote{margin:8px 2px 0;font-size:10.5px;line-height:1.55;color:#8B95A1;letter-spacing:-.01em}
+  .ledgerDelNote[hidden]{display:none}
+  .slSelect{
+    width:100%;border:1px solid #E8EBEF;border-radius:12px;padding:11px 12px;font-family:inherit;
+    font-size:12.5px;font-weight:700;color:inherit;background:#fff;appearance:none;
+  }
+  #sheetLinkModal{z-index:28}
   .syncCard{max-height:88dvh;overflow-y:auto;scrollbar-width:none}
   .syncCard::-webkit-scrollbar{display:none}
   .syncState{display:flex;align-items:center;gap:7px;background:#F7F8FA;border-radius:12px;padding:10px 12px;margin:10px 0 14px}
@@ -1503,7 +1555,51 @@
     <div class="fLabel">아이콘</div>
     <div class="iconGrid" id="renameIcons"></div>
     <input class="textInput iconCustom" id="renameIconCustom" maxlength="4" placeholder="직접 입력 — 이모지나 1글자" autocomplete="off" spellcheck="false">
+    <div class="fLabel">구글 시트</div>
+    <button class="sheetLinkRow" id="ledgerSheetRow" type="button">
+      <i class="sdot" id="ledgerSheetDot"></i>
+      <span class="slrTx"><b id="ledgerSheetName">기본 시트</b><em id="ledgerSheetSub">—</em></span>
+      <span class="slrChev">›</span>
+    </button>
     <button class="saveBtn" id="renameSave">저장</button>
+    <button class="ledgerDel" id="ledgerDelete" type="button">장부 삭제</button>
+    <div class="ledgerDelNote" id="ledgerDelNote" hidden></div>
+  </div>
+</div>
+
+<div class="modalWrap" id="sheetLinkModal" hidden>
+  <div class="backdrop" id="sheetLinkBackdrop"></div>
+  <div class="modalCard syncCard">
+    <div class="handle" style="margin-bottom:8px"></div>
+    <h2>장부 시트 연결</h2>
+    <div class="modalDate" id="slLedgerName">장부</div>
+    <div class="syncState">
+      <i class="sdot" id="slDot"></i>
+      <b id="slState">연결 안 됨</b>
+      <span class="sSub" id="slStateSub">—</span>
+    </div>
+    <div class="fLabel">저장 방식</div>
+    <div class="segType" id="slModeSeg">
+      <button data-slmode="rw">저장도 하기</button>
+      <button data-slmode="ro">불러오기만</button>
+    </div>
+    <p class="syncNote" id="slModeNote"></p>
+    <div class="fLabel">Apps Script 웹 앱 URL</div>
+    <input class="textInput" id="slUrl" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" spellcheck="false" inputmode="url">
+    <div class="fLabel">보안 PIN</div>
+    <input class="textInput" id="slPin" type="password" placeholder="Apps Script에 넣은 PIN" autocomplete="off" spellcheck="false">
+    <div id="slRemoteBlock" hidden>
+      <div class="fLabel">이 시트에서 볼 장부</div>
+      <select class="slSelect" id="slRemoteLedger" aria-label="이 시트에서 볼 장부"></select>
+    </div>
+    <div class="syncBtns">
+      <button class="saveBtn" id="slConnect">연결 테스트 및 불러오기</button>
+      <button class="ghostBtn" id="slTest">연결 테스트</button>
+      <button class="ghostBtn" id="slPull">지금 시트에서 불러오기</button>
+      <button class="ghostBtn" id="slPush">지금 시트에 저장</button>
+    </div>
+    <p class="syncNote" id="slNote"></p>
+    <button class="syncOff" id="slOff" hidden>이 장부의 시트 연결 끊기</button>
   </div>
 </div>
 
@@ -1536,6 +1632,11 @@
       </div>
       <div class="periodPreview" id="periodPreview">이번 기간은 <b>11/1 ~ 11/30</b> · 30일</div>
     </div>
+    <div class="budgetCatsBlock" id="budgetCatsBlock">
+      <div class="fLabel">예산에 포함할 카테고리<span class="fHint">여러 개 고를 수 있어요</span></div>
+      <div class="chips budgetCats" id="budgetCats"></div>
+      <p class="budgetCatsNote" id="budgetCatsNote"></p>
+    </div>
     <button class="saveBtn" id="budgetSave">저장</button>
   </div>
 </div>
@@ -1560,6 +1661,9 @@
       <button class="ghostBtn" id="syncPushBtn">지금 시트에 저장</button>
     </div>
     <p class="syncNote" id="syncNote">연결하면 앱을 열 때 시트의 최신 내역을 불러오고, 내역·자산이 바뀔 때마다 시트에 바로 반영해요.</p>
+    <div class="fLabel" style="margin-top:16px">장부별 시트</div>
+    <div class="linkList" id="syncLinkList"></div>
+    <p class="syncNote">장부마다 다른 구글 시트를 연결할 수 있어요. 전용 시트를 연결한 장부는 그 시트로만 오가고, 연결하지 않은 장부는 위의 기본 시트에 함께 저장됩니다. 다른 사람 시트를 볼 때는 「불러오기만」을 골라 주세요.</p>
     <details class="syncGuide">
       <summary>처음 한 번: Apps Script 설치 방법</summary>
       <ol>
@@ -1979,6 +2083,8 @@ function renameCat(type, from, to, icon, color){
   /* 생활비 카테고리 이름을 바꾸면 생활비 예산도 새 이름을 따라갑니다 */
   if (type === "expense" && (from === settings.livingCat || from === LIVING_CAT))
     settings.livingCat = v;
+  if (type === "expense" && Array.isArray(settings.livingCats) && settings.livingCats.indexOf(from) >= 0)
+    settings.livingCats = settings.livingCats.map(k => k === from ? v : k).filter((k, i, a) => a.indexOf(k) === i);
   if (state.statCat === from) state.statCat = v;
   if (state.trendCat === from) state.trendCat = v;
   return true;
@@ -1989,6 +2095,8 @@ function removeCat(type, k){
   if (i < 0) return false;
   list.splice(i, 1);
   if (type === "expense" && k === settings.livingCat) settings.livingCat = "";
+  if (type === "expense" && Array.isArray(settings.livingCats))
+    settings.livingCats = settings.livingCats.filter(x => x !== k);
   if (state.statCat === k) state.statCat = null;
   if (state.trendCat === k) state.trendCat = null;
   return true;
@@ -2202,19 +2310,38 @@ function weekRange(base){
   return { mon, fri: addDays(mon, 4), sun: addDays(mon, 6) };
 }
 /* ---------- 생활비로 세는 카테고리 ----------
-   기본은 「🎈 생활비」. 카테고리 관리에서 이름을 바꾸면 settings.livingCat 에
-   새 이름이 남아 그대로 따라가고(내역 이름도 함께 바뀝니다), 시트 `설정` 탭의
-   living_cat 으로 기기 사이에도 같이 갑니다. 이름을 못 찾으면 «생활비» 로 되돌아보고,
-   그것도 없으면 예전처럼 전체 지출로 계산합니다(카드를 비워 두지 않으려고). */
-function livingCatOf(l){
+   기본은 「🎈 생활비」 하나. 생활비 예산 창(⚙)에서 지출 카테고리를 여러 개 골라
+   함께 셀 수 있습니다(예: 생활비 + 점심비). 고른 목록은 settings.livingCats(배열)에
+   남고 시트 `설정` 탭의 living_cats(JSON)로 기기 사이에도 같이 갑니다.
+   예전 저장값·시트에는 이름 하나짜리 living_cat 만 있으므로, livingCats 가 비어 있으면
+   living_cat → «생활비» 순서로 되돌아보고, 그것도 없으면 전체 지출로 계산합니다
+   (카드를 비워 두지 않으려고). */
+function livingCatsOf(l){
   const led = l || cur();
   const cats = (led && led.cats && led.cats.expense) || [];
-  const saved = String(settings.livingCat || "").trim();
-  if (saved && cats.some(c => c.k === saved)) return saved;
-  const hit = cats.find(c => c.k === LIVING_CAT);
-  return hit ? hit.k : null;
+  const has = k => cats.some(c => c.k === k);
+  let list = Array.isArray(settings.livingCats)
+    ? settings.livingCats.map(k => String(k || "").trim()).filter(k => k && has(k))
+    : [];
+  if (!list.length){
+    const saved = String(settings.livingCat || "").trim();
+    if (saved && has(saved)) list = [saved];
+    else if (has(LIVING_CAT)) list = [LIVING_CAT];
+  }
+  return list.filter((k, i) => list.indexOf(k) === i);
+}
+/* 예전 코드·테스트가 쓰는 이름 하나짜리 값 (첫 번째 카테고리) */
+function livingCatOf(l){
+  const list = livingCatsOf(l);
+  return list.length ? list[0] : null;
 }
 const livingCatKey = () => livingCatOf(cur());
+/* 예산 카드·토스트에 보여 줄 이름 (여러 개면 「생활비」·「점심비」) */
+function livingCatsLabel(l){
+  const list = livingCatsOf(l);
+  if (!list.length) return "";
+  return list.map(k => `「${(catOf("expense", k).e || "•")} ${k}」`).join("·");
+}
 
 /* ---------- 생활비 기간 (주별 · 월별) ----------
    · 주별 : 이번 주 월~일
@@ -2269,10 +2396,10 @@ function budgetStateIn(start, end, budget, mode){
   const p = ledgerById("personal");
   /* 생활비 예산은 「생활비」 카테고리 지출만 봅니다.
      고정지출 · 생활비 외 지출 · 경조사 · 점심비 · 잔액수정은 여기에 넣지 않아요. */
-  const livingKey = livingCatOf(p);
+  const livingKeys = livingCatsOf(p);
   const spent = (p ? p.data : [])
     .filter(e => e.type === "expense" && e.d >= sk && e.d <= ek && !isAdjustCat(e.cat)
-                 && (livingKey ? e.cat === livingKey : true))
+                 && (!livingKeys.length || livingKeys.indexOf(e.cat) >= 0))
     .reduce((s,e)=> s + e.amt, 0);
   const left = budget - spent;
   return { start, end, mode, spent, budget, left,
@@ -2823,15 +2950,15 @@ const trendRangeLabel = w => `${mdShort(w.mon)}~${mdShort(w.sun)}`;
 
 function trendCats(){
   const list = cur().cats[trendType()] || [];
-  /* 지출 추이에서 「생활비」는 «생활비 전체» 칩이 이미 보고 있으므로 따로 두지 않는다 */
-  const livingKey = (trendType() === "expense" && cur().living) ? livingCatKey() : null;
+  /* 지출 추이에서 생활비로 고른 카테고리는 «생활비 전체» 칩이 이미 보고 있으므로 따로 두지 않는다 */
+  const livingKeys = (trendType() === "expense" && cur().living) ? livingCatsOf(cur()) : [];
   return list.filter(c => trendType() !== "expense" ||
-    (!isAdjustCat(c.k) && c.k !== livingKey));
+    (!isAdjustCat(c.k) && livingKeys.indexOf(c.k) < 0));
 }
 function trendSeries(){
   const type = trendType(), cat = state.trendCat;
   /* 「생활비 전체」 막대는 생활비 카드와 같은 기준 — 생활비 카테고리 지출만 셀니다 */
-  const livingKey = (type === "expense" && cur().living) ? livingCatKey() : null;
+  const livingKeys = (type === "expense" && cur().living) ? livingCatsOf(cur()) : [];
   const {mon} = weekRange(today);
   const out = [];
   for (let i = TREND_WEEKS - 1; i >= 0; i--){
@@ -2842,7 +2969,7 @@ function trendSeries(){
       if (e.type !== type || e.d < mk || e.d > sk) return;
       if (type === "expense" && isAdjustCat(e.cat)) return;   // 생활비와 같은 기준
       if (cat) { if (e.cat !== cat) return; }
-      else if (livingKey && e.cat !== livingKey) return;      // 전체 = 생활비 카테고리만
+      else if (livingKeys.length && livingKeys.indexOf(e.cat) < 0) return;  // 전체 = 고른 카테고리만
       amt += e.amt; n += 1;
     });
     out.push({ mon:m, sun:s, mk, sk, amt, n, now: i === 0 });
@@ -3499,10 +3626,12 @@ function renderLedgerList(){
     const sub = l.data.length
       ? `${y}년 ${m}월 지출 ${won(monthExpenseOf(l))} · 내역 ${nf.format(l.data.length)}건`
       : "아직 내역이 없어요";
+    const tag = sheetTagOf(l.id);
     return `<div class="lsRow ${l.id === state.ledger ? "on" : ""}" data-id="${l.id}" role="button" tabindex="0">
       <span class="lsIcon" style="background:${l.theme}1A;color:${l.theme}">${l.icon}</span>
       <span class="lsMain"><b>${esc(l.name)}</b><span>${sub}</span></span>
-      <span class="lsEdit" data-edit="${l.id}" role="button" tabindex="0" aria-label="${esc(l.name)} 이름과 아이콘 수정" title="이름·아이콘 수정">✎</span>
+      ${tag.text ? `<span class="lsChip ${tag.cls}" title="${esc(tag.title)}">${tag.text}</span>` : ""}
+      <span class="lsEdit" data-edit="${l.id}" role="button" tabindex="0" aria-label="${esc(l.name)} 이름과 아이콘 수정" title="이름·아이콘·시트 연결·삭제">✎</span>
       <span class="lsCheck">✓</span>
     </div>`;
   }).join("");
@@ -3614,6 +3743,8 @@ function openRename(id){
   renameDraft = { icon: l.icon || "📒" };
   document.getElementById("renameInput").value = l.name;
   renderRenameForm();
+  renderLedgerSheetRow();
+  renderLedgerDelete();
   closeLedgerSheet();
   document.getElementById("renameModal").hidden = false;
   Overlay.show("renameModal", closeRename);
@@ -3671,6 +3802,119 @@ document.getElementById("renameIconCustom").addEventListener("input", ev => {
   if (ev.target.value !== v) ev.target.value = v;
   if (v) renameDraft.icon = v;
   renderRenameForm();
+});
+
+/* ---------- 장부 삭제 ----------
+   마지막 하나는 지울 수 없고, 내역·자산이 있으면 몇 건이 함께 지워지는지 보여 준 뒤
+   한 번 더 누를 때만 지웁니다. 지운 장부가 지금 보고 있던 장부면 첫 번째 장부로 바꿉니다. */
+let ledgerDelArmed = false, ledgerDelTimer;
+
+function renderLedgerSheetRow(){
+  const l = renameTarget;
+  if (!l) return;
+  const dot = document.getElementById("ledgerSheetDot");
+  const name = document.getElementById("ledgerSheetName");
+  const sub = document.getElementById("ledgerSheetSub");
+  if (!dot || !name) return;
+  const k = linkOf(l.id);
+  if (k){
+    dot.className = "sdot " + (k.status === "error" ? "error" : "ok") + " on";
+    name.textContent = k.mode === "rw" ? "전용 시트 · 저장도 하기" : "전용 시트 · 불러오기만";
+    sub.textContent = k.status === "error" ? (k.err || "연결 확인 필요")
+      : k.lastAt ? "마지막 " + syncTimeLabel(k.lastAt) : "연결됨 · 눌러서 바꾸기";
+  } else if (syncOn()){
+    dot.className = "sdot ok on";
+    name.textContent = "기본 시트에 함께 저장";
+    sub.textContent = "이 장부만 다른 시트로 따로 연결할 수 있어요";
+  } else {
+    dot.className = "sdot";
+    name.textContent = "연결 안 됨";
+    sub.textContent = "눌러서 이 장부만의 시트를 연결할 수 있어요";
+  }
+}
+
+function renderLedgerDelete(){
+  const l = renameTarget;
+  const btn = document.getElementById("ledgerDelete");
+  const note = document.getElementById("ledgerDelNote");
+  if (!l || !btn) return;
+  ledgerDelArmed = false;
+  clearTimeout(ledgerDelTimer);
+  btn.classList.remove("armed");
+  const last = LEDGERS.length <= 1;
+  btn.disabled = last;
+  btn.textContent = "장부 삭제";
+  note.hidden = !last;
+  if (last) note.textContent = "장부가 하나뿐이라 지울 수 없어요. 새 장부를 먼저 만들어 주세요.";
+}
+
+function deleteLedgerNow(l){
+  const i = LEDGERS.findIndex(x => x.id === l.id);
+  if (i < 0 || LEDGERS.length <= 1) return;
+  const wasActive = state.ledger === l.id;
+  const name = l.name;
+  if (linkOf(l.id)){
+    delete SYNC.links[l.id];
+    delete SYNC.sigs["lg:" + l.id];
+    saveSyncConfig();
+  }
+  LEDGERS.splice(i, 1);
+  ledgerDelArmed = false;
+  clearTimeout(ledgerDelTimer);
+  closeRename();
+  if (wasActive){
+    state.ledger = LEDGERS[0].id;
+    state.screen = "calendar"; state.tab = "all";
+    state.statCat = null; state.statSub = null;
+    state.trendCat = null; state.trendWeek = null;
+  }
+  ASSETS = cur().assetsList || [];
+  saveAll();
+  renderAll();
+  syncScreenLayer();
+  if (!ledgerSheet.hidden) renderLedgerList();
+  renderSheetLinkList();
+  showToast(`🗑 ${name} 장부를 지웠어요`);
+}
+
+document.getElementById("ledgerSheetRow").addEventListener("click", () => {
+  const id = renameTarget && renameTarget.id;
+  if (!id) return;
+  openSheetLink(id);
+});
+
+document.getElementById("ledgerDelete").addEventListener("click", () => {
+  const l = renameTarget;
+  if (!l) return;
+  const btn = document.getElementById("ledgerDelete");
+  const note = document.getElementById("ledgerDelNote");
+  if (LEDGERS.length <= 1){
+    note.hidden = false;
+    note.textContent = "장부가 하나뿐이라 지울 수 없어요. 새 장부를 먼저 만들어 주세요.";
+    showToast("장부가 하나뿐이라 지울 수 없어요", true);
+    return;
+  }
+  const n = (l.data || []).length;
+  const a = (l.assetsList || []).length;
+  if (!ledgerDelArmed){
+    ledgerDelArmed = true;
+    btn.classList.add("armed");
+    btn.textContent = n ? `정말 삭제할까요? 내역 ${nf.format(n)}건도 함께 지워져요`
+                        : "정말 삭제할까요? 한 번 더 누르세요";
+    note.hidden = false;
+    note.textContent = (n || a)
+      ? `내역 ${nf.format(n)}건${a ? ` · 자산 ${nf.format(a)}개` : ""}도 함께 지워져요. 되돌릴 수 없어요.`
+      : "되돌릴 수 없어요.";
+    clearTimeout(ledgerDelTimer);
+    ledgerDelTimer = setTimeout(() => {
+      ledgerDelArmed = false;
+      btn.classList.remove("armed");
+      btn.textContent = "장부 삭제";
+      note.hidden = true;
+    }, 5000);
+    return;
+  }
+  deleteLedgerNow(l);
 });
 
 /* ---------- 카테고리 관리 (대분류 · 세부 카테고리 직접 편집) ----------
@@ -4265,8 +4509,8 @@ document.getElementById("saveBtn").addEventListener("click", () => {
   if (entry.type === "expense" && cur().living){
     /* 생활비 카테고리 지출일 때만 생활비 예산 안내를 보여 줍니다.
        (고정지출·경조사 같은 다른 지출은 예산에서 빼니 알려 줄 것으로 없어요) */
-    const lk = livingCatKey();
-    if (lk && entry.cat !== lk){
+    const lks = livingCatsOf(cur());
+    if (lks.length && lks.indexOf(entry.cat) < 0){
       showToast(`${won(amt)} 저장했어요`);
       return;
     }
@@ -4293,7 +4537,7 @@ const BUDGET_PRESETS = {
   week: [100000, 150000, 200000, 250000, 300000],
   month: [400000, 500000, 600000, 700000, 800000, 1000000]
 };
-let budgetDraft = { mode:"week", type:"full", startDay:1, amt:{ week:0, month:0 } };
+let budgetDraft = { mode:"week", type:"full", startDay:1, amt:{ week:0, month:0 }, cats:[] };
 
 /* 고른 기간이 이번에 어느 날부터 어느 날까지인지 미리 보여 줍니다 */
 function renderBudgetPeriod(){
@@ -4319,11 +4563,13 @@ function renderBudgetModal(){
     b.classList.toggle("on", b.dataset.bmode === mode));
   const amt = Number(budgetDraft.amt[mode]) || 0;
   document.getElementById("budgetInput").value = amt ? nf.format(amt) : "";
-  /* 예산은 「생활비」 카테고리 지출과 견줘야 맞으므로, 그 기준을 함께 알려 줍니다 */
-  const lk = livingCatKey();
+  /* 예산에 넣을 카테고리를 여러 개 고를 수 있습니다 (기본은 「생활비」 하나) */
+  renderBudgetCats();
+  const picked = budgetDraft.cats.filter(k => (cur().cats.expense || []).some(c => c.k === k));
   const basis = !cur().living ? ""
-    : lk ? `「${catOf("expense", lk).e} ${lk}」 지출만 계산해요.`
-         : "「생활비」 카테고리가 없어 전체 지출로 계산하고 있어요.";
+    : picked.length
+      ? `${picked.map(k => `「${catOf("expense", k).e || "•"} ${k}」`).join("·")} 지출만 계산해요.`
+      : "예산에 넣을 카테고리를 하나 골라 주세요.";
   document.getElementById("budgetHint").textContent = basis + " " + (mode === "month"
     ? "한 달 동안 쓰는 생활비예요. 어느 기간으로 볼지 골라 주세요."
     : "월요일~일요일, 한 주 동안 쓰는 생활비예요. 언제든 바꿀 수 있어요.");
@@ -4333,12 +4579,33 @@ function renderBudgetModal(){
   if (mode === "month") renderBudgetPeriod();
 }
 
+/* 예산에 포함할 지출 카테고리 — 칩을 눌러 여러 개를 켜고 끕니다 */
+function renderBudgetCats(){
+  const box = document.getElementById("budgetCats");
+  if (!box) return;
+  const live = !!cur().living;
+  const block = document.getElementById("budgetCatsBlock");
+  if (block) block.hidden = !live;
+  if (!live) return;
+  const list = (cur().cats.expense || []).filter(c => !isAdjustCat(c.k));
+  const picked = budgetDraft.cats;
+  box.innerHTML = list.map(c => {
+    const on = picked.indexOf(c.k) >= 0;
+    return `<button class="chip ${on ? "on" : ""}" data-bcat="${esc(c.k)}" aria-pressed="${on}">${esc(c.e || "•")} ${esc(c.k)}</button>`;
+  }).join("") || `<div class="cmEmpty">지출 카테고리가 없어요.</div>`;
+  const note = document.getElementById("budgetCatsNote");
+  if (note) note.textContent = picked.length
+    ? `${picked.length}개 카테고리를 합쳐서 계산해요.`
+    : "카테고리를 하나 이상 골라 주세요.";
+}
+
 function openBudgetModal(){
   budgetDraft = {
     mode: settings.budgetMode === "month" ? "month" : "week",
     type: settings.monthType || "full",
     startDay: Math.min(28, Math.max(1, Number(settings.monthStartDay) || 1)),
-    amt: { week: Number(settings.weekBudget) || 0, month: Number(settings.monthBudget) || 0 }
+    amt: { week: Number(settings.weekBudget) || 0, month: Number(settings.monthBudget) || 0 },
+    cats: livingCatsOf(cur()).slice()
   };
   renderBudgetModal();
   document.getElementById("budgetModal").hidden = false;
@@ -4400,12 +4667,33 @@ document.getElementById("budgetSave").addEventListener("click", () => {
     settings.weekBudget = v;
   }
   settings.budgetMode = budgetDraft.mode;
+  const cats = budgetDraft.cats.filter(k => (cur().cats.expense || []).some(c => c.k === k));
+  settings.livingCats = cats.slice();
+  settings.livingCat = cats[0] || "";
   saveAll();
   closeBudgetModal();
   renderLiving();
-  showToast(budgetDraft.mode === "month"
-    ? `이번 달 생활비 예산 ${won(v)}로 바꿨어요`
-    : `이번 주 생활비 예산 ${won(v)}로 바꿨어요`);
+  const when = budgetDraft.mode === "month" ? "이번 달" : "이번 주";
+  const label = cats.length ? ` · ${cats.join("·")} 기준` : " · 전체 지출 기준";
+  showToast(`${when} 생활비 예산 ${won(v)}로 바꿨어요${label}`);
+});
+
+document.getElementById("budgetCats").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-bcat]");
+  if (!b) return;
+  const k = b.dataset.bcat;
+  const i = budgetDraft.cats.indexOf(k);
+  if (i >= 0){
+    /* 예산 기준이 비지 않도록 마지막 하나는 끄지 않습니다 */
+    if (budgetDraft.cats.length === 1){
+      showToast("예산에 넣을 카테고리를 하나는 골라 두세요", true);
+      return;
+    }
+    budgetDraft.cats.splice(i, 1);
+  } else {
+    budgetDraft.cats.push(k);
+  }
+  renderBudgetModal();
 });
 
 /* ---------- 통장·카드 추가/수정 ---------- */
@@ -5324,7 +5612,8 @@ const LEGACY_DATA_KEY = "budget-app:v1";
 const LEGACY_SET_KEY = "budget-app:settings:v2";
 let settings = { weekBudget: 150000, payday: 25, cardMeta: {},
                  budgetMode: "week", monthBudget: 600000, monthType: "full", monthStartDay: 1,
-                 livingCat: LIVING_CAT };  /* 생활비 예산이 세는 카테고리 이름 */
+                 livingCat: LIVING_CAT, livingCats: [] };
+                 /* livingCat: 예전 이름 하나짜리 값(호환용) · livingCats: 예산에 넣는 카테고리 목록 */
 /* model 6 — 시트에서 예전 cat_config 가 내려와도 새 기본 수입 카테고리를
    이번 실행에서 한 번은 반영하기 위한 표시 */
 let NEED_INCOME_MIGRATION = false;
@@ -5337,6 +5626,7 @@ function persistLocal(){
       budgetMode: settings.budgetMode, monthBudget: settings.monthBudget,
       monthType: settings.monthType, monthStartDay: settings.monthStartDay,
       livingCat: settings.livingCat,
+      livingCats: Array.isArray(settings.livingCats) ? settings.livingCats : [],
       ledgers: LEDGERS
     }));
   }catch(e){}
@@ -5344,7 +5634,7 @@ function persistLocal(){
 /* 내역·자산·설정을 바꾸면 이곳을 거칩니다. 저장 후 시트가 연결돼 있으면 자동 반영 */
 function saveAll(){
   persistLocal();
-  if (syncOn() && !SYNC.applying) schedulePush();
+  if (!SYNC.applying) schedulePush();
 }
 /* 자산 하나를 화면이 쓰는 모양으로 (예전 저장값도 포함) */
 function hydrateAsset(a){
@@ -5428,6 +5718,8 @@ function loadAll(){
         if (Number(s.monthStartDay) >= 1 && Number(s.monthStartDay) <= 28)
           settings.monthStartDay = Number(s.monthStartDay);
         if (typeof s.livingCat === "string") settings.livingCat = s.livingCat.trim();
+        settings.livingCats = Array.isArray(s.livingCats)
+          ? s.livingCats.map(k => String(k || "").trim()).filter(Boolean) : [];
         if (s.active && LEDGERS.some(l => l.id === s.active)) state.ledger = s.active;
         /* v4 이전 저장값은 자산 목록만 새 6구분 기본값으로 바꿔 줍니다 (내역은 그대로) */
         if (Number(s.model) < 4){
@@ -5483,15 +5775,41 @@ const SYNC_LABEL = {
 };
 const SYNC = {
   url:"", pin:"", status:"off", lastAt:null, err:"",
-  busy:false, applying:false, dirty:false, timer:null, started:false
+  busy:false, applying:false, dirty:false, timer:null, started:false,
+  sigs:{},      /* 시트(기본·장부별)별로 마지막에 올린 payload 서명 — 바뀐 것만 저장 */
+  links:{}      /* 장부별 전용 시트: 장부 id → {url,pin,mode,remoteId,remoteMeta,...} */
 };
 const syncOn = () => !!(SYNC.url && SYNC.pin);
+
+/* ---------- 장부별 시트 ----------
+   · SYNC.url/pin = 기본 시트. 전용 시트를 연결하지 않은 장부는 모두 이 시트로 오갑니다
+     (예전처럼 시트 하나만 쓰던 사용자는 그대로 동작합니다).
+   · SYNC.links[장부 id] = 그 장부만의 전용 시트. 그 장부의 내역·자산·카테고리는
+     전용 시트로만 가고, 내 시트(기본 시트)에는 섞이지 않습니다.
+   · mode "rw" = 저장도 하기 / "ro" = 불러오기만(상대방 시트를 볼 때). */
+function linkOf(id){
+  const k = SYNC.links && SYNC.links[id];
+  return (k && k.url && k.pin) ? k : null;
+}
+const hasOwnSheet = id => !!linkOf(id);
+/* 기본 시트에 모이는 장부 = 전용 시트를 연결하지 않은 장부 */
+const baseLedgers = () => LEDGERS.filter(l => !linkOf(l.id));
+/* 화면·장부 목록에 보여 줄 짧은 상태 */
+function sheetTagOf(id){
+  const k = linkOf(id);
+  if (k) return k.mode === "rw"
+    ? { cls:"rw", text:"전용", title:"이 장부만의 전용 시트에 저장해요" }
+    : { cls:"ro", text:"보기", title:"다른 시트에서 불러오기만 해요" };
+  if (syncOn()) return { cls:"base", text:"시트", title:"기본 시트에 함께 저장돼요" };
+  return { cls:"", text:"", title:"시트에 연결되어 있지 않아요" };
+}
 
 /* ---------- 설정 저장 ---------- */
 function saveSyncConfig(){
   try{
     localStorage.setItem(SYNC_KEY, JSON.stringify({
-      url: SYNC.url, pin: SYNC.pin, lastAt: SYNC.lastAt, dirty: SYNC.dirty
+      url: SYNC.url, pin: SYNC.pin, lastAt: SYNC.lastAt, dirty: SYNC.dirty,
+      sigs: SYNC.sigs || {}, links: SYNC.links || {}
     }));
   }catch(e){}
 }
@@ -5501,11 +5819,11 @@ const syncTimeLabel = isoStr => {
   return `${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 };
 function syncSubText(){
-  if (!syncOn()) return "시트와 연결하면 자동으로 저장돼요";
+  if (!syncOn() && !Object.keys(SYNC.links || {}).length) return "시트와 연결하면 자동으로 저장돼요";
   if (SYNC.status === "error") return SYNC.err || "연결을 확인해 주세요";
   if (SYNC.dirty) return "저장 대기 중";
   if (SYNC.lastAt) return "마지막 동기화 " + syncTimeLabel(SYNC.lastAt);
-  return "연결됨";
+  return syncOn() ? "연결됨" : "장부별 시트만 연결됨";
 }
 function setSyncStatus(s, err){
   SYNC.status = s;
@@ -5532,6 +5850,8 @@ function paintSync(){
   if (subEl) subEl.textContent = sub;
   const off = document.getElementById("syncOffBtn");
   if (off) off.hidden = !syncOn();
+  const ls = document.getElementById("ledgerSheet");
+  if (ls && !ls.hidden) renderLedgerList();
 }
 
 /* ---------- 데이터 ⇄ 시트 모양 ---------- */
@@ -5554,18 +5874,33 @@ const assetIdByName = (l, name) => {
 const defaultAcctFor = l =>
   (((l.assetsList || []).find(a => a.group !== "카드" && a.payable !== false)) || {}).id || null;
 
-function buildPayload(){
+/* payload 를 만듭니다.
+   ids 를 주면 그 장부만 담습니다 (장부별 전용 시트로 보낼 때).
+   opts.link 를 주면 그 시트에 있는 장부 id(remoteId)와 이름·아이콘을 그대로 써서
+   상대 시트의 장부목록을 내 이름으로 바꾸지 않습니다. */
+function buildPayload(ids, opts){
   ensureEntryIds();
+  opts = opts || {};
+  const link = opts.link || null;
+  const localIds = Array.isArray(ids) ? ids.filter(id => ledgerById(id))
+                                      : LEDGERS.map(l => l.id);
+  const pidOf = id => (link && link.remoteId) ? String(link.remoteId) : id;
   const ledgers = [], assets = [], entries = [];
-  LEDGERS.forEach(l => {
-    ledgers.push({ id:l.id, name:l.name, icon:l.icon, theme:l.theme,
-                   cycle:!!l.cycle, assets:!!l.assets });
+  localIds.forEach(id => {
+    const l = ledgerById(id);
+    if (!l) return;
+    const pid = pidOf(id);
+    const meta = (link && link.remoteMeta) || {};
+    ledgers.push({ id:pid, name:meta.name || l.name, icon:meta.icon || l.icon,
+                   theme:meta.theme || l.theme,
+                   cycle:(meta.cycle !== undefined ? !!meta.cycle : !!l.cycle),
+                   assets:(meta.assets !== undefined ? !!meta.assets : !!l.assets) });
     (l.assetsList || []).forEach(a => {
-      assets.push({ id:a.id, ledger:l.id, group:a.group, name:a.name,
+      assets.push({ id:a.id, ledger:pid, group:a.group, name:a.name,
                     note:a.note || "", init:Number(a.init) || 0 });
     });
     (l.data || []).forEach(e => {
-      const row = { id:e.id, ledger:l.id, d:e.d, t:e.t,
+      const row = { id:e.id, ledger:pid, d:e.d, t:e.t,
                     type:e.type, cat:e.cat || "", sub:e.sub || "", amt:Number(e.amt) || 0 };
       if (e.type === "transfer"){
         row.pay = assetNameIn(l, e.fromId);
@@ -5583,29 +5918,51 @@ function buildPayload(){
   });
   return {
     ledgers, assets, entries,
-    settings: {
-      weekly_budget: Number(settings.weekBudget) || 0,
-      payday: Number(settings.payday) || 25,
-      /* 생활비 기준 — 주별/월별, 월별 예산과 기간 (설정 탭 키/값) */
-      budget_mode: settings.budgetMode === "month" ? "month" : "week",
-      month_budget: Number(settings.monthBudget) || 0,
-      budget_month_type: ["full","pay","custom"].includes(settings.monthType) ? settings.monthType : "full",
-      budget_month_start_day: Number(settings.monthStartDay) || 1,
-      /* 생활비 예산이 세는 카테고리 이름 (기본 「생활비」) */
-      living_cat: String(settings.livingCat || LIVING_CAT),
-      /* 카테고리 전체 구성(이름·아이콘·색·세부) — 시트 '설정' 탭에 JSON 한 칸으로 저장 */
-      cat_config: JSON.stringify(catConfigPayload()),
-      cat_subs: JSON.stringify(catSubsPayload()),
-      /* 카드별 혜택 기준 금액(목표 실적) — 설정 탭에 한 칸(JSON)으로 저장 */
-      card_meta: JSON.stringify(cardMetaPayload())
-    }
+    settings: sheetSettings(localIds, link)
   };
 }
 
-/* 카테고리별 세부 분류 목록 — 설정 탭에 한 칸으로 같이 저장해 기기 사이에 유지합니다 */
-function catSubsPayload(){
+/* 시트 '설정' 탭으로 보낼 값.
+   전용 시트에는 그 장부의 카테고리 구성만 보내고, 생활비 예산·카드 실적 같은
+   앱 전체 설정은 기본 시트에만 저장합니다(남의 시트에 내 설정이 섞이지 않게). */
+function sheetSettings(localIds, link){
+  const ids = localIds || LEDGERS.map(l => l.id);
+  const cats = catConfigFor(ids, link);
+  const subs = catSubsFor(ids, link);
+  const meta = cardMetaFor(ids);
+  if (link){
+    const s = {};
+    if (Object.keys(cats).length) s.cat_config = JSON.stringify(cats);
+    if (Object.keys(subs).length) s.cat_subs = JSON.stringify(subs);
+    if (Object.keys(meta).length) s.card_meta = JSON.stringify(meta);
+    return s;
+  }
+  return {
+    weekly_budget: Number(settings.weekBudget) || 0,
+    payday: Number(settings.payday) || 25,
+    /* 생활비 기준 — 주별/월별, 월별 예산과 기간 (설정 탭 키/값) */
+    budget_mode: settings.budgetMode === "month" ? "month" : "week",
+    month_budget: Number(settings.monthBudget) || 0,
+    budget_month_type: ["full","pay","custom"].includes(settings.monthType) ? settings.monthType : "full",
+    budget_month_start_day: Number(settings.monthStartDay) || 1,
+    /* 생활비 예산이 세는 카테고리 (기본 「생활비」) — 예전 단일 값과 목록을 함께 보냅니다 */
+    living_cat: String(settings.livingCat || LIVING_CAT),
+    living_cats: JSON.stringify(Array.isArray(settings.livingCats) ? settings.livingCats : []),
+    /* 카테고리 전체 구성(이름·아이콘·색·세부) — 시트 '설정' 탭에 JSON 한 칸으로 저장 */
+    cat_config: JSON.stringify(cats),
+    cat_subs: JSON.stringify(subs),
+    /* 카드별 혜택 기준 금액(목표 실적) — 설정 탭에 한 칸(JSON)으로 저장 */
+    card_meta: JSON.stringify(meta)
+  };
+}
+
+/* 카테고리별 세부 분류 목록 — 설정 탭에 한 칸으로 같이 저장해 기기 사이에 유지합니다.
+   link 를 주면 그 전용 시트의 장부 id 로 키를 맞춰 보냅니다. */
+function catSubsFor(ids, link){
   const out = {};
-  LEDGERS.forEach(l => {
+  (ids || LEDGERS.map(l => l.id)).forEach(id => {
+    const l = ledgerById(id);
+    if (!l) return;
     const m = {};
     ["expense", "income"].forEach(t => {
       (l.cats[t] || []).forEach(c => {
@@ -5614,16 +5971,19 @@ function catSubsPayload(){
         }
       });
     });
-    if (Object.keys(m).length) out[l.id] = m;
+    if (Object.keys(m).length) out[(link && link.remoteId) ? link.remoteId : id] = m;
   });
   return out;
 }
+const catSubsPayload = ids => catSubsFor(ids, null);
 
 /* 카테고리 전체 구성 — settings.cat_config(JSON)로 기기·시트 사이에 그대로 주고받습니다.
    Apps Script 는 '설정' 탭을 키/값으로만 다루므로 수정·재배포가 필요 없습니다. */
-function catConfigPayload(){
+function catConfigFor(ids, link){
   const out = {};
-  LEDGERS.forEach(l => {
+  (ids || LEDGERS.map(l => l.id)).forEach(id => {
+    const l = ledgerById(id);
+    if (!l) return;
     const m = {};
     ["expense", "income"].forEach(t => {
       const rows = [];
@@ -5643,9 +6003,22 @@ function catConfigPayload(){
       });
       if (rows.length) m[t] = rows;
     });
-    if (Object.keys(m).length) out[l.id] = m;
+    if (Object.keys(m).length) out[(link && link.remoteId) ? link.remoteId : id] = m;
   });
   return out;
+}
+const catConfigPayload = ids => catConfigFor(ids, null);
+
+/* 카드 혜택 기준 금액 — ids 장부들의 자산 것만 골라 냅니다 */
+function cardMetaFor(ids){
+  const src = cardMetaPayload();
+  const keep = {};
+  (ids || LEDGERS.map(l => l.id)).forEach(id => {
+    const l = ledgerById(id);
+    if (!l) return;
+    (l.assetsList || []).forEach(a => { if (src[a.id]) keep[a.id] = src[a.id]; });
+  });
+  return keep;
 }
 
 function remoteEntryToLocal(e, l){
@@ -5680,6 +6053,8 @@ function remoteEntryToLocal(e, l){
 function applyRemote(remote, opts){
   opts = opts || {};
   const merge = !!opts.merge;
+  /* skipLinked — 기본 시트에서 불러올 때, 전용 시트를 가진 장부는 건드리지 않습니다 */
+  const skipLinked = !!opts.skipLinked;
   let pending = false;
   const remoteLedgers = (Array.isArray(remote.ledgers) && remote.ledgers.length) ? remote.ledgers : null;
   const known = new Set();
@@ -5687,6 +6062,7 @@ function applyRemote(remote, opts){
   if (remoteLedgers){
     remoteLedgers.forEach(r => {
       if (!r || !r.id) return;
+      if (skipLinked && linkOf(r.id)) return;
       let l = ledgerById(r.id);
       if (!l){
         l = hydrateLedger({ id:r.id, name:r.name || r.id, icon:r.icon || "📒",
@@ -5707,7 +6083,7 @@ function applyRemote(remote, opts){
       }
       known.add(r.id);
     });
-    LEDGERS.forEach(l => { if (!known.has(l.id)) pending = true; });
+    LEDGERS.forEach(l => { if (!known.has(l.id) && !(skipLinked && linkOf(l.id))) pending = true; });
   }
 
   if (Array.isArray(remote.assets) && remoteLedgers){
@@ -5737,7 +6113,8 @@ function applyRemote(remote, opts){
       const k = e.ledger || "personal";
       (byLedger[k] = byLedger[k] || []).push(e);
     });
-    const targets = remoteLedgers ? [...known] : LEDGERS.map(l => l.id);
+    const targets = remoteLedgers ? [...known]
+      : LEDGERS.map(l => l.id).filter(id => !(skipLinked && linkOf(id)));
     targets.forEach(id => {
       const l = ledgerById(id);
       if (!l) return;
@@ -5763,8 +6140,18 @@ function applyRemote(remote, opts){
   if (["full","pay","custom"].includes(st.budget_month_type)) settings.monthType = st.budget_month_type;
   const msd = Number(st.budget_month_start_day);
   if (isFinite(msd) && msd >= 1 && msd <= 28) settings.monthStartDay = msd;
-  /* 생활비로 세는 카테고리 이름 — 시트 설정 탭의 living_cat */
+  /* 생활비로 세는 카테고리 — 예전 시트의 이름 하나짜리 living_cat 과 새 living_cats(JSON) */
   if (typeof st.living_cat === "string" && st.living_cat.trim()) settings.livingCat = st.living_cat.trim();
+  if (st.living_cats !== undefined && st.living_cats !== null && st.living_cats !== ""){
+    let arr = st.living_cats;
+    if (typeof arr === "string"){
+      try{ arr = JSON.parse(arr); }
+      catch(e){ arr = arr.split(","); }
+    }
+    if (Array.isArray(arr))
+      settings.livingCats = arr.map(k => String(k || "").trim()).filter(Boolean)
+        .filter((k, i, a) => a.indexOf(k) === i);
+  }
   /* 카드별 혜택 기준 금액(목표 실적) — 설정 탭의 card_meta(JSON) */
   if (st.card_meta !== undefined && st.card_meta !== null && st.card_meta !== ""){
     let meta = st.card_meta;
@@ -5803,34 +6190,8 @@ function applyRemote(remote, opts){
   let catConfigApplied = false;
   if (typeof st.cat_config === "string" && st.cat_config){
     try{
-      const cfg = JSON.parse(st.cat_config);
-      Object.keys(cfg || {}).forEach(lid => {
-        const l = ledgerById(lid);
-        if (!l) return;
-        ["expense", "income"].forEach(t => {
-          const rows = (cfg[lid] && cfg[lid][t]);
-          if (!Array.isArray(rows) || !rows.length) return;
-          const list = [];
-          rows.forEach(r => {
-            const k = String((r && r.k) || "").trim();
-            if (!k || list.some(x => x.k === k)) return;
-            const row = { k, e: firstEmoji(r.e) || "•",
-                          c: /^#[0-9A-Fa-f]{6}$/.test(String((r && r.c) || "")) ? r.c : "#AEB6C0" };
-            if (Array.isArray(r.subs)){
-              row.subs = [...new Set(r.subs.map(x => String(x).trim()).filter(Boolean))];
-              const icons = {};
-              row.subs.forEach(sub => {
-                const ic = firstEmoji(r.subIcons && r.subIcons[sub]);
-                if (ic) icons[sub] = ic;
-              });
-              if (Object.keys(icons).length) row.subIcons = icons;
-            }
-            list.push(row);
-          });
-          if (list.length) l.cats[t] = list;
-        });
-      });
-      catConfigApplied = true;
+      catConfigApplied = applyCatConfigObj(JSON.parse(st.cat_config),
+        { skip: lid => skipLinked && !!linkOf(lid) });
     }catch(e){ catConfigApplied = false; }
   }
   /* 예전 버전이 보내던 세부 분류만 있는 cat_subs — 새 구성이 없을 때만 씁니다 */
@@ -5838,6 +6199,7 @@ function applyRemote(remote, opts){
     try{
       const m = JSON.parse(st.cat_subs);
       Object.keys(m || {}).forEach(lid => {
+        if (skipLinked && linkOf(lid)) return;
         const l = ledgerById(lid);
         if (!l) return;
         ["expense", "income"].forEach(t => {
@@ -5863,16 +6225,126 @@ function applyRemote(remote, opts){
   return { pendingPush: pending };
 }
 
+/* 시트의 cat_config(JSON) 를 장부 카테고리에 반영합니다. 내역 자체는 건드리지 않습니다. */
+function applyCatConfigObj(cfg, opts){
+  opts = opts || {};
+  Object.keys(cfg || {}).forEach(lid => {
+    if (opts.skip && opts.skip(lid)) return;
+    const l = ledgerById(lid);
+    if (!l) return;
+    ["expense", "income"].forEach(t => {
+      const rows = (cfg[lid] && cfg[lid][t]);
+      if (!Array.isArray(rows) || !rows.length) return;
+      const list = [];
+      rows.forEach(r => {
+        const k = String((r && r.k) || "").trim();
+        if (!k || list.some(x => x.k === k)) return;
+        const row = { k, e: firstEmoji(r.e) || "•",
+                      c: /^#[0-9A-Fa-f]{6}$/.test(String((r && r.c) || "")) ? r.c : "#AEB6C0" };
+        if (Array.isArray(r.subs)){
+          row.subs = [...new Set(r.subs.map(x => String(x).trim()).filter(Boolean))];
+          const icons = {};
+          row.subs.forEach(sub => {
+            const ic = firstEmoji(r.subIcons && r.subIcons[sub]);
+            if (ic) icons[sub] = ic;
+          });
+          if (Object.keys(icons).length) row.subIcons = icons;
+        }
+        list.push(row);
+      });
+      if (list.length) l.cats[t] = list;
+    });
+  });
+  return true;
+}
+
+/* ---------- 장부 하나만 전용 시트와 주고받기 ----------
+   전용 시트에 있는 그 장부의 내역·자산·카테고리만 이 장부에 반영합니다.
+   내 다른 장부(개인 가정부 등)와 앱 전체 설정(생활비 예산 등)은 건드리지 않습니다.
+   · 시트에 장부가 여러 개면 link.remoteId 로 하나를 골라 이어 줍니다.
+   · 불러올 때는 앱에만 있는 내 기록을 지우지 않고 남겁니다(merge). */
+const entryKeyOf = e => [e.d, e.t, e.type, e.cat || "", e.sub || "", Number(e.amt) || 0,
+                         e.memo || "", e.acct || e.fromId || "", e.toId || ""].join("|");
+
+/* 이름이 같은 자산은 이 장부의 자산 id 를 그대로 씁니다(내역의 결제수단이 끊기지 않게) */
+function mergeRemoteAssets(l, rows){
+  const list = l.assetsList || [];
+  rows.forEach(a => {
+    const name = String(a.name || "").trim();
+    if (!name) return;
+    const hit = list.find(x => x.name === name);
+    const g = ASSET_GROUPS.includes(a.group) ? a.group : "";
+    if (hit){
+      if (g) hit.group = g;
+      if (isFinite(Number(a.init))) hit.init = Number(a.init) || 0;
+      if (a.note) hit.note = a.note;
+    } else {
+      list.push(hydrateAsset({ id:a.id || newId("a"), name, group:g || "은행",
+                               init:a.init, note:a.note }));
+    }
+  });
+  l.assetsList = list;
+}
+
+function applyRemoteLedger(remote, localId){
+  const link = linkOf(localId), l = ledgerById(localId);
+  if (!link || !l) return { ok:false, pendingPush:false };
+  const rows = (Array.isArray(remote.ledgers) ? remote.ledgers : []).filter(r => r && r.id);
+  let remoteId = String(link.remoteId || "");
+  let row = rows.find(r => r.id === remoteId) || rows.find(r => r.id === localId);
+  if (!row && rows.length === 1) row = rows[0];       // 시트에 장부가 하나뿐이면 그 장부로 이어 줌
+  if (!row && rows.length > 1 && !remoteId) return { ok:false, pendingPush:false, needPick:true };
+  if (row){
+    remoteId = row.id;
+    link.remoteId = remoteId;
+    link.remoteMeta = { name: row.name || "", icon: row.icon || "", theme: row.theme || "",
+                        cycle: !!row.cycle, assets: !!row.assets };
+  }
+  if (!remoteId) remoteId = localId;
+
+  const rAssets = (remote.assets || []).filter(a => (a.ledger || "personal") === remoteId);
+  mergeRemoteAssets(l, rAssets.map(a => ({ id:a.id, name:a.name, group:a.group,
+                                           init:a.init, note:a.note })));
+
+  const rEntries = (remote.entries || []).filter(e => (e.ledger || "personal") === remoteId);
+  const converted = rEntries.map(e => {
+    const conv = remoteEntryToLocal(e, l);
+    if (!e.id || !String(e.id).trim()){
+      const hit = (l.data || []).find(x => entryKeyOf(x) === entryKeyOf(conv));
+      if (hit) conv.id = hit.id;
+    }
+    return conv;
+  });
+  const ids = new Set(converted.map(e => e.id));
+  const extra = (l.data || []).filter(e => !ids.has(e.id));
+  l.data = converted.concat(extra).sort((a, b) => (a.d + a.t).localeCompare(b.d + b.t));
+
+  const st = remote.settings || {};
+  let cfg = null;
+  if (typeof st.cat_config === "string" && st.cat_config){
+    try{ cfg = JSON.parse(st.cat_config); }catch(e){ cfg = null; }
+  }
+  const srcCats = (cfg && cfg[remoteId]) || (cfg && cfg[localId]) || null;
+  if (srcCats) applyCatConfigObj({ [localId]: srcCats });
+
+  ASSETS = cur().assetsList || [];
+  return { ok: !!row || rEntries.length > 0,
+           pendingPush: link.mode === "rw" && extra.length > 0,
+           entries: converted.length, assets: rAssets.length };
+}
+
 /* ---------- 요청 ---------- */
-async function syncApi(action, payload){
-  if (!SYNC.url) throw new Error("웹 앱 URL이 없어요");
-  const body = JSON.stringify(payload ? { token:SYNC.pin, action, payload }
-                                      : { token:SYNC.pin, action });
+/* conn 을 주지 않으면 기본 시트로 보냅니다 (장부별 시트는 그 시트의 url·pin 을 넘깁니다) */
+async function syncApi(action, payload, conn){
+  const c = conn || SYNC;
+  if (!c.url) throw new Error("웹 앱 URL이 없어요");
+  const body = JSON.stringify(payload ? { token:c.pin, action, payload }
+                                      : { token:c.pin, action });
   const ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
   const timer = ctrl ? setTimeout(() => ctrl.abort(), 20000) : null;
   let res, text;
   try{
-    res = await fetch(SYNC.url, {
+    res = await fetch(c.url, {
       method:"POST",
       headers:{ "Content-Type":"text/plain;charset=utf-8" },
       body, cache:"no-store", redirect:"follow",
@@ -5898,18 +6370,45 @@ async function syncApi(action, payload){
   return data;
 }
 
+/* ---------- 장부별 시트 대상 ---------- */
+/* 기본 시트 = 전용 시트가 없는 장부들 · 전용 시트 = 그 장부 하나.
+   저장할 때는 바뀐 시트만 골라 보냅니다(서명 비교). */
+function sheetTargets(){
+  const out = [];
+  const baseIds = baseLedgers().map(l => l.id);
+  if (syncOn() && baseIds.length)
+    out.push({ key:"base", url:SYNC.url, pin:SYNC.pin, ids:baseIds, link:null, name:"기본 시트" });
+  LEDGERS.forEach(l => {
+    const k = linkOf(l.id);
+    if (!k) return;
+    if (k.mode !== "rw") return;    /* 「불러오기만」 시트로는 저장하지 않습니다 */
+    out.push({ key:"lg:" + l.id, url:k.url, pin:k.pin, ids:[l.id], link:k, name:l.name + " 전용 시트" });
+  });
+  return out;
+}
+function sigOf(obj){
+  const s = JSON.stringify(obj);
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return s.length + ":" + h.toString(36);
+}
+const targetPayload = t => buildPayload(t.ids, { link: t.link || null });
+
 /* ---------- 저장 / 불러오기 ---------- */
 function schedulePush(delay){
-  if (!syncOn() || SYNC.applying) return;
-  clearTimeout(SYNC.timer);
+  if (SYNC.applying) return;
+  const targets = sheetTargets();
+  if (!targets.length) return;
   SYNC.dirty = true;
+  targets.forEach(t => { if (t.link) t.link.dirty = true; });
   saveSyncConfig();
   paintSync();
+  clearTimeout(SYNC.timer);
   SYNC.timer = setTimeout(() => syncPush(false), typeof delay === "number" ? delay : 900);
 }
 
-async function syncSaveNow(payload){
-  const r = await syncApi("save", payload || buildPayload());
+async function syncSaveNow(payload, conn){
+  const r = await syncApi("save", payload || buildPayload(), conn);
   SYNC.dirty = false;
   SYNC.lastAt = r.savedAt || new Date().toISOString();
   SYNC.err = "";
@@ -5918,7 +6417,8 @@ async function syncSaveNow(payload){
 }
 
 async function syncPush(manual){
-  if (!syncOn()){
+  const targets = sheetTargets();
+  if (!targets.length){
     if (manual) showToast("먼저 구글 시트를 연결해 주세요", true);
     return false;
   }
@@ -5931,15 +6431,36 @@ async function syncPush(manual){
   }
   SYNC.busy = true;
   setSyncStatus("syncing");
+  let saved = 0, curT = null;
   try{
-    await syncSaveNow();
+    for (const t of targets){
+      curT = t;
+      const payload = targetPayload(t);
+      const sig = sigOf(payload);
+      /* 손대지 않은 시트는 그대로 둡니다 (장부 하나를 고쳤다고 남의 시트를 다시 쓰지 않도록) */
+      if (!manual && sig === SYNC.sigs[t.key]) continue;
+      const r = await syncApi("save", payload, t);
+      SYNC.sigs[t.key] = sig;
+      saved += 1;
+      if (t.link){
+        t.link.lastAt = r.savedAt || new Date().toISOString();
+        t.link.err = ""; t.link.status = "ok"; t.link.dirty = false;
+      } else {
+        SYNC.lastAt = r.savedAt || new Date().toISOString();
+        SYNC.err = "";
+      }
+    }
+    SYNC.dirty = false;
+    saveSyncConfig();
     setSyncStatus("ok");
-    if (manual) showToast("시트에 저장했어요");
+    if (manual) showToast(saved ? "시트에 저장했어요" : "이미 시트와 같아요");
     return true;
   }catch(err){
     setSyncStatus("error", err.message);
     SYNC.dirty = true;
+    if (curT && curT.link){ curT.link.err = err.message; curT.link.status = "error"; }
     saveSyncConfig();
+    paintSync();
     if (manual) showToast(err.message, true);
     return false;
   }finally{
@@ -5947,6 +6468,7 @@ async function syncPush(manual){
   }
 }
 
+/* 기본 시트에서 불러오기 — 전용 시트를 가진 장부는 건드리지 않습니다 */
 async function syncPull(manual, opts){
   if (!syncOn()){
     if (manual) showToast("먼저 구글 시트를 연결해 주세요", true);
@@ -5959,7 +6481,7 @@ async function syncPull(manual, opts){
     const data = await syncApi("load");
     let result = { pendingPush:false };
     SYNC.applying = true;
-    try{ result = applyRemote(data, opts || {}); }
+    try{ result = applyRemote(data, Object.assign({ skipLinked:true }, opts || {})); }
     finally{ SYNC.applying = false; }
     SYNC.lastAt = new Date().toISOString();
     SYNC.err = "";
@@ -5977,6 +6499,76 @@ async function syncPull(manual, opts){
     return true;
   }catch(err){
     setSyncStatus("error", err.message);
+    if (manual) showToast(err.message, true);
+    return false;
+  }finally{
+    SYNC.busy = false;
+  }
+}
+
+/* 장부 하나의 전용 시트에서 불러오기 */
+async function pullLink(ledgerId, manual){
+  const k = linkOf(ledgerId), l = ledgerById(ledgerId);
+  if (!k || !l){ if (manual) showToast("이 장부에는 전용 시트가 연결되지 않았어요", true); return false; }
+  if (SYNC.busy){ if (manual) showToast("다른 동기화가 진행 중이에요", true); return false; }
+  SYNC.busy = true;
+  k.status = "syncing"; paintSync();
+  try{
+    const data = await syncApi("load", null, k);
+    let result = { ok:false, pendingPush:false };
+    SYNC.applying = true;
+    try{ result = applyRemoteLedger(data, ledgerId); }
+    finally{ SYNC.applying = false; }
+    k.lastAt = new Date().toISOString();
+    k.err = ""; k.status = "ok"; k.dirty = !!result.pendingPush;
+    saveSyncConfig();
+    persistLocal();
+    renderAll();
+    renderSheetLinkList();
+    paintSync();
+    if (result.pendingPush) schedulePush(400);
+    if (manual){
+      showToast(result.needPick
+        ? "시트에 장부가 여러 개 있어요 · 「이 시트에서 볼 장부」에서 골라 주세요"
+        : result.ok ? `「${l.name}」 시트에서 불러왔어요` : "이 시트에는 아직 그 장부가 없어요",
+        !!result.needPick);
+    }
+    return !!result.ok;
+  }catch(err){
+    k.err = err.message; k.status = "error";
+    saveSyncConfig(); paintSync();
+    if (manual) showToast(err.message, true);
+    return false;
+  }finally{
+    SYNC.busy = false;
+  }
+}
+
+/* 장부 하나를 그 전용 시트로 저장 (「불러오기만」이면 저장하지 않음) */
+async function pushLink(ledgerId, manual){
+  const k = linkOf(ledgerId), l = ledgerById(ledgerId);
+  if (!k || !l){ if (manual) showToast("이 장부에는 전용 시트가 연결되지 않았어요", true); return false; }
+  if (k.mode !== "rw"){
+    if (manual) showToast("이 장부는 「불러오기만」으로 연결돼 있어 시트에 저장하지 않아요", true);
+    return false;
+  }
+  if (SYNC.busy){ if (manual) showToast("다른 동기화가 진행 중이에요", true); return false; }
+  SYNC.busy = true;
+  k.status = "syncing"; paintSync();
+  try{
+    const payload = buildPayload([ledgerId], { link:k });
+    const r = await syncApi("save", payload, k);
+    SYNC.sigs["lg:" + ledgerId] = sigOf(payload);
+    k.lastAt = r.savedAt || new Date().toISOString();
+    k.err = ""; k.status = "ok"; k.dirty = false;
+    saveSyncConfig();
+    renderSheetLinkList();
+    paintSync();
+    if (manual) showToast(`「${l.name}」 시트에 저장했어요`);
+    return true;
+  }catch(err){
+    k.err = err.message; k.status = "error";
+    saveSyncConfig(); renderSheetLinkList(); paintSync();
     if (manual) showToast(err.message, true);
     return false;
   }finally{
@@ -6011,13 +6603,14 @@ async function syncConnect(){
   try{
     await syncApi("ping");
     const data = await syncApi("load");
-    const localCount = LEDGERS.reduce((s, l) => s + (l.data || []).length, 0);
+    const localCount = baseLedgers().reduce((s, l) => s + (l.data || []).length, 0);
     const remoteCount = (data.entries || []).length;
 
     if (localCount > 0 && remoteCount === 0){
       /* 앱에만 있는 기록이 있으면 시트가 비어 있을 때 먼저 올립니다
-         (방금 올린 기록을 옛 시트 응답으로 지우지 않도록 그대로 둡니다) */
-      await syncSaveNow();
+         (방금 올린 기록을 옛 시트 응답으로 지우지 않도록 그대로 둡니다)
+         · 전용 시트를 쓰는 장부는 기본 시트로 보내지 않습니다 */
+      await syncSaveNow(buildPayload(baseLedgers().map(l => l.id)));
       SYNC.lastAt = new Date().toISOString();
       saveSyncConfig();
       persistLocal();
@@ -6027,7 +6620,7 @@ async function syncConnect(){
     } else {
       let result = { pendingPush:false };
       SYNC.applying = true;
-      try{ result = applyRemote(data, { merge:true }); }
+      try{ result = applyRemote(data, { merge:true, skipLinked:true }); }
       finally{ SYNC.applying = false; }
       SYNC.lastAt = new Date().toISOString();
       SYNC.dirty = !!result.pendingPush;
@@ -6083,6 +6676,7 @@ function openSyncModal(){
   closeLedgerSheet();
   document.getElementById("syncUrl").value = SYNC.url;
   document.getElementById("syncPin").value = SYNC.pin;
+  renderSheetLinkList();
   paintSync();
   document.getElementById("syncModal").hidden = false;
   Overlay.show("syncModal", closeSyncModal);
@@ -6092,6 +6686,272 @@ function closeSyncModal(){
   Overlay.hide("syncModal");
 }
 
+/* 🔗 구글 시트 연동 창 안의 「장부별 시트」 목록 — 장부마다 어느 시트로 가는지 한눈에 */
+function renderSheetLinkList(){
+  const box = document.getElementById("syncLinkList");
+  if (!box) return;
+  box.innerHTML = LEDGERS.map(l => {
+    const k = linkOf(l.id);
+    const mode = k ? (k.mode === "rw" ? "저장도 하기" : "불러오기만") : (syncOn() ? "기본 시트" : "연결 안 됨");
+    const sub = k
+      ? `${mode} · ${k.status === "error" ? (k.err || "연결 확인 필요") : k.lastAt ? "마지막 " + syncTimeLabel(k.lastAt) : "연결됨"}`
+      : (syncOn() ? "기본 시트에 함께 저장돼요" : "위에서 기본 시트를 연결하거나 이 장부만 따로 연결하세요");
+    const tag = sheetTagOf(l.id);
+    return `<button class="linkRow" type="button" data-sl="${l.id}">
+      <span class="lsIcon" style="background:${l.theme}1A;color:${l.theme}">${l.icon}</span>
+      <span class="lsMain"><b>${esc(l.name)}</b><span>${esc(sub)}</span></span>
+      ${tag.text ? `<span class="lsChip ${tag.cls}">${tag.text}</span>` : ""}
+      <span class="lsArrow">›</span>
+    </button>`;
+  }).join("");
+}
+
+document.getElementById("syncLinkList").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-sl]");
+  if (!b) return;
+  openSheetLink(b.dataset.sl);
+});
+
+/* ---------- 장부 하나의 시트 연결 편집 ----------
+   장부 수정(✎) 창의 「구글 시트」 줄이나 🔗 구글 시트 연동 창의 장부별 목록에서 엽니다.
+   「저장도 하기」는 그 장부만의 시트로 양방편, 「불러오기만」은 상대 시트를 보기만 합니다. */
+let slEdit = { ledger:null, mode:"rw", remoteId:"", candidates:null, counts:{}, title:"", armed:false, busy:false };
+let slOffArmed = false, slOffTimer;
+
+function openSheetLink(ledgerId){
+  const l = ledgerById(ledgerId);
+  if (!l) return;
+  const k = linkOf(ledgerId);
+  slEdit = { ledger:ledgerId, mode:k ? k.mode : "rw",
+             remoteId:k ? String(k.remoteId || "") : "",
+             candidates:null, counts:{}, title:"", armed:false, busy:false };
+  slOffArmed = false;
+  const off = document.getElementById("slOff");
+  off.hidden = !k;
+  off.classList.remove("armed");
+  off.textContent = "이 장부의 시트 연결 끊기";
+  document.getElementById("slLedgerName").textContent =
+    `${l.icon} ${l.name}` + (k ? (k.mode === "rw" ? " · 전용 시트에 저장 중" : " · 전용 시트에서 보는 중") : "");
+  document.getElementById("slUrl").value = k ? k.url : "";
+  document.getElementById("slPin").value = k ? k.pin : "";
+  document.getElementById("slRemoteBlock").hidden = true;
+  renderSheetLinkEditor();
+  document.getElementById("sheetLinkModal").hidden = false;
+  Overlay.show("sheetLinkModal", closeSheetLink);
+}
+function closeSheetLink(){
+  document.getElementById("sheetLinkModal").hidden = true;
+  slEdit.ledger = null;
+  Overlay.hide("sheetLinkModal");
+}
+
+function renderSheetLinkEditor(){
+  const l = ledgerById(slEdit.ledger);
+  if (!l) return;
+  const k = linkOf(l.id);
+  const dot = document.getElementById("slDot");
+  const stateEl = document.getElementById("slState");
+  const subEl = document.getElementById("slStateSub");
+  const status = k ? (k.status === "error" ? "error" : "ok") : (syncOn() ? "ok" : "off");
+  dot.className = "sdot" + (status === "off" ? "" : " " + status + " on");
+  stateEl.textContent = k
+    ? (k.mode === "rw" ? "전용 시트에 저장해요" : "전용 시트에서 불러오기만 해요")
+    : (syncOn() ? "기본 시트에 함께 저장돼요" : "아직 연결되지 않았어요");
+  subEl.textContent = k
+    ? (k.status === "error" ? (k.err || "연결 확인 필요")
+       : k.lastAt ? "마지막 " + syncTimeLabel(k.lastAt) : "연결됨")
+    : (syncOn() ? "기본 시트로 오갑니다" : "아래에 주소와 PIN을 넣어 주세요");
+  document.querySelectorAll("#slModeSeg button").forEach(b =>
+    b.classList.toggle("on", b.dataset.slmode === slEdit.mode));
+  document.getElementById("slModeNote").textContent = slEdit.mode === "rw"
+    ? "이 장부의 내역·자산·카테고리를 이 시트에 저장하고, 앱을 열 때 이 시트에서 불러와요. 내 다른 장부는 이 시트에 들어가지 않아요."
+    : "이 시트에서 불러오기만 해요. 앱에서 적은 내역은 이 시트로 저장되지 않아요. 다른 사람 장부를 볼 때 좋아요.";
+  const block = document.getElementById("slRemoteBlock");
+  const sel = document.getElementById("slRemoteLedger");
+  const cands = slEdit.candidates;
+  if (cands && cands.length){
+    block.hidden = false;
+    sel.innerHTML = cands.map(c =>
+      `<option value="${esc(c.id)}"${c.id === slEdit.remoteId ? " selected" : ""}>${esc(c.icon)} ${esc(c.name)} · 내역 ${nf.format(c.n)}건</option>`).join("");
+  } else {
+    block.hidden = true;
+    sel.innerHTML = "";
+  }
+  const other = (cands || []).filter(c => c.id !== slEdit.remoteId);
+  const note = document.getElementById("slNote");
+  const moveNote = (k && syncOn())
+    ? " 기본 시트에서는 이 장부가 빠지고 내역은 이 장부에 그대로 남아요."
+    : "";
+  note.textContent = (slEdit.mode === "rw" && other.length)
+    ? `이 시트에는 다른 장부 ${other.length}개가 더 있어요. 「저장도 하기」로 연결하면 그 장부들은 이 시트에서 빠져요. 상대방 시트라면 「불러오기만」을 골라 주세요.` + moveNote
+    : "연결하면 시트에 있는 이 장부를 먼저 불러오고, 앱에만 있는 기록은 시트로 올려요." + moveNote;
+  const pushBtn = document.getElementById("slPush");
+  if (pushBtn) pushBtn.disabled = !(k && k.mode === "rw");
+}
+
+function slReadForm(){
+  let url = (document.getElementById("slUrl").value || "").trim();
+  const pin = (document.getElementById("slPin").value || "").trim();
+  if (!url) return { error:"웹 앱 URL을 넣어 주세요", focus:"slUrl" };
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+  if (/\/dev(\?|$)/.test(url)) return { error:"배포된 웹 앱 주소(…/exec)를 넣어 주세요", focus:"slUrl" };
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w\-]+\/exec/.test(url))
+    return { error:"Apps Script 웹 앱 주소(…/exec)가 아니에요", focus:"slUrl" };
+  if (!pin) return { error:"보안 PIN을 넣어 주세요", focus:"slPin" };
+  document.getElementById("slUrl").value = url;
+  return { url, pin };
+}
+
+function pickRemoteLedger(cands, localId){
+  if (!cands || !cands.length) return "";
+  const same = cands.find(c => c.id === localId);
+  if (same) return same.id;
+  if (cands.length === 1) return cands[0].id;
+  const top = cands.slice().sort((a, b) => b.n - a.n)[0];
+  return top ? top.id : "";
+}
+
+async function slTest(){
+  const f = slReadForm();
+  if (f.error){ document.getElementById(f.focus).focus(); showToast(f.error, true); return null; }
+  if (slEdit.busy) return null;
+  const btn = document.getElementById("slTest");
+  const label = btn.textContent;
+  slEdit.busy = true; btn.disabled = true; btn.textContent = "확인 중…";
+  try{
+    const conn = { url:f.url, pin:f.pin };
+    const ping = await syncApi("ping", null, conn);
+    const data = await syncApi("load", null, conn);
+    const counts = {};
+    (data.entries || []).forEach(e => {
+      const id = e.ledger || "personal";
+      counts[id] = (counts[id] || 0) + 1;
+    });
+    slEdit.counts = counts;
+    slEdit.title = ping.title || "";
+    slEdit.candidates = (data.ledgers && data.ledgers.length ? data.ledgers : [])
+      .map(r => ({ id:r.id, name:r.name || r.id, icon:r.icon || "📒", n: counts[r.id] || 0 }));
+    if (!slEdit.candidates.some(c => c.id === slEdit.remoteId))
+      slEdit.remoteId = pickRemoteLedger(slEdit.candidates, slEdit.ledger);
+    renderSheetLinkEditor();
+    showToast(`연결됐어요 · 「${slEdit.title || "시트"}」` +
+      (slEdit.candidates.length ? ` · 장부 ${slEdit.candidates.length}개` : " · 아직 비어 있는 시트"));
+    return data;
+  }catch(err){
+    slEdit.candidates = null;
+    renderSheetLinkEditor();
+    showToast(err.message, true);
+    return null;
+  }finally{
+    slEdit.busy = false; btn.disabled = false; btn.textContent = label;
+  }
+}
+
+async function slConnect(){
+  const f = slReadForm();
+  if (f.error){ document.getElementById(f.focus).focus(); showToast(f.error, true); return; }
+  const ledgerId = slEdit.ledger, l = ledgerById(ledgerId);
+  if (!l) return;
+  if (!slEdit.candidates){ await slTest(); if (!slEdit.candidates) return; }
+  const other = (slEdit.candidates || []).filter(c => c.id !== slEdit.remoteId);
+  if (slEdit.mode === "rw" && other.length && !slEdit.armed){
+    slEdit.armed = true;
+    renderSheetLinkEditor();
+    showToast("이 시트에 다른 장부가 있어요 · 그대로 연결하면 그 장부는 시트에서 빠져요. 한 번 더 누르면 연결할게요", true);
+    return;
+  }
+  const localN = (l.data || []).length;
+  const remoteN = (slEdit.counts || {})[slEdit.remoteId] || 0;
+  SYNC.links[ledgerId] = {
+    url: f.url, pin: f.pin, mode: slEdit.mode === "ro" ? "ro" : "rw",
+    remoteId: slEdit.remoteId || "", remoteMeta: null,
+    lastAt: null, status: "connecting", err: "", dirty: false
+  };
+  delete SYNC.sigs["lg:" + ledgerId];
+  saveSyncConfig();
+  const btn = document.getElementById("slConnect");
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = "연결하는 중…";
+  try{
+    if (slEdit.mode === "rw" && localN > 0 && remoteN === 0){
+      await pushLink(ledgerId, false);
+      showToast(`「${l.name}」 내역 ${nf.format(localN)}건을 이 시트로 올렸어요`);
+    } else {
+      await pullLink(ledgerId, false);
+      const k2 = linkOf(ledgerId);
+      if (k2 && k2.mode === "rw" && k2.dirty) await pushLink(ledgerId, false);
+      showToast(`「${l.name}」 시트에 연결했어요 · ${slEdit.mode === "rw" ? "이제 이 시트로 저장해요" : "이 시트에서 불러오기만 해요"}`);
+    }
+    document.getElementById("slOff").hidden = false;
+    renderAll();
+  }catch(err){
+    showToast(err.message, true);
+  }finally{
+    slEdit.armed = false;
+    btn.disabled = false; btn.textContent = label;
+    renderSheetLinkEditor();
+    renderLedgerList();
+    renderSheetLinkList();
+    paintSync();
+    /* 전용 시트로 옮긴 장부는 기본 시트에서 빠집니다 */
+    schedulePush(700);
+  }
+}
+
+function slDisconnect(){
+  const ledgerId = slEdit.ledger;
+  if (!ledgerId) return;
+  const btn = document.getElementById("slOff");
+  if (!slOffArmed){
+    slOffArmed = true;
+    btn.classList.add("armed");
+    btn.textContent = "정말 연결을 끊을까요? 주소·PIN이 지워져요";
+    clearTimeout(slOffTimer);
+    slOffTimer = setTimeout(() => {
+      slOffArmed = false;
+      btn.classList.remove("armed");
+      btn.textContent = "이 장부의 시트 연결 끊기";
+    }, 4000);
+    return;
+  }
+  slOffArmed = false;
+  clearTimeout(slOffTimer);
+  btn.classList.remove("armed");
+  btn.textContent = "이 장부의 시트 연결 끊기";
+  btn.hidden = true;
+  delete SYNC.links[ledgerId];
+  delete SYNC.sigs["lg:" + ledgerId];
+  slEdit.remoteId = ""; slEdit.candidates = null; slEdit.counts = {};
+  saveSyncConfig();
+  document.getElementById("slUrl").value = "";
+  document.getElementById("slPin").value = "";
+  renderSheetLinkEditor();
+  renderLedgerList();
+  renderSheetLinkList();
+  paintSync();
+  schedulePush(600);
+  showToast("이 장부의 시트 연결을 끊었어요 · 시트의 데이터는 그대로 있어요");
+}
+
+document.getElementById("sheetLinkBackdrop").addEventListener("click", closeSheetLink);
+document.getElementById("slModeSeg").addEventListener("click", ev => {
+  const b = ev.target.closest("[data-slmode]");
+  if (!b || b.dataset.slmode === slEdit.mode) return;
+  slEdit.mode = b.dataset.slmode === "ro" ? "ro" : "rw";
+  slEdit.armed = false;
+  renderSheetLinkEditor();
+});
+document.getElementById("slRemoteLedger").addEventListener("change", ev => {
+  slEdit.remoteId = ev.target.value;
+  slEdit.armed = false;
+  renderSheetLinkEditor();
+});
+document.getElementById("slConnect").addEventListener("click", slConnect);
+document.getElementById("slTest").addEventListener("click", () => { slTest(); });
+document.getElementById("slPull").addEventListener("click", () => { if (slEdit.ledger) pullLink(slEdit.ledger, true); });
+document.getElementById("slPush").addEventListener("click", () => { if (slEdit.ledger) pushLink(slEdit.ledger, true); });
+document.getElementById("slOff").addEventListener("click", slDisconnect);
+
 function wireSyncUI(){
   document.getElementById("syncRow").addEventListener("click", openSyncModal);
   document.getElementById("syncBackdrop").addEventListener("click", closeSyncModal);
@@ -6099,12 +6959,12 @@ function wireSyncUI(){
   document.getElementById("syncPushBtn").addEventListener("click", () => syncPush(true));
   document.getElementById("syncOffBtn").addEventListener("click", syncDisconnect);
   window.addEventListener("online", () => {
-    if (!syncOn()) return;
+    if (!syncOn() && !Object.keys(SYNC.links || {}).length) return;
     setSyncStatus(SYNC.dirty ? "syncing" : "ok");
     if (SYNC.dirty) schedulePush(300);
   });
   window.addEventListener("offline", () => {
-    if (syncOn()) setSyncStatus("error", "인터넷이 끊겼어요");
+    if (syncOn() || Object.keys(SYNC.links || {}).length) setSyncStatus("error", "인터넷이 끊겼어요");
   });
 }
 
@@ -6118,14 +6978,40 @@ function syncInit(){
       SYNC.pin = String(s.pin || "");
       SYNC.lastAt = s.lastAt || null;
       SYNC.dirty = !!s.dirty;
+      SYNC.sigs = (s.sigs && typeof s.sigs === "object") ? s.sigs : {};
+      const links = (s.links && typeof s.links === "object") ? s.links : {};
+      Object.keys(links).forEach(id => {
+        const k = links[id];
+        if (!k || typeof k !== "object") return;
+        SYNC.links[id] = {
+          url: String(k.url || ""), pin: String(k.pin || ""),
+          mode: k.mode === "ro" ? "ro" : "rw",
+          remoteId: String(k.remoteId || ""),
+          remoteMeta: (k.remoteMeta && typeof k.remoteMeta === "object") ? k.remoteMeta : null,
+          lastAt: k.lastAt || null, status: k.status || "", err: k.err || "",
+          dirty: !!k.dirty
+        };
+      });
     }
   }catch(e){}
   SYNC.status = syncOn() ? "connecting" : "off";
   paintSync();
   wireSyncUI();
-  if (!syncOn()) return;
-  if (SYNC.dirty) syncPush(false).then(ok => { if (ok) syncPull(false); });
-  else syncPull(false);
+  syncInitRun();
+}
+
+/* 앱을 열면 기본 시트 → 장부별 시트 순서로 최신 값을 가져옵니다 */
+async function syncInitRun(){
+  const linkIds = LEDGERS.filter(l => linkOf(l.id)).map(l => l.id);
+  if (!syncOn() && !linkIds.length) return;
+  if (syncOn()){
+    if (SYNC.dirty){ const ok = await syncPush(false); if (ok) await syncPull(false); }
+    else await syncPull(false);
+  }
+  for (const id of linkIds){
+    if (!linkOf(id)) continue;
+    await pullLink(id, false);
+  }
 }
 
 /* 시작 */
