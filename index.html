@@ -780,7 +780,7 @@
     width:100%;border:none;border-radius:14px;background:var(--accent);color:var(--accent-ink);
     font-family:inherit;font-size:14px;font-weight:800;padding:14px 0;cursor:pointer;letter-spacing:-.02em;
   }
-  /* ---------- 자산 상세(모달 안): 이번 기간 입출금 + 최근 내역 ---------- */
+  /* ---------- 자산 상세(모달 안): 이번 기간 입출금 ---------- */
   .amFlows{display:flex;gap:8px;margin:10px 0 4px}
   .amFlows[hidden]{display:none}
   .amFlow{flex:1 1 0;min-width:0;background:#F7F8FA;border-radius:12px;padding:9px 12px 10px}
@@ -789,19 +789,6 @@
   .amFlow b.up{color:var(--income)}
   .amFlow b.dn{color:var(--expense)}
   .amFlow b.nt{color:#191F28}
-  .amRecent{margin:8px 0 2px}
-  .amRecent[hidden]{display:none}
-  .amRecentList{max-height:186px;overflow-y:auto;scrollbar-width:none;margin:0 -2px;padding:0 2px}
-  .amRecentList::-webkit-scrollbar{display:none}
-  .amRow{display:flex;align-items:center;gap:8px;padding:7px 0}
-  .amRow + .amRow{border-top:1px solid #F7F8F9}
-  .amD{flex:0 0 auto;width:38px;font-size:10px;font-weight:800;color:#AEB6C0;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-  .amM{flex:1 1 auto;min-width:0;font-size:11.5px;font-weight:600;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#2B3440}
-  .amA{flex:0 0 auto;font-size:11.5px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}
-  .amA.up{color:var(--income)}
-  .amA.dn{color:var(--expense)}
-  .amA.trf{color:var(--transfer)}
-  .amNone{font-size:11px;color:#AEB6C0;letter-spacing:-.01em;padding:7px 2px}
   .amFlows.three .amFlow{padding:9px 10px 10px}
   .amFlows.three .amFlow b{font-size:12.5px}
   .amFlow b.trf{color:var(--transfer)}
@@ -1925,10 +1912,6 @@
       </div>
       <div class="valListHead">최근 기록</div>
       <div class="valList" id="assetValList"></div>
-    </div>
-    <div class="amRecent" id="assetRecent" hidden>
-      <div class="fLabel" style="margin-top:8px">최근 내역</div>
-      <div class="amRecentList" id="assetRecentList"></div>
     </div>
     <div class="amEditHead" id="assetEditHead" hidden>자산 정보</div>
     <div class="fLabel">이름</div>
@@ -3846,22 +3829,17 @@ function monthExpenseOf(l){
   return l.data.filter(e => e.type === "expense" && e.d.startsWith(pre))
                .reduce((s,e)=> s + e.amt, 0);
 }
-/* 장부 목록 부제목의 내역 건수 — 전체 누적이 아니라 화면에서 고른 날짜(state.sel,
-   없으면 오늘) 하루 기준입니다. 예: 「2026년 11월 지출 0원 · 11/25 내역 4건」 */
-const dayKeyOf = k => /^\d{4}-\d{2}-\d{2}$/.test(String(k || "")) ? k : TODAY_KEY;
-function dayLabelOf(k){
-  const d = parseKey(dayKeyOf(k));
-  return `${d.getMonth()+1}/${d.getDate()}`;
-}
-function dayCountOf(l, k){
-  const key = dayKeyOf(k);
-  return (l.data || []).filter(e => e.d === key).length;
+/* 장부 목록 부제목의 내역 건수 — 화면에서 고른 날짜가 아니라 실제 오늘 하루 기준입니다.
+   날짜가 바뀌면 자동으로 0건부터 다시 세므로 하루가 지나면 초기화됩니다.
+   예: 「2026년 11월 지출 0원 · 오늘 내역 4건」 */
+function todayCountOf(l){
+  return (l.data || []).filter(e => e.d === TODAY_KEY).length;
 }
 function renderLedgerList(){
   const y = state.view.getFullYear(), m = state.view.getMonth()+1;
   document.getElementById("ledgerList").innerHTML = LEDGERS.map(l => {
     const sub = (l.data || []).length
-      ? `${y}년 ${m}월 지출 ${won(monthExpenseOf(l))} · ${dayLabelOf(state.sel)} 내역 ${nf.format(dayCountOf(l, state.sel))}건`
+      ? `${y}년 ${m}월 지출 ${won(monthExpenseOf(l))} · 오늘 내역 ${nf.format(todayCountOf(l))}건`
       : "아직 내역이 없어요";
     const tag = sheetTagOf(l.id);
     return `<div class="lsRow ${l.id === state.ledger ? "on" : ""}" data-id="${l.id}" role="button" tabindex="0">
@@ -5101,7 +5079,8 @@ document.getElementById("budgetCats").addEventListener("click", ev => {
 let assetEditing = null;
 let assetDraft = { group:"은행" };
 
-/* 이 계좌·카드의 최근 내역 (오늘까지, 최신 순) */
+/* 이 계좌·카드의 최근 내역 (오늘까지, 최신 순) — 자산 수정 모달에서는 더 이상
+   보여 주지 않지만 다른 화면에서 쓸 수 있게 남겨 둡니다. */
 function recentOf(a, n){
   const out = cur().data.filter(e => {
     if (e.d > TODAY_KEY) return false;
@@ -5146,7 +5125,6 @@ function openAssetModal(id){
 
   const sub = document.getElementById("assetModalSub");
   const flows = document.getElementById("assetFlows");
-  const recent = document.getElementById("assetRecent");
   document.getElementById("assetEditHead").hidden = !a;
 
   if (a){
@@ -5170,28 +5148,8 @@ function openAssetModal(id){
       sub.textContent = [a.name, a.note, `현재 잔액 ${won(balanceOf(a))}`].filter(Boolean).join(" · ");
     }
     flows.hidden = false;
-    recent.hidden = false;
-
-    const rs = recentOf(a, 6);
-    document.getElementById("assetRecentList").innerHTML = rs.length ? rs.map(e => {
-      const d = parseKey(e.d);
-      let label = e.memo, amt = e.amt, dir = e.type === "income" ? "up" : "dn", sign = e.type === "income" ? "+" : "−";
-      if (e.type === "transfer"){
-        const other = e.toId === a.id ? e.fromId : e.toId;
-        const into = e.toId === a.id;
-        label = `⇄ ${assetName(other)}`;
-        dir = "trf";
-        sign = into ? "+" : "−";
-      }
-      return `<div class="amRow">
-        <span class="amD">${d.getMonth()+1}/${d.getDate()}</span>
-        <span class="amM">${esc(label)}</span>
-        <span class="amA ${dir}">${sign}${nf.format(amt)}</span>
-      </div>`;
-    }).join("") : `<div class="amNone">아직 이 계좌의 내역이 없어요.</div>`;
   } else {
     flows.hidden = true;
-    recent.hidden = true;
     sub.textContent = "이름과 분류를 고르면 바로 추가돼요. 순서는 자산·카드에서 끌어서 바꿀 수 있어요.";
   }
 
