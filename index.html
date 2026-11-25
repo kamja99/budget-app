@@ -1746,6 +1746,9 @@ const PERSONAL_EXPENSE_PRESET = [
   {k:"점심비", e:"🍱", c:"#88C93C", subs:[]}
 ];
 const clonePreset = () => JSON.parse(JSON.stringify(PERSONAL_EXPENSE_PRESET));
+/* 생활비 예산이 보는 카테고리 이름 — 기본값. 카테고리 관리에서 이름을 바꾸면
+   settings.livingCat 이 새 이름을 따라가므로 이 값은 '처음 이름'으로만 씁니다. */
+const LIVING_CAT = "생활비";
 
 /* ---------- 기본 수입 카테고리 프리셋 ----------
    편한가계부 수입 화면에 맞춘 구성 — 월급은 월급날(25일) 기준 입력에
@@ -1973,6 +1976,9 @@ function renameCat(type, from, to, icon, color){
   if (icon) c.e = firstEmoji(icon);
   if (color) c.c = color;
   cur().data.forEach(e => { if (e.type === type && e.cat === from) e.cat = v; });
+  /* 생활비 카테고리 이름을 바꾸면 생활비 예산도 새 이름을 따라갑니다 */
+  if (type === "expense" && (from === settings.livingCat || from === LIVING_CAT))
+    settings.livingCat = v;
   if (state.statCat === from) state.statCat = v;
   if (state.trendCat === from) state.trendCat = v;
   return true;
@@ -1982,6 +1988,7 @@ function removeCat(type, k){
   const i = list.findIndex(c => c.k === k);
   if (i < 0) return false;
   list.splice(i, 1);
+  if (type === "expense" && k === settings.livingCat) settings.livingCat = "";
   if (state.statCat === k) state.statCat = null;
   if (state.trendCat === k) state.trendCat = null;
   return true;
@@ -2194,6 +2201,21 @@ function weekRange(base){
   const mon = addDays(d, -((d.getDay() + 6) % 7));
   return { mon, fri: addDays(mon, 4), sun: addDays(mon, 6) };
 }
+/* ---------- 생활비로 세는 카테고리 ----------
+   기본은 「🎈 생활비」. 카테고리 관리에서 이름을 바꾸면 settings.livingCat 에
+   새 이름이 남아 그대로 따라가고(내역 이름도 함께 바뀝니다), 시트 `설정` 탭의
+   living_cat 으로 기기 사이에도 같이 갑니다. 이름을 못 찾으면 «생활비» 로 되돌아보고,
+   그것도 없으면 예전처럼 전체 지출로 계산합니다(카드를 비워 두지 않으려고). */
+function livingCatOf(l){
+  const led = l || cur();
+  const cats = (led && led.cats && led.cats.expense) || [];
+  const saved = String(settings.livingCat || "").trim();
+  if (saved && cats.some(c => c.k === saved)) return saved;
+  const hit = cats.find(c => c.k === LIVING_CAT);
+  return hit ? hit.k : null;
+}
+const livingCatKey = () => livingCatOf(cur());
+
 /* ---------- 생활비 기간 (주별 · 월별) ----------
    · 주별 : 이번 주 월~일
    · 월별 : 매월 1일~말일 / 월급 기간 / 매월 N일~다음 달 N-1일 중 고른 기준
@@ -2245,8 +2267,12 @@ function weekState(){
 function budgetStateIn(start, end, budget, mode){
   const sk = iso(start), ek = iso(end);
   const p = ledgerById("personal");
+  /* 생활비 예산은 「생활비」 카테고리 지출만 봅니다.
+     고정지출 · 생활비 외 지출 · 경조사 · 점심비 · 잔액수정은 여기에 넣지 않아요. */
+  const livingKey = livingCatOf(p);
   const spent = (p ? p.data : [])
-    .filter(e => e.type === "expense" && e.d >= sk && e.d <= ek && !isAdjustCat(e.cat))
+    .filter(e => e.type === "expense" && e.d >= sk && e.d <= ek && !isAdjustCat(e.cat)
+                 && (livingKey ? e.cat === livingKey : true))
     .reduce((s,e)=> s + e.amt, 0);
   const left = budget - spent;
   return { start, end, mode, spent, budget, left,
@@ -2796,10 +2822,16 @@ const mdShort = d => `${d.getMonth()+1}/${d.getDate()}`;
 const trendRangeLabel = w => `${mdShort(w.mon)}~${mdShort(w.sun)}`;
 
 function trendCats(){
-  return (cur().cats[trendType()] || []).filter(c => trendType() !== "expense" || !isAdjustCat(c.k));
+  const list = cur().cats[trendType()] || [];
+  /* 지출 추이에서 「생활비」는 «생활비 전체» 칩이 이미 보고 있으므로 따로 두지 않는다 */
+  const livingKey = (trendType() === "expense" && cur().living) ? livingCatKey() : null;
+  return list.filter(c => trendType() !== "expense" ||
+    (!isAdjustCat(c.k) && c.k !== livingKey));
 }
 function trendSeries(){
   const type = trendType(), cat = state.trendCat;
+  /* 「생활비 전체」 막대는 생활비 카드와 같은 기준 — 생활비 카테고리 지출만 셀니다 */
+  const livingKey = (type === "expense" && cur().living) ? livingCatKey() : null;
   const {mon} = weekRange(today);
   const out = [];
   for (let i = TREND_WEEKS - 1; i >= 0; i--){
@@ -2809,7 +2841,8 @@ function trendSeries(){
     cur().data.forEach(e => {
       if (e.type !== type || e.d < mk || e.d > sk) return;
       if (type === "expense" && isAdjustCat(e.cat)) return;   // 생활비와 같은 기준
-      if (cat && e.cat !== cat) return;
+      if (cat) { if (e.cat !== cat) return; }
+      else if (livingKey && e.cat !== livingKey) return;      // 전체 = 생활비 카테고리만
       amt += e.amt; n += 1;
     });
     out.push({ mon:m, sun:s, mk, sk, amt, n, now: i === 0 });
@@ -2915,7 +2948,9 @@ function renderWeekTrend(){
   trendSeq = series;
 
   document.getElementById("wkTitle").innerHTML =
-    `주간 ${type === "income" ? "수입" : "지출"} 추이 <em>월~일</em>`;
+    (type === "expense" && !state.trendCat && cur().living)
+      ? `주간 생활비 추이 <em>월~일</em>`
+      : `주간 ${type === "income" ? "수입" : "지출"} 추이 <em>월~일</em>`;
   document.getElementById("wkRange").textContent =
     `${mdShort(series[0].mon)}~${mdShort(series[series.length - 1].sun)}`;
 
@@ -4228,6 +4263,13 @@ document.getElementById("saveBtn").addEventListener("click", () => {
     return;
   }
   if (entry.type === "expense" && cur().living){
+    /* 생활비 카테고리 지출일 때만 생활비 예산 안내를 보여 줍니다.
+       (고정지출·경조사 같은 다른 지출은 예산에서 빼니 알려 줄 것으로 없어요) */
+    const lk = livingCatKey();
+    if (lk && entry.cat !== lk){
+      showToast(`${won(amt)} 저장했어요`);
+      return;
+    }
     const s = budgetState();
     const inNow = entry.d >= iso(s.start) && entry.d <= iso(s.end);
     if (inNow){
@@ -4277,9 +4319,14 @@ function renderBudgetModal(){
     b.classList.toggle("on", b.dataset.bmode === mode));
   const amt = Number(budgetDraft.amt[mode]) || 0;
   document.getElementById("budgetInput").value = amt ? nf.format(amt) : "";
-  document.getElementById("budgetHint").textContent = mode === "month"
+  /* 예산은 「생활비」 카테고리 지출과 견줘야 맞으므로, 그 기준을 함께 알려 줍니다 */
+  const lk = livingCatKey();
+  const basis = !cur().living ? ""
+    : lk ? `「${catOf("expense", lk).e} ${lk}」 지출만 계산해요.`
+         : "「생활비」 카테고리가 없어 전체 지출로 계산하고 있어요.";
+  document.getElementById("budgetHint").textContent = basis + " " + (mode === "month"
     ? "한 달 동안 쓰는 생활비예요. 어느 기간으로 볼지 골라 주세요."
-    : "월요일~일요일, 한 주 동안 쓰는 생활비예요. 언제든 바꿀 수 있어요.";
+    : "월요일~일요일, 한 주 동안 쓰는 생활비예요. 언제든 바꿀 수 있어요.");
   document.getElementById("budgetPresets").innerHTML = (BUDGET_PRESETS[mode] || []).map(v =>
     `<button class="chip ${v === amt ? "on":""}" data-budget="${v}">${nf.format(v)}원</button>`).join("");
   document.getElementById("monthPeriodBlock").hidden = mode !== "month";
@@ -5276,7 +5323,8 @@ const STORE_KEY = "budget-app:v3";
 const LEGACY_DATA_KEY = "budget-app:v1";
 const LEGACY_SET_KEY = "budget-app:settings:v2";
 let settings = { weekBudget: 150000, payday: 25, cardMeta: {},
-                 budgetMode: "week", monthBudget: 600000, monthType: "full", monthStartDay: 1 };
+                 budgetMode: "week", monthBudget: 600000, monthType: "full", monthStartDay: 1,
+                 livingCat: LIVING_CAT };  /* 생활비 예산이 세는 카테고리 이름 */
 /* model 6 — 시트에서 예전 cat_config 가 내려와도 새 기본 수입 카테고리를
    이번 실행에서 한 번은 반영하기 위한 표시 */
 let NEED_INCOME_MIGRATION = false;
@@ -5288,6 +5336,7 @@ function persistLocal(){
       payday: settings.payday, cardMeta: cardMetaPayload(),
       budgetMode: settings.budgetMode, monthBudget: settings.monthBudget,
       monthType: settings.monthType, monthStartDay: settings.monthStartDay,
+      livingCat: settings.livingCat,
       ledgers: LEDGERS
     }));
   }catch(e){}
@@ -5378,6 +5427,7 @@ function loadAll(){
         settings.monthType = ["full","pay","custom"].includes(s.monthType) ? s.monthType : "full";
         if (Number(s.monthStartDay) >= 1 && Number(s.monthStartDay) <= 28)
           settings.monthStartDay = Number(s.monthStartDay);
+        if (typeof s.livingCat === "string") settings.livingCat = s.livingCat.trim();
         if (s.active && LEDGERS.some(l => l.id === s.active)) state.ledger = s.active;
         /* v4 이전 저장값은 자산 목록만 새 6구분 기본값으로 바꿔 줍니다 (내역은 그대로) */
         if (Number(s.model) < 4){
@@ -5541,6 +5591,8 @@ function buildPayload(){
       month_budget: Number(settings.monthBudget) || 0,
       budget_month_type: ["full","pay","custom"].includes(settings.monthType) ? settings.monthType : "full",
       budget_month_start_day: Number(settings.monthStartDay) || 1,
+      /* 생활비 예산이 세는 카테고리 이름 (기본 「생활비」) */
+      living_cat: String(settings.livingCat || LIVING_CAT),
       /* 카테고리 전체 구성(이름·아이콘·색·세부) — 시트 '설정' 탭에 JSON 한 칸으로 저장 */
       cat_config: JSON.stringify(catConfigPayload()),
       cat_subs: JSON.stringify(catSubsPayload()),
@@ -5711,6 +5763,8 @@ function applyRemote(remote, opts){
   if (["full","pay","custom"].includes(st.budget_month_type)) settings.monthType = st.budget_month_type;
   const msd = Number(st.budget_month_start_day);
   if (isFinite(msd) && msd >= 1 && msd <= 28) settings.monthStartDay = msd;
+  /* 생활비로 세는 카테고리 이름 — 시트 설정 탭의 living_cat */
+  if (typeof st.living_cat === "string" && st.living_cat.trim()) settings.livingCat = st.living_cat.trim();
   /* 카드별 혜택 기준 금액(목표 실적) — 설정 탭의 card_meta(JSON) */
   if (st.card_meta !== undefined && st.card_meta !== null && st.card_meta !== ""){
     let meta = st.card_meta;
