@@ -796,8 +796,6 @@
   .amFlow b.up{color:var(--income)}
   .amFlow b.dn{color:var(--expense)}
   .amFlow b.nt{color:#191F28}
-  .amFlows.three .amFlow{padding:9px 10px 10px}
-  .amFlows.three .amFlow b{font-size:12.5px}
   .amFlow b.trf{color:var(--transfer)}
   /* 자산 상세 모달: 잔액 맞추기 · 즉시결제 기록 */
   .assetActs{display:flex;gap:8px;margin:12px 0 2px}
@@ -1905,7 +1903,6 @@
     <div class="amFlows" id="assetFlows" hidden>
       <div class="amFlow"><span id="assetFlowK1">이번 기간 입금</span><b id="assetFlowV1" class="up">+0원</b></div>
       <div class="amFlow"><span id="assetFlowK2">이번 기간 출금</span><b id="assetFlowV2" class="dn">−0원</b></div>
-      <div class="amFlow" id="assetFlow3" hidden><span id="assetFlowK3">남은 결제</span><b id="assetFlowV3" class="nt">0원</b></div>
     </div>
     <div class="assetActs" id="assetActs" hidden>
       <button class="actBtn" id="assetAdjustBtn">⚖️ 잔액 맞추기</button>
@@ -3485,7 +3482,7 @@ function cardUsageOf(a, start, end){
   return { used, prepaid, remain: Math.max(0, used - prepaid), over: Math.max(0, prepaid - used) };
 }
 
-/* 카드: 이번 기간 사용액 · 즉시결제 · 남은 결제 예정 금액 */
+/* 카드: 이번 기간 사용액 · 즉시결제 · 결제 예정금액 */
 function cardDueOf(a, start, end){
   const u = cardUsageOf(a, start, end);
   return { due: u.remain, remain: u.remain, used: u.used, prepaid: u.prepaid, over: u.over, date: null };
@@ -3620,15 +3617,15 @@ function benefitLine(b){
 }
 
 /* 자산 한 줄: 아이콘 + 이름 + 용도 한 줄 + 오른쪽 금액
-   · 카드는 오른쪽에 「남은 결제 예정 금액」, 그 아래에 사용·즉시결제 한 줄,
-     혜택 기준 금액을 정해 두었으면 얇은 진행 막대와 달성 상태를 붙입니다. */
+   · 카드는 오른쪽에 「결제 예정금액」, 그 아래에 「사용 ○원」 한 줄,
+     혜택 기준 금액을 정해 두었으면 얇은 진행 막대와 달성 상태를 붙입니다.
+     (즉시결제·초과는 계산에만 반영하고 줄에는 쓰지 않습니다 — 상세 화면에서 확인) */
 function assetRowHtml(a, start, end){
   let sub = "", val = "", extra = "", trend = "";
   if (isCardAsset(a)){
     const u = cardUsageOf(a, start, end);
-    sub = `사용 ${won(u.used)} · 즉시결제 ${won(u.prepaid)}`;
-    if (u.over > 0) sub += ` · 초과 ${won(u.over)}`;
-    val = `<b>${won(u.remain)}</b><span>남은 결제</span>`;
+    sub = `사용 ${won(u.used)}`;
+    val = `<b>${won(u.remain)}</b><span>결제 예정금액</span>`;
     const b = cardBenefit(a, start, end);
     if (b){
       extra = `<span class="aBar"><i class="${b.done ? "ok" : ""}" style="width:${b.pct}%"></i></span>
@@ -3664,7 +3661,7 @@ function groupBlockHtml(g, start, end){
   const sum = items.reduce((s,a) => s + (isCard ? cardUsageOf(a, start, end).remain : balanceOf(a)), 0);
   return `<div class="agBlock" data-group="${g}">
     <div class="agHead">
-      <b>${g}</b><span class="agNote">${items.length}${isCard ? "장 · 남은 결제 " : "곳 · "}${won(sum)}</span>
+      <b>${g}</b><span class="agNote">${items.length}${isCard ? "장 · 결제 예정금액 " : "곳 · "}${won(sum)}</span>
       <span class="agHandle" data-group-handle="${g}" aria-hidden="true"><i></i><i></i><i></i></span>
     </div>
     <div class="agRows">${items.map(a => assetRowHtml(a, start, end)).join("")}</div>
@@ -5175,17 +5172,15 @@ function openAssetModal(id){
     const {start, end} = currentRange();
     if (isCardAsset(a)){
       const u = cardUsageOf(a, start, end);
-      document.getElementById("assetFlows").classList.add("three");
-      document.getElementById("assetFlow3").hidden = false;
+      /* 카드는 「이번 기간 사용」과 「결제 예정금액(사용 − 즉시결제)」 두 칸만 보입니다.
+         즉시결제 금액은 계산에만 반영하고, 기록은 💸 즉시결제 기록에서 확인합니다. */
+      document.getElementById("assetFlows").classList.remove("three");
       const pLabel = effMode() === "cycle" ? "이번 급여" : "이번 달";
       setAssetFlow(1, `${pLabel} 사용`, `−${won(u.used)}`, "dn");
-      setAssetFlow(2, "즉시결제", `+${won(u.prepaid)}`, u.prepaid ? "trf" : "nt");
-      setAssetFlow(3, "남은 결제", won(u.remain), "nt");
-      sub.textContent = [a.name, a.note,
-        u.over > 0 ? `즉시결제가 사용액보다 ${won(u.over)} 많아요` : ""].filter(Boolean).join(" · ");
+      setAssetFlow(2, "결제 예정금액", won(u.remain), "nt");
+      sub.textContent = [a.name, a.note].filter(Boolean).join(" · ");
     } else {
       document.getElementById("assetFlows").classList.remove("three");
-      document.getElementById("assetFlow3").hidden = true;
       const {up, down} = flowsInRange(a, start, end);
       setAssetFlow(1, "이번 기간 입금", `+${won(up)}`, "up");
       setAssetFlow(2, "이번 기간 출금", `−${won(down)}`, "dn");
@@ -5699,7 +5694,7 @@ function updatePrepayNote(){
   const amt = Number(document.getElementById("prepayAmt").value.replace(/[^\d]/g, "")) || 0;
   const el = document.getElementById("prepayNote");
   const pLabel = effMode() === "cycle" ? "이번 급여" : "이번 달";
-  el.textContent = `${pLabel} 사용 ${won(u.used)} · 남은 결제 ${won(u.remain)}`
+  el.textContent = `${pLabel} 사용 ${won(u.used)} · 결제 예정금액 ${won(u.remain)}`
     + (amt > u.remain ? ` · ${won(amt - u.remain)} 초과 선결제` : "");
 }
 function openPrepayModal(id){
