@@ -1110,6 +1110,103 @@
      ========================================================= */
   .pcAddBtn{display:none}
 
+  /* =========================================================
+     일별 리스트 (달력 대신 날짜별로 쭉) — 모바일·PC 공통 모양
+     ---------------------------------------------------------
+     · 고른 기간(월별 / 월급 기간)의 내역을 날짜별로 묶어 최근 날짜부터 보여 줍니다.
+     · 날짜 머리(11월 25일 수요일)는 스크롤해도 위에 붙어 있고,
+       오른쪽에 그날 수입/지출 합계가 붙습니다.
+     · 행을 누르면 지금 쓰는 내역 수정 창이 그대로 열립니다.
+     ========================================================= */
+  .dayList{
+    flex:1 1 auto;min-height:0;margin:6px -16px 0;background:#fff;
+    border-radius:22px 22px 0 0;box-shadow:0 -3px 18px rgba(23,30,45,.07);
+    display:flex;flex-direction:column;position:relative;z-index:2;
+  }
+  .dayList[hidden]{display:none}
+  .dlHead{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:13px 18px 9px;border-bottom:1px solid var(--hair);flex:0 0 auto;
+  }
+  .dlTitle{display:flex;align-items:baseline;gap:6px;min-width:0}
+  .dlTitle b{
+    font-size:14px;font-weight:800;letter-spacing:-.03em;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;
+  }
+  .dlTitle span{font-size:10.5px;font-weight:700;color:var(--sub);white-space:nowrap;flex:0 0 auto}
+  .dlBody{
+    flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 18px 22px;
+    scrollbar-width:none;overscroll-behavior:contain;
+  }
+  .dlBody::-webkit-scrollbar{display:none}
+  .dlDay{padding-bottom:2px}
+  .dlDayHead{
+    display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+    padding:11px 0 5px;position:sticky;top:-1px;background:#fff;z-index:1;
+    box-shadow:0 1px 0 var(--hair);
+  }
+  .dlDate{font-size:12.5px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
+  .dlDate em{font-style:normal;font-size:10.5px;font-weight:700;color:#AEB6C0;margin-left:3px}
+  .dlDate .dlToday{color:var(--theme);font-weight:800}
+  .dlSums{
+    display:flex;align-items:baseline;gap:6px;font-size:11px;font-weight:800;
+    letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap;flex:0 0 auto;
+  }
+  .dlSums .inc{color:var(--income)}
+  .dlSums .exp{color:var(--expense)}
+  .dlSums .trf{color:var(--transfer)}
+  .dlRow{
+    display:flex;align-items:center;gap:10px;padding:8.5px 0;width:100%;
+    border:none;background:transparent;font-family:inherit;color:inherit;
+    text-align:left;cursor:pointer;border-radius:0;
+  }
+  .dlRow+.dlRow{border-top:1px solid #F7F8F9}
+  .dlRow:active{background:#F7F8FA}
+  .dlRow.dlStatic{cursor:default}
+  .dlRow.dlStatic:active{background:transparent}
+  .dlEmpty{text-align:center;padding:54px 10px 26px;color:var(--sub);font-size:12px;line-height:1.7}
+  .dlEmpty .e{font-size:26px;line-height:1}
+  .dlEmpty p{margin:9px 0 13px}
+
+  /* 모바일 하단 탭 바 — 위 헤더의 「달력 | 통계 | 자산·카드」를 화면 아래로 옮겨 담습니다.
+     요소 하나(#viewTabs)를 자리만 바꿔 넣으므로 탭 상태·클릭은 그대로입니다.
+     PC(841px 이상)에서는 보이지 않고 헤더 안 탭을 그대로 씁니다. */
+  .botNav{display:none}
+  .vi{display:none}
+
+  @media (max-width:840.98px){
+    /* 바 높이는 --botH 하나로 맞춥니다 — 내용 여백과 바 높이가 같아야 틈이 안 생깁니다 */
+    .app{padding-bottom:calc(var(--botH, 54px) + env(safe-area-inset-bottom,0px))}
+    .botNav{
+      display:block;position:fixed;left:0;right:0;bottom:0;z-index:15;
+      height:calc(var(--botH, 54px) + env(safe-area-inset-bottom,0px));
+      background:#fff;border-top:1px solid #EDEFF2;
+      padding-bottom:env(safe-area-inset-bottom,0px);
+      box-shadow:0 -2px 14px rgba(23,30,45,.06);
+    }
+    .botNavSlot{height:100%}
+    .botNav .viewTabs{display:flex;width:100%;height:100%;background:transparent;padding:0;gap:0;border-radius:0}
+    .botNav .viewTabs button{
+      flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+      background:transparent;border-radius:0;box-shadow:none;padding:8px 2px 7px;
+      font-size:10.5px;font-weight:700;color:#98A1AD;letter-spacing:-.02em;line-height:1;
+    }
+    /* 자산 관리가 없는 장부는 「자산·카드」 탭을 감춥니다 (hidden 무시되지 않게) */
+    .botNav .viewTabs button[hidden]{display:none}
+    .botNav .viewTabs button .vi{
+      display:block;width:21px;height:21px;stroke:currentColor;fill:none;
+      stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
+    }
+    .botNav .viewTabs button.on{background:transparent;box-shadow:none;color:var(--theme-ink);font-weight:800}
+    .botNav .viewTabs button.on .vi{stroke:var(--theme)}
+    .botNav .viewTabs button:active{background:#F7F8FA}
+
+    /* 월 이동 줄 — 「월별 | 월급 기간」 옆에 「달력 | 일별」을 나란히 두고
+       자리가 모자라면 월 이동만 다음 줄로 내려가게 (넘침 없이) */
+    .monthRow{flex-wrap:wrap;row-gap:5px}
+    .monthNav{flex:1 1 auto}
+  }
+
   @media (min-width:841px){
     body{background:#EEF1F5}
     .app{
@@ -1153,6 +1250,10 @@
     .viewSeg{padding:3px;gap:3px;border-radius:12px}
     .viewSeg button{font-size:12.5px;padding:8px 14px;border-radius:10px}
     .viewSeg button:hover{color:var(--theme-ink)}
+    /* PC는 오른쪽 패널이 이미 선택한 날 내역을 보여 주므로
+       하단 바와 「달력 | 일별」 토글은 모바일에서만 씁니다 */
+    #calViewSeg{display:none}
+    .dayList{display:none}
 
     /* ---------- 왼쪽: 요약 · 생활비 ---------- */
     .summary{grid-column:1;grid-row:3;padding:13px 18px 15px;border-radius:20px}
@@ -1400,9 +1501,9 @@
       </button>
       <div class="topRight">
         <div class="viewTabs" id="viewTabs">
-          <button data-screen="calendar" class="on">달력</button>
-          <button data-screen="stats">통계</button>
-          <button data-screen="assets" id="tabAssets">자산·카드</button>
+          <button data-screen="calendar" class="on"><svg class="vi" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3.2"/><path d="M8 3.6v2.8M16 3.6v2.8M3.5 10h17"/></svg>달력</button>
+          <button data-screen="stats"><svg class="vi" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 19v-7.5M12 19V5.5M18.5 19v-4.5"/></svg>통계</button>
+          <button data-screen="assets" id="tabAssets"><svg class="vi" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12.5" rx="3"/><path d="M3 10.4h18M6.6 14.8h3.2"/></svg>자산·카드</button>
         </div>
         <button class="todayBtn" id="todayBtn">오늘</button>
         <button class="pcAddBtn" id="pcAddBtn" aria-label="내역 추가"><span class="plus">＋</span>내역 추가</button>
@@ -1414,6 +1515,11 @@
     <div class="viewSeg" id="viewSeg">
       <button data-mode="month" class="on">월별</button>
       <button data-mode="cycle">월급 기간</button>
+    </div>
+    <!-- 달력 격자 / 날짜별 리스트 전환 (모바일) -->
+    <div class="viewSeg" id="calViewSeg" role="group" aria-label="달력 또는 일별 리스트">
+      <button data-calview="calendar" class="on">달력</button>
+      <button data-calview="list">일별</button>
     </div>
     <div class="monthNav">
       <button class="navBtn" id="prevMonth" aria-label="이전 달">‹</button>
@@ -1455,6 +1561,14 @@
     </div>
     <div class="grid" id="calGrid"></div>
   </div>
+
+  <section class="dayList" id="dayList" hidden aria-label="일별 내역">
+    <div class="dlHead">
+      <div class="dlTitle"><b id="dlPeriod">2026년 11월</b><span id="dlCount">0건</span></div>
+      <button class="addBtn" id="dlAdd" aria-label="내역 추가"><span class="plus">＋</span>내역 추가</button>
+    </div>
+    <div class="dlBody" id="dlBody"></div>
+  </section>
 
   <section class="assetsPanel" id="assetsPanel" hidden>
     <div id="assetGroups">
@@ -1526,6 +1640,11 @@
     <div class="sheetBody" id="sheetBody"></div>
   </section>
 </div>
+
+<!-- 모바일 하단 탭 바 — 위 헤더의 달력·통계·자산 탭(#viewTabs)이 JS로 이 안에 옮겨집니다 -->
+<nav class="botNav" id="botNav" aria-label="화면 전환">
+  <div class="botNavSlot" id="botNavSlot"></div>
+</nav>
 
 
 <div class="full" id="addScreen" hidden role="dialog" aria-modal="true" aria-label="내역 추가">
@@ -2207,6 +2326,7 @@ const TODAY_KEY = iso(today);
 const state = {
   ledger:"personal",
   screen:"calendar",        // "calendar" | "stats" | "assets"
+  calView:"calendar",       // 달력 탭 안: "calendar"(격자+시트) | "list"(일별 리스트)
   mode:"month",             // personal: "month" | "cycle"
   view: new Date(today.getFullYear(), today.getMonth(), 1),
   sel: TODAY_KEY,
@@ -2726,6 +2846,12 @@ function renderAll(){
 
   const assetsOn = !!l.assets && state.screen === "assets";
   const statsOn = state.screen === "stats";
+  /* 달력 탭 안의 일별 리스트 — 모바일에서만 (PC는 오른쪽 패널이 그 역할을 합니다) */
+  const listOn = !assetsOn && !statsOn && state.calView === "list" && !isPC();
+  document.querySelectorAll("#calViewSeg button").forEach(b =>
+    b.classList.toggle("on", b.dataset.calview === (listOn ? "list" : "calendar")));
+  /* 달력 탭에서만 달력 | 일별 토글을 보입니다 (통계·자산은 기간 보기가 따로입니다) */
+  document.getElementById("calViewSeg").hidden = assetsOn || statsOn;
   /* 달력 | 통계 | 자산·카드 — 자산 관리가 없는 장부는 자산 탭만 숨깁니다 */
   document.getElementById("viewTabs").hidden = false;
   document.getElementById("tabAssets").hidden = !l.assets;
@@ -2738,8 +2864,9 @@ function renderAll(){
   if (!statsOn){ document.getElementById("statDetailWrap").hidden = true; Overlay.hide("statDetail"); }
   document.getElementById("summaryCard").hidden = assetsOn || statsOn;
   document.getElementById("livingCard").hidden = assetsOn || statsOn || !l.living;
-  document.getElementById("calCard").hidden = assetsOn || statsOn;
-  document.getElementById("sheet").hidden = assetsOn || statsOn;
+  document.getElementById("calCard").hidden = assetsOn || statsOn || listOn;
+  document.getElementById("sheet").hidden = assetsOn || statsOn || listOn;
+  document.getElementById("dayList").hidden = !listOn;
   /* 펼친 내역 시트 — 화면이나 보는 기간이 바뀌면 스스로 접힙니다 */
   if (typeof SheetExpand !== "undefined" && SheetExpand) SheetExpand.sync();
 
@@ -2750,8 +2877,12 @@ function renderAll(){
   } else {
     renderSummary();
     renderLiving();
-    renderCalendar();
-    renderSheet();
+    if (listOn){
+      renderDayList();
+    } else {
+      renderCalendar();
+      renderSheet();
+    }
   }
 }
 
@@ -2909,39 +3040,122 @@ function renderSheet(){
   }
 
   if (state.tab === "all"){
-    body.innerHTML = list.map(e => {
-      if (e.type === "transfer"){
-        return `<div class="row">
-          <div class="emoji trf">⇄</div>
-          <div class="rowMain">
-            <div class="m">${esc(entryTitle(e))}</div>
-            <div class="s">${assetName(e.fromId)}<span class="to">→</span>${assetName(e.toId)}</div>
-          </div>
-          <div class="rowAmt">
-            <div class="a trf">${nf.format(e.amt)}원</div>
-            <div class="h">${e.t}</div>
-          </div>
-        </div>`;
-      }
-      const c = catOf(e.type, e.cat);
-      const payLabel = cur().assets ? assetName(e.acct) : e.pay;
-      const sign = e.type === "income" ? "+" : "−";
-      return `<div class="row">
-        <div class="emoji" style="background:${c.c}1A">${c.e}</div>
-        <div class="rowMain">
-          <div class="m">${e.memo}</div>
-          <div class="s">${e.cat}${e.sub ? " · " + esc(e.sub) : ""} · ${payLabel}</div>
-        </div>
-        <div class="rowAmt">
-          <div class="a ${e.type === "income" ? "inc":"exp"}">${sign}${nf.format(e.amt)}원</div>
-          <div class="h">${e.t}</div>
-        </div>
-      </div>`;
-    }).join("");
+    body.innerHTML = list.map(e => `<div class="row">${entryRowInner(e)}</div>`).join("");
   } else {
     renderCategory(body, list.filter(e => e.type !== "transfer"), inc, exp, trf);
   }
 }
+
+/* 내역 한 줄의 속 내용 — 달력 아래 시트와 일별 리스트가 같은 모양을 씁니다 */
+function entryRowInner(e){
+  if (e.type === "transfer"){
+    return `<div class="emoji trf">⇄</div>
+      <div class="rowMain">
+        <div class="m">${esc(entryTitle(e))}</div>
+        <div class="s">${assetName(e.fromId)}<span class="to">→</span>${assetName(e.toId)}</div>
+      </div>
+      <div class="rowAmt">
+        <div class="a trf">${nf.format(e.amt)}원</div>
+        <div class="h">${e.t}</div>
+      </div>`;
+  }
+  const c = catOf(e.type, e.cat);
+  const payLabel = cur().assets ? assetName(e.acct) : e.pay;
+  const sign = e.type === "income" ? "+" : "−";
+  return `<div class="emoji" style="background:${c.c}1A">${c.e}</div>
+    <div class="rowMain">
+      <div class="m">${e.memo}</div>
+      <div class="s">${e.cat}${e.sub ? " · " + esc(e.sub) : ""} · ${payLabel}</div>
+    </div>
+    <div class="rowAmt">
+      <div class="a ${e.type === "income" ? "inc":"exp"}">${sign}${nf.format(e.amt)}원</div>
+      <div class="h">${e.t}</div>
+    </div>`;
+}
+
+/* =========================================================
+   일별 리스트 — 고른 기간(월별 / 월급 기간)의 내역을 날짜별로 묶어 최근 날짜부터
+   ---------------------------------------------------------
+   · 날짜 머리 아래에 그날 내역을 시간 늦은 순으로 보여 주고,
+     머리 오른쪽에 그날 수입·지출(·이체) 합계를 적습니다.
+   · 내역이 없는 날은 그냥 빠집니다. 기간 전체에 내역이 없으면 안내를 보입니다.
+   · 행을 누르면 지금 쓰는 내역 수정 창(openEntryModal)이 열립니다.
+   ========================================================= */
+let dayListEntries = [];
+
+function renderDayList(){
+  const body = document.getElementById("dlBody");
+  const {start, end, payday} = currentRange();
+  const s = iso(start), e2 = iso(end);
+  const list = cur().data.filter(e => e.d >= s && e.d <= e2);
+
+  document.getElementById("dlPeriod").textContent = payday
+    ? `${mdLabel(start)} – ${mdLabel(end)}`
+    : `${start.getFullYear()}년 ${start.getMonth()+1}월`;
+  document.getElementById("dlCount").textContent =
+    (payday ? "급여 기간 · " : "") + `${list.length}건`;
+
+  dayListEntries = [];
+  if (!list.length){
+    body.innerHTML = `<div class="dlEmpty">
+        <div class="e">🗓️</div>
+        <p>이 기간에는 기록된 내역이 없어요.</p>
+        <button class="ghostBtn" id="dlEmptyAdd">+ 내역 추가하기</button>
+      </div>`;
+    const b = document.getElementById("dlEmptyAdd");
+    if (b) b.addEventListener("click", () => openAdd());
+    return;
+  }
+
+  const byDay = new Map();
+  list.forEach(e => {
+    if (!byDay.has(e.d)) byDay.set(e.d, []);
+    byDay.get(e.d).push(e);
+  });
+
+  body.innerHTML = [...byDay.keys()].sort((a,b) => b.localeCompare(a)).map(key => {
+    const items = byDay.get(key).slice()
+      .sort((a,b) => String(b.t || "").localeCompare(String(a.t || "")));
+    const d = parseKey(key);
+    let inc = 0, exp = 0, trf = 0;
+    items.forEach(e => {
+      if (e.type === "income") inc += e.amt;
+      else if (e.type === "transfer") trf += e.amt;
+      else exp += e.amt;
+    });
+    let sums = "";
+    if (inc) sums += `<span class="inc">+${nf.format(inc)}</span>`;
+    if (exp) sums += `<span class="exp">−${nf.format(exp)}</span>`;
+    if (trf) sums += `<span class="trf">⇄${nf.format(trf)}</span>`;
+    const rows = items.map(e => {
+      /* 이체는 내역 수정 창이 다루지 않으므로 눌리지 않는 줄로 보여만 줍니다 */
+      if (e.type === "transfer")
+        return `<div class="dlRow dlStatic">${entryRowInner(e)}</div>`;
+      dayListEntries.push(e);
+      return `<button type="button" class="dlRow" data-dl="${dayListEntries.length-1}">
+        ${entryRowInner(e)}
+      </button>`;
+    }).join("");
+    const isToday = key === TODAY_KEY;
+    return `<div class="dlDay" data-day="${key}">
+      <div class="dlDayHead">
+        <div class="dlDate">${d.getMonth()+1}월 ${d.getDate()}일 <em${isToday ? ' class="dlToday"' : ""}>${DOW[d.getDay()]}요일${isToday ? " · 오늘" : ""}</em></div>
+        <div class="dlSums">${sums}</div>
+      </div>
+      ${rows}
+    </div>`;
+  }).join("");
+}
+
+/* 오늘 날짜 묶음이 보이도록 스크롤 (일별로 바꿀 때 · 오늘 버튼) */
+function dlScrollToToday(){
+  const body = document.getElementById("dlBody");
+  const el = body && body.querySelector(`.dlDay[data-day="${TODAY_KEY}"]`);
+  if (!el || body.scrollTop > 0) return;
+  const top = el.offsetTop - body.offsetTop;
+  body.scrollTop = Math.max(0, top - 6);
+}
+
 
 function renderCategory(body, list, inc, exp, trf){
   if (!list.length){
@@ -4513,6 +4727,23 @@ document.getElementById("viewSeg").addEventListener("click", ev => {
   renderAll();
 });
 
+/* 달력 | 일별 — 같은 달(월급 기간)을 격자로 보거나 날짜별 리스트로 봅니다 */
+document.getElementById("calViewSeg").addEventListener("click", ev => {
+  const btn = ev.target.closest("button[data-calview]");
+  if (!btn || btn.dataset.calview === state.calView) return;
+  state.calView = btn.dataset.calview;
+  renderAll();
+  if (state.calView === "list") dlScrollToToday();
+});
+
+document.getElementById("dlAdd").addEventListener("click", () => openAdd());
+document.getElementById("dlBody").addEventListener("click", ev => {
+  const row = ev.target.closest("[data-dl]");
+  if (!row) return;
+  const e = dayListEntries[Number(row.dataset.dl)];
+  if (e) openEntryModal(e);
+});
+
 document.querySelectorAll(".tabs .tab").forEach(t => {
   t.addEventListener("click", () => { state.tab = t.dataset.tab; renderSheet(); });
 });
@@ -4529,6 +4760,7 @@ document.getElementById("todayBtn").addEventListener("click", () => {
   state.view = new Date(today.getFullYear(), today.getMonth(), 1);
   state.sel = TODAY_KEY;
   renderAll();
+  if (state.calView === "list" && !isPC()) dlScrollToToday();
 });
 
 /* ---------- 내역 추가 (풀스크린) ----------
@@ -8056,9 +8288,34 @@ var SheetExpand = (function(){
   return { show, hide, toggle, sync, isOpen: () => expanded, isLifted: () => lifted };
 })();
 
+/* =========================================================
+   화면 탭(#viewTabs)의 자리 — 모바일은 하단 바, PC는 헤더
+   ---------------------------------------------------------
+   탭은 요소 하나뿐이라, 화면 폭에 따라 자리만 옮겨 다닙니다.
+   (버튼 상태·클릭·히스토리 처리는 지금 쓰는 그대로입니다)
+   ========================================================= */
+function placeTabs(){
+  const tabs = document.getElementById("viewTabs");
+  const home = document.querySelector(".topRight");
+  const slot = document.getElementById("botNavSlot");
+  if (!tabs || !home || !slot) return;
+  if (isPC()){
+    if (tabs.parentElement !== home) home.insertBefore(tabs, home.firstChild);
+    /* PC에서는 일별 리스트 토글이 없으므로 달력으로 돌아갑니다 */
+    if (state.calView === "list"){ state.calView = "calendar"; renderAll(); }
+  } else if (tabs.parentElement !== slot){
+    slot.appendChild(tabs);
+  }
+}
+try{
+  window.matchMedia("(min-width:841px)").addEventListener("change", placeTabs);
+}catch(e){}
+window.addEventListener("resize", placeTabs);
+
 /* 시작 */
 loadAll();
 normalizePersonal();
+placeTabs();
 renderAll();
 wireBackupUI();
 syncInit();
