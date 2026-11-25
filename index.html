@@ -839,18 +839,8 @@
     border-top:1px solid var(--hair);font-size:11px;font-weight:800;color:#8B95A1;letter-spacing:-.01em;
   }
   .amEditHead[hidden]{display:none}
-  /* 초기 잔액 — 자산을 처음 추가할 때만 입력하면 되므로,
-     이미 만든 자산에서는 한 줄 요약만 보이고 누를 때만 입력칸이 열립니다 */
-  .initRow{
-    display:flex;align-items:center;gap:8px;width:100%;margin:0 0 10px;padding:10px 12px;
-    border:1px solid #EFF1F4;border-radius:12px;background:#FCFCFD;font-family:inherit;
-    text-align:left;cursor:pointer;color:#4B5563;
-  }
-  .initRow[hidden]{display:none}
-  .initRow:active{background:#F5F7F9}
-  .initRow .initK{flex:1 1 auto;font-size:11.5px;font-weight:700;color:#8B95A1;letter-spacing:-.01em}
-  .initRow b{flex:0 0 auto;font-size:12.5px;font-weight:800;color:#191F28;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-  .initRow .initEdit{flex:0 0 auto;font-style:normal;font-size:10.5px;font-weight:800;color:var(--theme);letter-spacing:-.01em}
+  /* 초기 잔액 — 자산을 처음 만들 때만 입력하는 값이라,
+     이미 만든 자산의 상세 화면에는 요약 줄을 두지 않습니다 */
   .entryDel{
     width:100%;margin-top:9px;padding:12px 0;border-radius:14px;border:1px solid #F3D7DA;background:#fff;
     color:#D63A48;font-family:inherit;font-size:12.5px;font-weight:800;letter-spacing:-.02em;cursor:pointer;
@@ -864,6 +854,39 @@
   }
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
   .toast.warn{background:rgba(214,45,60,.95)}
+
+  /* ---------- 백업·복원 ---------- */
+  .bkCard{max-height:88dvh;overflow-y:auto;scrollbar-width:none}
+  .bkCard::-webkit-scrollbar{display:none}
+  .bkNow{background:#F7F8FA;border-radius:14px;padding:11px 13px;margin:2px 0 12px}
+  .bkTop{display:flex;align-items:center;gap:8px}
+  .bkTop b{font-size:12px;font-weight:800;letter-spacing:-.02em;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bkTop span{margin-left:auto;flex:0 0 auto;font-size:10.5px;font-weight:700;color:#8B95A1;letter-spacing:-.01em;white-space:nowrap}
+  .bkStats{margin-top:7px;font-size:11px;line-height:1.55;font-weight:700;color:#6B7684;letter-spacing:-.01em}
+  .bkStats b{font-weight:800;color:#191F28;font-variant-numeric:tabular-nums}
+  .bkFile{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+  .bkPick{display:block;width:100%;text-align:center;font-size:12.5px;padding:12px 14px}
+  .bkDivider{display:flex;align-items:center;gap:9px;margin:16px 0 11px;color:#AEB6C0;font-size:10.5px;font-weight:800;letter-spacing:-.01em}
+  .bkDivider::before,.bkDivider::after{content:"";flex:1 1 auto;height:1px;background:var(--hair)}
+  .bkPreview{border:1.5px solid #E9EBEF;border-radius:14px;padding:12px 13px;margin-top:11px;background:#fff}
+  .bkPreview[hidden]{display:none}
+  .bkDiff{margin-top:7px;font-size:10.8px;line-height:1.5;font-weight:700;color:#6B7684;letter-spacing:-.01em}
+  .bkBtns{display:flex;flex-direction:column;gap:7px;margin-top:11px}
+  .bkBtns .ghostBtn{width:100%}
+  .bkRestore{
+    width:100%;border:none;border-radius:13px;background:#F04452;color:#fff;font-family:inherit;
+    font-size:13px;font-weight:800;padding:13px 10px;cursor:pointer;letter-spacing:-.02em;line-height:1.35;
+  }
+  .bkRestore.armed{background:#C22F3D}
+  .bkRestore[disabled]{opacity:.5;cursor:default}
+  .bkUndo{
+    width:100%;margin-top:14px;border:1px solid var(--hair);background:#fff;color:#6B7684;
+    font-family:inherit;font-size:11px;font-weight:700;padding:10px 8px;border-radius:11px;cursor:pointer;letter-spacing:-.01em;
+  }
+  .bkUndo[hidden]{display:none}
+  .bkErr{margin:10px 2px 0;font-size:11px;font-weight:700;color:#D63A48;line-height:1.5}
+  .bkErr[hidden]{display:none}
+  .bkNote{font-size:10.5px;line-height:1.55;color:#8B95A1;letter-spacing:-.01em;margin:11px 2px 0}
 
   /* ---------- 구글 시트 연동 ---------- */
   #ledgerBtn{position:relative}
@@ -1608,6 +1631,11 @@
       <span class="lsMain"><b>구글 시트 연동</b><span id="syncRowSub">연결 안 됨</span></span>
       <span class="lsArrow">›</span>
     </button>
+    <button class="lsRow lsSync" id="backupRow">
+      <span class="lsIcon" style="background:#F2F4F6">💾</span>
+      <span class="lsMain"><b>백업·복원</b><span id="backupRowSub">아직 백업한 적 없어요</span></span>
+      <span class="lsArrow">›</span>
+    </button>
     <button class="lsAdd" id="addLedgerBtn">＋ 새 장부 추가</button>
   </div>
 </div>
@@ -1826,6 +1854,36 @@
   </div>
 </div>
 
+<div class="modalWrap" id="backupModal" hidden>
+  <div class="backdrop" id="backupBackdrop"></div>
+  <div class="modalCard bkCard">
+    <div class="handle" style="margin-bottom:8px"></div>
+    <h2>백업·복원</h2>
+    <div class="modalDate">모든 장부의 내역·자산·카테고리·예산 설정을 파일 하나에 담아요. 구글 시트 주소·PIN은 파일에 넣지 않아요.</div>
+    <div class="bkNow">
+      <div class="bkTop"><b>지금 이 기기</b><span id="bkNowState">백업한 적 없음</span></div>
+      <div class="bkStats" id="bkNowStats"></div>
+    </div>
+    <button class="saveBtn" id="bkExport" type="button">백업 파일 저장 (.json)</button>
+    <p class="bkNote">내려받은 파일은 휴대폰 다운로드 폴더에 남아요. 드라이브나 메일에 한 부 더 두면 더 안전해요.</p>
+    <div class="bkDivider"><span>복원</span></div>
+    <label class="ghostBtn bkPick" for="bkFile" id="bkPick">백업 파일에서 복원</label>
+    <input type="file" id="bkFile" class="bkFile" accept=".json,application/json" aria-label="백업 파일 선택">
+    <p class="bkErr" id="bkErr" hidden></p>
+    <div class="bkPreview" id="bkPreview" hidden>
+      <div class="bkTop"><b id="bkPvTitle">선택한 백업 파일</b><span id="bkPvWhen">—</span></div>
+      <div class="bkStats" id="bkPvStats"></div>
+      <div class="bkDiff" id="bkPvDiff"></div>
+      <p class="bkNote" id="bkPvNote"></p>
+      <div class="bkBtns">
+        <button class="bkRestore" id="bkRestore" type="button">이 백업으로 복원</button>
+        <button class="ghostBtn" id="bkCancel" type="button">취소</button>
+      </div>
+    </div>
+    <button class="bkUndo" id="bkUndo" type="button" hidden>복원 전 상태로 되돌리기</button>
+  </div>
+</div>
+
 <div class="modalWrap" id="assetModal" hidden>
   <div class="backdrop" id="assetBackdrop"></div>
   <div class="modalCard">
@@ -1892,11 +1950,6 @@
       </div>
     </div>
     <div id="assetInitWrap">
-      <button class="initRow" id="assetInitToggle" type="button" hidden>
-        <span class="initK">초기 잔액</span>
-        <b id="assetInitVal">0원</b>
-        <i class="initEdit">고치기</i>
-      </button>
       <div id="assetInitField">
         <div class="fLabel" id="assetInitLabel">초기 잔액</div>
         <div class="amountField">
@@ -3793,11 +3846,22 @@ function monthExpenseOf(l){
   return l.data.filter(e => e.type === "expense" && e.d.startsWith(pre))
                .reduce((s,e)=> s + e.amt, 0);
 }
+/* 장부 목록 부제목의 내역 건수 — 전체 누적이 아니라 화면에서 고른 날짜(state.sel,
+   없으면 오늘) 하루 기준입니다. 예: 「2026년 11월 지출 0원 · 11/25 내역 4건」 */
+const dayKeyOf = k => /^\d{4}-\d{2}-\d{2}$/.test(String(k || "")) ? k : TODAY_KEY;
+function dayLabelOf(k){
+  const d = parseKey(dayKeyOf(k));
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+function dayCountOf(l, k){
+  const key = dayKeyOf(k);
+  return (l.data || []).filter(e => e.d === key).length;
+}
 function renderLedgerList(){
   const y = state.view.getFullYear(), m = state.view.getMonth()+1;
   document.getElementById("ledgerList").innerHTML = LEDGERS.map(l => {
-    const sub = l.data.length
-      ? `${y}년 ${m}월 지출 ${won(monthExpenseOf(l))} · 내역 ${nf.format(l.data.length)}건`
+    const sub = (l.data || []).length
+      ? `${y}년 ${m}월 지출 ${won(monthExpenseOf(l))} · ${dayLabelOf(state.sel)} 내역 ${nf.format(dayCountOf(l, state.sel))}건`
       : "아직 내역이 없어요";
     const tag = sheetTagOf(l.id);
     return `<div class="lsRow ${l.id === state.ledger ? "on" : ""}" data-id="${l.id}" role="button" tabindex="0">
@@ -3809,6 +3873,7 @@ function renderLedgerList(){
     </div>`;
   }).join("");
   renderCatRowSub();
+  renderBackupRowSub();
 }
 function renderCatRowSub(){
   const el = document.getElementById("catRowSub");
@@ -5073,12 +5138,10 @@ function openAssetModal(id){
   syncValDateText();
   renderAssetTarget(a && isCardAsset(a) ? cardMetaTarget(a) : 0);
   renderAssetKinds();
-  /* 초기 잔액은 새 자산을 만들 때 입력하는 값이라, 이미 만든 자산에서는
-     한 줄 요약으로만 보여 준다(누르면 입력칸이 열림) */
+  /* 초기 잔액은 새 자산을 만들 때 입력하는 값입니다 — 이미 만든 자산의
+     상세 화면에는 초기 잔액 줄을 보여 주지 않습니다(값은 그대로 보존) */
   document.getElementById("assetInitField").hidden = !!a;
-  document.getElementById("assetInitToggle").hidden = !a;
-  document.getElementById("assetInitLabel").textContent = a ? "초기 잔액 고치기" : "초기 잔액";
-  syncAssetInitRow(a);
+  document.getElementById("assetInitLabel").textContent = "초기 잔액";
   resetAssetDelete();
 
   const sub = document.getElementById("assetModalSub");
@@ -5135,12 +5198,6 @@ function openAssetModal(id){
   document.getElementById("assetModal").hidden = false;
   Overlay.show("assetModal", closeAssetModal);
   if (!a) setTimeout(()=> document.getElementById("assetName").focus(), 60);
-}
-
-/* 초기 잔액 한 줄 요약 */
-function syncAssetInitRow(a){
-  const el = document.getElementById("assetInitVal");
-  if (el) el.textContent = won(a ? (a.init || 0) : 0);
 }
 
 /* 자산 삭제 — 한 번 더 눌러야 지워집니다 (5초 뒤 자동 해제) */
@@ -5468,14 +5525,6 @@ document.getElementById("assetInit").addEventListener("input", ev => {
   ev.target.value = digits ? nf.format(Number(digits)) : "";
 });
 document.getElementById("assetBackdrop").addEventListener("click", closeAssetModal);
-
-/* 초기 잔액 — 요약 줄을 누르면 입력칸을 엽니다 */
-document.getElementById("assetInitToggle").addEventListener("click", () => {
-  document.getElementById("assetInitToggle").hidden = true;
-  document.getElementById("assetInitField").hidden = false;
-  const inp = document.getElementById("assetInit");
-  inp.focus();
-});
 
 /* 자산 삭제 — 연결된 내역이 있으면 몇 건이 함께 지워지는지 알려 주고,
    한 번 더 누를 때만 실행합니다. */
@@ -7366,10 +7415,382 @@ async function syncInitRun(){
   }
 }
 
+/* =========================================================
+   백업 · 복원
+   ---------------------------------------------------------
+   · 백업 파일 = 지금 이 기기에 저장된 가계부 전체(v3 저장값)를 그대로 담은 JSON.
+     장부·내역·자산·카테고리·예산 설정이 모두 들어갑니다.
+     구글 시트 주소·PIN(보안값)은 파일에 담지 않습니다 — 복원해도 시트 연결
+     설정은 이 기기에 있던 그대로라 다시 연결할 필요가 없어요.
+   · 복원은 파일을 먼저 검사해 「장부 ○개 · 내역 ○건 · 자산 ○개 (백업 일시)」를
+     미리 보여 주고, 「이 백업으로 복원」을 한 번 더 눌러야 실행합니다.
+   · 복원 직전 데이터는 이 기기에 따로 보관해 두고 「복원 전 상태로
+     되돌리기」로 되돌릴 수 있습니다.
+   ========================================================= */
+const BACKUP_META_KEY = "budget-app:backup";
+const BACKUP_UNDO_KEY = "budget-app:pre-restore";
+const BACKUP_FORMAT = 1;
+const BACKUP_MAX_BYTES = 8 * 1024 * 1024;
+let bkSel = { store:null, counts:null, savedAt:"", file:"", skipped:0, armed:false };
+
+/* 지금 이 기기에 저장되는 모양 그대로 읽어 옵니다 (백업·되돌리기 공용) */
+function backupStoreNow(){
+  persistLocal();
+  try{
+    const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    return (s && typeof s === "object") ? s : null;
+  }catch(e){ return null; }
+}
+function storeCounts(store){
+  const ledgers = (store && Array.isArray(store.ledgers)) ? store.ledgers : [];
+  let entries = 0, assets = 0;
+  ledgers.forEach(l => {
+    entries += (l && Array.isArray(l.data)) ? l.data.length : 0;
+    assets  += (l && Array.isArray(l.assetsList)) ? l.assetsList.length : 0;
+  });
+  return { ledgers: ledgers.length, entries, assets };
+}
+const bkNum = n => nf.format(Number(n) || 0);
+function backupWhenLabel(isoStr){
+  const d = new Date(isoStr);
+  if (isNaN(d)) return "백업 일시 모름";
+  const sameYear = d.getFullYear() === today.getFullYear();
+  return `${sameYear ? "" : d.getFullYear() + "년 "}${d.getMonth()+1}월 ${d.getDate()}일 ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+function backupShortLabel(isoStr){
+  const d = new Date(isoStr);
+  if (isNaN(d)) return "—";
+  const sameYear = d.getFullYear() === today.getFullYear();
+  return `${sameYear ? "" : d.getFullYear() + "."}${pad2(d.getMonth()+1)}/${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+function backupMeta(){
+  try{
+    const m = JSON.parse(localStorage.getItem(BACKUP_META_KEY) || "null");
+    return (m && typeof m === "object" && m.savedAt) ? m : null;
+  }catch(e){ return null; }
+}
+function backupUndoRaw(){
+  try{
+    const m = JSON.parse(localStorage.getItem(BACKUP_UNDO_KEY) || "null");
+    return (m && typeof m === "object" && m.store && Array.isArray(m.store.ledgers)) ? m : null;
+  }catch(e){ return null; }
+}
+
+/* ---------- 보내기: 파일로 저장 ---------- */
+function backupFileName(){
+  const d = new Date();
+  return `budget-backup-${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}.json`;
+}
+function exportBackup(){
+  const store = backupStoreNow();
+  if (!store || !Array.isArray(store.ledgers) || !store.ledgers.length){
+    bkError("저장된 가계부 데이터를 읽지 못했어요 · 화면을 새로고침한 뒤 다시 눌러 주세요");
+    return null;
+  }
+  const counts = storeCounts(store);
+  const savedAt = new Date();
+  const name = backupFileName();
+  const payload = {
+    app:"budget-app", kind:"backup", format:BACKUP_FORMAT,
+    model: Number(store.model) || 0,
+    savedAt: savedAt.toISOString(),
+    counts,
+    store
+  };
+  try{
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = name;
+    a.rel = "noopener"; a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 4000);
+  }catch(e){
+    bkError("파일을 만들지 못했어요 · 브라우저 저장 공간을 확인해 주세요");
+    return null;
+  }
+  try{
+    localStorage.setItem(BACKUP_META_KEY, JSON.stringify({
+      savedAt: savedAt.toISOString(), file: name,
+      ledgers: counts.ledgers, entries: counts.entries, assets: counts.assets
+    }));
+  }catch(e){}
+  bkError("");
+  renderBackupPanel();
+  renderBackupRowSub();
+  showToast(`백업 파일을 저장했어요 · 내역 ${bkNum(counts.entries)}건`);
+  return payload;
+}
+
+/* ---------- 불러오기: 파일 검사 ---------- */
+function bkError(msg){
+  const el = document.getElementById("bkErr");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.hidden = !msg;
+}
+function bkResetSel(){
+  bkSel = { store:null, counts:null, savedAt:"", file:"", skipped:0, armed:false };
+  const box = document.getElementById("bkPreview");
+  if (box) box.hidden = true;
+  const b = document.getElementById("bkRestore");
+  if (b){ b.classList.remove("armed"); b.textContent = "이 백업으로 복원"; }
+}
+/* 파일 내용을 검사해 복원에 쓸 저장값만 골라 냅니다.
+   읽을 수 없는 장부·내역은 건너뛰고, 파일 모양이 아니면 이유를 돌려줍니다. */
+function parseBackupFile(text){
+  let raw;
+  try{ raw = JSON.parse(text); }
+  catch(e){ return { error:"JSON 파일이 아니에요 · 백업 파일(.json)을 골라 주세요" }; }
+  if (!raw || typeof raw !== "object" || Array.isArray(raw))
+    return { error:"백업 파일 모양이 아니에요 · 가계부에서 저장한 .json 파일을 골라 주세요" };
+  if (raw.kind && raw.kind !== "backup")
+    return { error:"가계부 백업 파일이 아니에요" };
+  const fmt = Number(raw.format || 0);
+  if (isFinite(fmt) && fmt > BACKUP_FORMAT)
+    return { error:"더 새로운 버전에서 만든 백업이에요 · 앱을 새로고침한 뒤 다시 열어 주세요" };
+  const src = (raw.store && typeof raw.store === "object") ? raw.store
+            : (Array.isArray(raw.ledgers) ? raw : null);
+  if (!src || !Array.isArray(src.ledgers) || !src.ledgers.length)
+    return { error:"장부 정보가 없는 파일이에요" };
+  const clean = {};
+  Object.keys(src).forEach(k => { if (k !== "ledgers") clean[k] = src[k]; });
+  clean.ledgers = [];
+  let skipped = 0;
+  src.ledgers.forEach(l => {
+    if (!l || typeof l !== "object" || Array.isArray(l)){ skipped++; return; }
+    const rawRows = Array.isArray(l.data) ? l.data : [];
+    const rows = rawRows.filter(e => e && typeof e === "object"
+      && /^\d{4}-\d{2}-\d{2}$/.test(String(e.d || ""))
+      && isFinite(Number(e.amt)));
+    skipped += rawRows.length - rows.length;
+    const row = {};
+    Object.keys(l).forEach(k => { if (k !== "data" && k !== "assetsList") row[k] = l[k]; });
+    row.data = rows;
+    row.assetsList = Array.isArray(l.assetsList) ? l.assetsList.filter(a => a && typeof a === "object") : [];
+    clean.ledgers.push(row);
+  });
+  if (!clean.ledgers.length)
+    return { error:"읽을 수 있는 장부가 없어요 · 다른 백업 파일을 골라 주세요" };
+  return { store: clean, skipped, savedAt: String(raw.savedAt || src.savedAt || "") };
+  /* skipped = 읽을 수 없는 장부 수 + 건너뛴 내역 수 */
+}
+function bkReadFile(file){
+  if (!file) return;
+  bkError("");
+  bkResetSel();
+  if (file.size > BACKUP_MAX_BYTES){
+    bkError("파일이 너무 커요 · 8MB 이하의 백업 파일을 골라 주세요");
+    return;
+  }
+  const r = new FileReader();
+  r.onerror = () => bkError("파일을 읽지 못했어요 · 다시 골라 주세요");
+  r.onload = () => {
+    const res = parseBackupFile(String(r.result || ""));
+    if (res.error){
+      bkError(res.error);
+      showToast(res.error, true);
+      return;
+    }
+    bkSel = {
+      store: res.store, counts: storeCounts(res.store), skipped: res.skipped,
+      savedAt: res.savedAt, file: file.name || "선택한 백업 파일", armed:false
+    };
+    renderBackupPreview();
+  };
+  r.readAsText(file);
+}
+function renderBackupPreview(){
+  const box = document.getElementById("bkPreview");
+  if (!box) return;
+  const pv = bkSel.counts;
+  if (!pv){ box.hidden = true; return; }
+  const now = storeCounts(backupStoreNow());
+  document.getElementById("bkPvTitle").textContent = bkSel.file || "선택한 백업 파일";
+  document.getElementById("bkPvWhen").textContent = bkSel.savedAt ? backupWhenLabel(bkSel.savedAt) : "백업 일시 모름";
+  document.getElementById("bkPvStats").innerHTML =
+    `장부 <b>${bkNum(pv.ledgers)}</b>개 · 내역 <b>${bkNum(pv.entries)}</b>건 · 자산 <b>${bkNum(pv.assets)}</b>개`;
+  document.getElementById("bkPvDiff").textContent =
+    `지금 이 기기: 장부 ${bkNum(now.ledgers)}개 · 내역 ${bkNum(now.entries)}건 → 복원하면 백업 내용으로 바뀌어요`;
+  const notes = [];
+  if (bkSel.skipped) notes.push(`읽지 못한 항목 ${bkNum(bkSel.skipped)}개는 빼고 복원해요.`);
+  notes.push((syncOn() || Object.keys(SYNC.links || {}).length)
+    ? "복원하면 연결된 구글 시트에도 이 내용으로 저장돼요."
+    : "복원 직전 데이터는 이 기기에 따로 보관해서 바로 되돌릴 수 있어요.");
+  document.getElementById("bkPvNote").textContent = notes.join(" ");
+  const b = document.getElementById("bkRestore");
+  b.classList.remove("armed");
+  b.textContent = "이 백업으로 복원";
+  bkSel.armed = false;
+  box.hidden = false;
+}
+
+/* ---------- 복원 실행 ---------- */
+/* store(v3 저장값)를 이 기기에 그대로 앉힙니다. 복원·되돌리기 공용.
+   opts.snapshot — 지금 데이터를 되돌리기용으로 먼저 보관할지 (기본 true) */
+function applyStoreToDevice(store, opts){
+  opts = opts || {};
+  if (opts.snapshot !== false){
+    const before = backupStoreNow();
+    if (before){
+      try{
+        localStorage.setItem(BACKUP_UNDO_KEY, JSON.stringify({
+          savedAt: new Date().toISOString(), store: before
+        }));
+      }catch(e){}
+    }
+  }
+  try{
+    localStorage.setItem(STORE_KEY, JSON.stringify(store));
+  }catch(e){
+    return false;
+  }
+  settings.cardMeta = {};
+  loadAll();
+  normalizePersonal();
+  if (!LEDGERS.length) return false;
+  if (!LEDGERS.some(l => l.id === state.ledger)) state.ledger = LEDGERS[0].id;
+  state.screen = "calendar";
+  state.tab = "all";
+  state.statCat = null;
+  state.statSub = null;
+  state.trendCat = null;
+  state.trendWeek = null;
+  state.view = new Date(today.getFullYear(), today.getMonth(), 1);
+  ASSETS = cur().assetsList || [];
+  persistLocal();
+  renderAll();
+  renderLedgerList();
+  paintSync();
+  schedulePush(400);
+  return true;
+}
+function bkRestorePress(){
+  if (!bkSel.store || !bkSel.counts) return;
+  if (!bkSel.armed){
+    bkSel.armed = true;
+    const b = document.getElementById("bkRestore");
+    b.classList.add("armed");
+    b.textContent = `정말 복원할까요? 지금 내역 ${bkNum(storeCounts(backupStoreNow()).entries)}건이 바뀌어요`;
+    showToast("한 번 더 누르면 이 백업으로 복원해요", true);
+    return;
+  }
+  const counts = bkSel.counts;
+  const done = applyStoreToDevice(bkSel.store, { snapshot:true });
+  if (!done){
+    bkSel.armed = false;
+    const b = document.getElementById("bkRestore");
+    b.classList.remove("armed");
+    b.textContent = "이 백업으로 복원";
+    bkError("기기 저장 공간이 부족해 복원하지 못했어요 · 공간을 비우고 다시 해 주세요");
+    return;
+  }
+  bkResetSel();
+  bkError("");
+  const input = document.getElementById("bkFile");
+  if (input) input.value = "";
+  renderBackupPanel();
+  closeBackupModal();
+  showToast(`백업을 복원했어요 · 장부 ${bkNum(counts.ledgers)}개 · 내역 ${bkNum(counts.entries)}건`);
+}
+let bkUndoArmed = false, bkUndoTimer;
+function bkUndoReset(){
+  bkUndoArmed = false;
+  clearTimeout(bkUndoTimer);
+  const u = document.getElementById("bkUndo");
+  if (!u) return;
+  u.classList.remove("armed");
+  const m = backupUndoRaw();
+  u.textContent = m ? `복원 전 상태로 되돌리기 (${backupShortLabel(m.savedAt)})` : "복원 전 상태로 되돌리기";
+}
+function bkUndoPress(){
+  const m = backupUndoRaw();
+  if (!m) return;
+  if (!bkUndoArmed){
+    bkUndoArmed = true;
+    const u = document.getElementById("bkUndo");
+    u.classList.add("armed");
+    u.textContent = `정말 되돌릴까요? 지금 내용이 ${backupShortLabel(m.savedAt)} 상태로 바뀌어요`;
+    clearTimeout(bkUndoTimer);
+    bkUndoTimer = setTimeout(bkUndoReset, 4000);
+    return;
+  }
+  const counts = storeCounts(m.store);
+  const done = applyStoreToDevice(m.store, { snapshot:false });
+  bkUndoReset();
+  if (!done){ bkError("기기 저장 공간이 부족해 되돌리지 못했어요"); return; }
+  try{ localStorage.removeItem(BACKUP_UNDO_KEY); }catch(e){}
+  renderBackupPanel();
+  closeBackupModal();
+  showToast(`복원 전 상태로 되돌렸어요 · 내역 ${bkNum(counts.entries)}건`);
+}
+
+/* ---------- 창 그리기 ---------- */
+function renderBackupPanel(){
+  const meta = backupMeta();
+  const stateEl = document.getElementById("bkNowState");
+  const statsEl = document.getElementById("bkNowStats");
+  const now = storeCounts(backupStoreNow());
+  if (stateEl) stateEl.textContent = meta
+    ? "마지막 백업 " + backupShortLabel(meta.savedAt)
+    : "백업한 적 없음";
+  if (statsEl) statsEl.innerHTML =
+    `지금 내역 <b>${bkNum(now.entries)}</b>건 · 장부 <b>${bkNum(now.ledgers)}</b>개 · 자산 <b>${bkNum(now.assets)}</b>개`;
+  const undo = document.getElementById("bkUndo");
+  if (undo){
+    const m = backupUndoRaw();
+    undo.hidden = !m;
+    bkUndoReset();
+  }
+}
+function renderBackupRowSub(){
+  const el = document.getElementById("backupRowSub");
+  if (!el) return;
+  const m = backupMeta();
+  if (!m){ el.textContent = "아직 백업한 적이 없어요"; return; }
+  const c = storeCounts(backupStoreNow());
+  el.textContent = `마지막 백업 ${backupShortLabel(m.savedAt)} · 내역 ${bkNum(c.entries)}건`;
+}
+function openBackupModal(){
+  closeLedgerSheet();
+  bkResetSel();
+  bkError("");
+  const input = document.getElementById("bkFile");
+  if (input) input.value = "";
+  renderBackupPanel();
+  document.getElementById("backupModal").hidden = false;
+  Overlay.show("backupModal", closeBackupModal);
+}
+function closeBackupModal(){
+  document.getElementById("backupModal").hidden = true;
+  bkResetSel();
+  bkUndoReset();
+  Overlay.hide("backupModal");
+}
+function wireBackupUI(){
+  const row = document.getElementById("backupRow");
+  if (row) row.addEventListener("click", openBackupModal);
+  document.getElementById("backupBackdrop").addEventListener("click", closeBackupModal);
+  document.getElementById("bkExport").addEventListener("click", exportBackup);
+  document.getElementById("bkFile").addEventListener("change", ev => {
+    const f = (ev.target.files || [])[0];
+    bkReadFile(f);
+    ev.target.value = "";   /* 같은 파일을 다시 골라도 읽도록 */
+  });
+  document.getElementById("bkRestore").addEventListener("click", bkRestorePress);
+  document.getElementById("bkCancel").addEventListener("click", () => {
+    bkResetSel();
+    bkError("");
+  });
+  document.getElementById("bkUndo").addEventListener("click", bkUndoPress);
+}
+
 /* 시작 */
 loadAll();
 normalizePersonal();
 renderAll();
+wireBackupUI();
 syncInit();
 </script>
 </body>
