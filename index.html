@@ -57,6 +57,21 @@
     padding:7px 12px;border-radius:999px;font-family:inherit;
     box-shadow:0 1px 2px rgba(20,25,35,.06),0 0 0 1px var(--hair) inset;cursor:pointer;
   }
+  /* 상단 새로고침 — 앱을 꺼다 켜지 않아도 최신 앱·시트 데이터로 다시 엽니다 */
+  .refBtn{
+    width:29px;height:29px;flex:0 0 auto;padding:0;border:none;border-radius:50%;
+    background:#fff;color:var(--theme-ink);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;box-shadow:0 1px 2px rgba(20,25,35,.06),0 0 0 1px var(--hair) inset;
+    transition:background .18s ease,opacity .18s ease;
+  }
+  .refBtn:active{background:#F3F5F7}
+  .refBtn svg{
+    display:block;width:14px;height:14px;stroke:currentColor;fill:none;
+    stroke-width:2;stroke-linecap:round;stroke-linejoin:round;
+  }
+  .refBtn.spin svg{animation:refSpin .8s linear infinite}
+  .refBtn[disabled]{opacity:.55;cursor:default}
+  @keyframes refSpin{to{transform:rotate(360deg)}}
 
   /* 보기 전환 (달력 / 자산·카드) */
   .viewTabs{display:flex;background:#E9EBEF;border-radius:10px;padding:2px;gap:2px}
@@ -1234,6 +1249,9 @@
     .viewTabs button:hover{color:var(--theme-ink)}
     .todayBtn{font-size:12.5px;padding:9px 16px}
     .todayBtn:hover{background:#FAFBFC}
+    .refBtn{width:33px;height:33px}
+    .refBtn:hover{background:#FAFBFC}
+    .refBtn svg{width:15px;height:15px}
     .pcAddBtn{
       display:flex;align-items:center;gap:5px;border:none;background:var(--theme);color:#fff;
       font-family:inherit;font-size:12.5px;font-weight:800;letter-spacing:-.02em;line-height:1;
@@ -1507,6 +1525,7 @@
           <button data-screen="stats"><svg class="vi" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 19v-7.5M12 19V5.5M18.5 19v-4.5"/></svg>통계</button>
           <button data-screen="assets" id="tabAssets"><svg class="vi" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12.5" rx="3"/><path d="M3 10.4h18M6.6 14.8h3.2"/></svg>자산·카드</button>
         </div>
+        <button class="refBtn" id="refreshBtn" type="button" aria-label="새로고침" title="새로고침"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 12a8.5 8.5 0 1 1-2.49-6.01"/><path d="M20.5 3.6v5.2h-5.2"/></svg></button>
         <button class="todayBtn" id="todayBtn">오늘</button>
         <button class="pcAddBtn" id="pcAddBtn" aria-label="내역 추가"><span class="plus">＋</span>내역 추가</button>
       </div>
@@ -3715,16 +3734,33 @@ function cardMetaTarget(a){
 function cardMetaOf(id){
   return (id && settings.cardMeta && settings.cardMeta[id]) || {};
 }
-/* 넘긴 값만 반영하고, 비우면(null) 그 항목만 지웁니다 */
+/* ---------- 기기 사이 병합을 위한 변경 표시 ----------
+   settings.cardMeta[id] = { target, icon, color, trackGraph, series } 는 시트 '설정'
+   탭의 card_meta 한 칸으로 여러 기기가 함께 씁니다. 그래서 이 기기에서 사용자가
+   실제로 바꾼 항목만 표시해 두고, 저장할 때는 시트의 최신 값 위에 그 항목만 얹습니다.
+   → 다른 기기에서 정한 아이콘·색·혜택 실적·추이 기록이 예전 상태로 덮어써지지 않습니다. */
+const CARD_META_FIELDS = ["target", "icon", "color", "trackGraph"];
+let CARD_META_DIRTY = {};        /* { assetId: { icon:true, color:true, ... } } 이 기기에서 바꾼 항목 */
+let CARD_META_SERIES_DIRTY = {}; /* { assetId: true } 이 기기에서 추이 기록을 바꿈 */
+let CARD_META_SERIES_DROP = {};  /* { assetId: { "YYYY-MM-DD": true } } 이 기기에서 지운 날 */
+let CARD_META_REMOTE = {};       /* 시트별 최근 원격 card_meta: { present, rows, at } */
+let CARD_META_DIRTY_AT = 0;      /* 이 기기에서 마지막으로 바꾼 시각 */
+/* 넘긴 값만 반영하고, 비우면(null) 그 항목만 지웁니다.
+   여기서 바꾼 항목은 「이 기기에서 사용자가 정한 값」으로 표시해 둡니다. */
 function setCardMeta(id, patch){
   if (!id) return;
   settings.cardMeta = settings.cardMeta || {};
   const next = Object.assign({}, settings.cardMeta[id] || {});
-  Object.keys(patch || {}).forEach(k => {
+  const keys = Object.keys(patch || {});
+  keys.forEach(k => {
     const v = patch[k];
     if (v === null || v === undefined || v === "") delete next[k];
     else next[k] = v;
+    if (k === "series") CARD_META_SERIES_DIRTY[id] = true;
+    else if (CARD_META_FIELDS.indexOf(k) >= 0)
+      (CARD_META_DIRTY[id] = CARD_META_DIRTY[id] || {})[k] = true;
   });
+  if (keys.length) CARD_META_DIRTY_AT = Date.now();
   if (Object.keys(next).length) settings.cardMeta[id] = next;
   else delete settings.cardMeta[id];
 }
@@ -3794,6 +3830,8 @@ function saveSnapshot(id, d, v){
 function removeSnapshot(id, d){
   if (!id) return;
   const list = seriesOf(id).filter(s => s.d !== d);
+  /* 지운 날은 시트에 남아 있어도 다시 살아나지 않게 표시해 둡니다 */
+  if (isDayKey(d)) (CARD_META_SERIES_DROP[id] = CARD_META_SERIES_DROP[id] || {})[d] = true;
   setCardMeta(id, { series: list });
 }
 /* 가장 최근 기록 — 오늘까지의 기록을 우선하고, 없으면 마지막 기록 */
@@ -3812,6 +3850,129 @@ function trendOf(a){
   const diff = last.v - prev.v;
   return { prev, last, diff,
            pct: prev.v ? (diff / Math.abs(prev.v)) * 100 : null };
+}
+/* ---------- card_meta 병합 도우미 (기기 사이 동기화) ---------- */
+/* 자산 id 모음 — ids 를 주면 그 장부들의 자산만 */
+function assetIdsOf(ids){
+  const out = new Set();
+  (ids || LEDGERS.map(l => l.id)).forEach(id => {
+    const l = ledgerById(id);
+    if (l) (l.assetsList || []).forEach(a => { if (a && a.id) out.add(a.id); });
+  });
+  return out;
+}
+/* 그 장부들 안에서 아직 시트에 올리지 못한 cardMeta 변경 */
+function cardMetaPendingOf(ids){
+  const keep = assetIdsOf(ids);
+  const fields = {};
+  let series = false;
+  Object.keys(CARD_META_DIRTY).forEach(id => {
+    if (!keep.has(id)) return;
+    const f = CARD_META_DIRTY[id] || {};
+    if (Object.keys(f).length) fields[id] = Object.assign({}, f);
+  });
+  Object.keys(CARD_META_SERIES_DIRTY).forEach(id => {
+    if (keep.has(id) && CARD_META_SERIES_DIRTY[id]) series = true;
+  });
+  return { fields, series, any: Object.keys(fields).length > 0 || series };
+}
+/* 시트에 저장이 끝난 자산들의 표시를 지웁니다 */
+function clearCardMetaPending(ids){
+  (ids || []).forEach(id => {
+    delete CARD_META_DIRTY[id];
+    delete CARD_META_SERIES_DIRTY[id];
+    delete CARD_META_SERIES_DROP[id];
+  });
+}
+/* 시트에서 온 card_meta(JSON) 값을 앱이 쓰는 모양으로 다듬습니다 */
+function normalizeCardMetaRows(src){
+  const out = {};
+  if (!src || typeof src !== "object") return out;
+  Object.keys(src).forEach(id => {
+    const v = src[id];
+    const obj = (v && typeof v === "object") ? v : {};
+    const t = Math.round(Number(obj.target !== undefined ? obj.target : v) || 0);
+    const row = {};
+    if (t > 0) row.target = t;
+    if (typeof obj.icon === "string"){
+      const icon = Array.from(obj.icon.trim())[0];
+      if (icon) row.icon = icon;
+    }
+    if (typeof obj.color === "string" && /^#[0-9A-Fa-f]{6}$/.test(obj.color.trim()))
+      row.color = obj.color.trim().toUpperCase();
+    if (obj.trackGraph === true || obj.trackGraph === "true") row.trackGraph = true;
+    if (Array.isArray(obj.series)){
+      const list = obj.series
+        .filter(s => s && isDayKey(s.d) && isFinite(Number(s.v)))
+        .map(s => ({ d: s.d, v: Math.round(Number(s.v)) }))
+        .sort((a, b) => a.d.localeCompare(b.d));
+      if (list.length) row.series = list.slice(-MAX_SNAPSHOTS);
+    }
+    if (Object.keys(row).length) out[id] = row;
+  });
+  return out;
+}
+/* 설정 탭의 card_meta — present=false 면 시트에 이 칸이 아직 없다는 뜻입니다.
+   (없는 것과 비어 있는 것({})을 구분해야 남의 값을 지우지 않습니다) */
+function parseCardMetaSetting(st){
+  const v = st ? st.card_meta : undefined;
+  if (v === undefined || v === null || v === "") return { present:false, rows:{} };
+  let meta = v;
+  if (typeof meta === "string"){
+    try{ meta = JSON.parse(meta); }catch(e){ return { present:false, rows:{} }; }
+  }
+  if (!meta || typeof meta !== "object") return { present:false, rows:{} };
+  return { present:true, rows: normalizeCardMetaRows(meta) };
+}
+/* 시트의 card_meta 위에 이 기기에서 바꾼 항목만 얹습니다.
+   건드리지 않은 항목(target·icon·color·trackGraph·series)은 시트 값을 그대로 두고,
+   이 기기에서 지운 날짜의 추이 기록은 빼며, 추이는 날짜별로 합칩니다(합집합). */
+function mergeCardMetaRows(remoteRows, localRows, dirty, onlyIds){
+  const out = {};
+  Object.keys(remoteRows || {}).forEach(id => { out[id] = Object.assign({}, remoteRows[id]); });
+  const ids = new Set(Object.keys(localRows || {}));
+  Object.keys(dirty || {}).forEach(id => ids.add(id));
+  Object.keys(CARD_META_SERIES_DIRTY || {}).forEach(id => ids.add(id));
+  ids.forEach(id => {
+    if (onlyIds && !onlyIds.has(id)) return;
+    const l = localRows[id] || {};
+    const d = (dirty && dirty[id]) || {};
+    const row = out[id] ? Object.assign({}, out[id]) : {};
+    CARD_META_FIELDS.forEach(f => {
+      if (!d[f]) return;
+      if (l[f] === undefined || l[f] === null || l[f] === "") delete row[f];
+      else row[f] = l[f];
+    });
+    const drop = CARD_META_SERIES_DROP[id] || {};
+    let series = Array.isArray(row.series) ? row.series.slice() : [];
+    if (CARD_META_SERIES_DIRTY[id]){
+      const byDay = {};
+      series.forEach(s => { if (s && s.d && !drop[s.d]) byDay[s.d] = s; });
+      (Array.isArray(l.series) ? l.series : []).forEach(s => { if (s && s.d && !drop[s.d]) byDay[s.d] = s; });
+      series = Object.keys(byDay).sort().map(k => byDay[k]);
+    } else if (Object.keys(drop).length){
+      series = series.filter(s => s && !drop[s.d]);
+    }
+    if (series.length) row.series = series.slice(-MAX_SNAPSHOTS);
+    else delete row.series;
+    if (Object.keys(row).length) out[id] = row;
+    else delete out[id];
+  });
+  return out;
+}
+/* 시트에서 온 card_meta 를 이 기기 설정에 반영합니다.
+   onlyIds 밖의 자산 설정은 이 기기 값을 그대로 두고, 아직 시트에 못 올린
+   이 기기의 변경은 남깁니다. */
+function applyRemoteCardMeta(remoteRows, onlyIds){
+  const merged = mergeCardMetaRows(remoteRows, cardMetaPayload(), CARD_META_DIRTY, onlyIds);
+  const next = {};
+  Object.keys(settings.cardMeta || {}).forEach(id => {
+    if (onlyIds && onlyIds.has(id)) return;
+    next[id] = settings.cardMeta[id];
+  });
+  Object.keys(merged).forEach(id => { if (!onlyIds || onlyIds.has(id)) next[id] = merged[id]; });
+  settings.cardMeta = next;
+  return merged;
 }
 const signedWon = n => (n > 0 ? "+" : n < 0 ? "−" : "") + won(Math.abs(n));
 const pctText = p => (p === null || p === undefined) ? "" : ` (${p > 0 ? "+" : p < 0 ? "−" : ""}${Math.abs(p).toFixed(1)}%)`;
@@ -4764,6 +4925,33 @@ document.getElementById("todayBtn").addEventListener("click", () => {
   renderAll();
   if (state.calView === "list" && !isPC()) dlScrollToToday();
 });
+
+/* ---------- 상단 새로고침 ----------
+   앱을 꺼다 켜는 대신 이 버튼을 누르면 최신 앱과 시트 데이터로 다시 시작합니다.
+   · 아직 시트에 못 올린 변경(SYNC.dirty·cardMeta·장부별 시트)이 있으면 먼저 저장합니다
+     — 재로드하면서 사라지는 일이 없게. 저장이 실패해도 기기 저장은 그대로입니다.
+   · 다시 열린 앱은 시트가 연결돼 있으면 최신 데이터를 한 번 불러옵니다. */
+function hasPendingSync(){
+  if (SYNC.dirty) return true;
+  if (cardMetaPendingOf(null).any) return true;
+  return Object.keys(SYNC.links || {}).some(id => SYNC.links[id] && SYNC.links[id].dirty);
+}
+async function refreshApp(){
+  const btn = document.getElementById("refreshBtn");
+  if (!btn || btn.classList.contains("spin")) return;
+  btn.classList.add("spin");
+  btn.disabled = true;
+  const started = Date.now();
+  try{
+    /* 다른 동기화가 끝나기를 짬짬 기다립니다 (진행 중에 새로고침해 저장이 끊기지 않게) */
+    for (let i = 0; i < 12 && SYNC.busy; i++) await new Promise(r => setTimeout(r, 150));
+    if (hasPendingSync() && (syncOn() || Object.keys(SYNC.links || {}).length))
+      await syncPush(false);
+  }catch(e){ /* 저장이 안 돼도 기기 저장은 남아 있어요 */ }
+  const wait = Math.max(0, 520 - (Date.now() - started));
+  setTimeout(() => { location.reload(); }, wait);
+}
+document.getElementById("refreshBtn").addEventListener("click", refreshApp);
 
 /* ---------- 내역 추가 (풀스크린) ----------
    화면은 지출·수입·이체 탭 아래에 「날짜 · 금액 · 카테고리 · 계좌 · 내용」을
@@ -5785,6 +5973,7 @@ document.getElementById("assetDelete").addEventListener("click", () => {
   if (ai >= 0) cur().assetsList.splice(ai, 1);
   ASSETS = cur().assetsList;
   if (settings.cardMeta) delete settings.cardMeta[a.id];
+  clearCardMetaPending([a.id]);
   resetAssetDelete();
   saveAll();
   closeAssetModal();
@@ -6570,7 +6759,7 @@ function sheetSettings(localIds, link){
     if (Object.keys(meta).length) s.card_meta = JSON.stringify(meta);
     return s;
   }
-  return {
+  const base = {
     weekly_budget: Number(settings.weekBudget) || 0,
     payday: Number(settings.payday) || 25,
     /* 생활비 기준 — 주별/월별, 월별 예산과 기간 (설정 탭 키/값) */
@@ -6583,10 +6772,12 @@ function sheetSettings(localIds, link){
     living_cats: JSON.stringify(Array.isArray(settings.livingCats) ? settings.livingCats : []),
     /* 카테고리 전체 구성(이름·아이콘·색·세부) — 시트 '설정' 탭에 JSON 한 칸으로 저장 */
     cat_config: JSON.stringify(cats),
-    cat_subs: JSON.stringify(subs),
-    /* 카드별 혜택 기준 금액(목표 실적) — 설정 탭에 한 칸(JSON)으로 저장 */
-    card_meta: JSON.stringify(meta)
+    cat_subs: JSON.stringify(subs)
   };
+  /* 카드별 혜택 기준 금액(목표 실적)·아이콘·색·추이 — 설정 탭에 한 칸(JSON)으로 저장.
+     값이 없으면 이 칸 자체를 보내지 않습니다 — 빈 {} 를 보내면 시트의 값을 지웁니다. */
+  if (Object.keys(meta).length) base.card_meta = JSON.stringify(meta);
+  return base;
 }
 
 /* 카테고리별 세부 분류 목록 — 설정 탭에 한 칸으로 같이 저장해 기기 사이에 유지합니다.
@@ -6785,38 +6976,13 @@ function applyRemote(remote, opts){
       settings.livingCats = arr.map(k => String(k || "").trim()).filter(Boolean)
         .filter((k, i, a) => a.indexOf(k) === i);
   }
-  /* 카드별 혜택 기준 금액(목표 실적) — 설정 탭의 card_meta(JSON) */
-  if (st.card_meta !== undefined && st.card_meta !== null && st.card_meta !== ""){
-    let meta = st.card_meta;
-    if (typeof meta === "string"){
-      try{ meta = JSON.parse(meta); }catch(e){ meta = null; }
-    }
-    if (meta && typeof meta === "object"){
-      const next = {};
-      Object.keys(meta).forEach(id => {
-        const v = meta[id];
-        const obj = (v && typeof v === "object") ? v : {};
-        const t = Math.round(Number(obj.target !== undefined ? obj.target : v) || 0);
-        const row = {};
-        if (t > 0) row.target = t;
-        if (typeof obj.icon === "string"){
-          const icon = Array.from(obj.icon.trim())[0];
-          if (icon) row.icon = icon;
-        }
-        if (typeof obj.color === "string" && /^#[0-9A-Fa-f]{6}$/.test(obj.color.trim()))
-          row.color = obj.color.trim().toUpperCase();
-        if (obj.trackGraph === true || obj.trackGraph === "true") row.trackGraph = true;
-        if (Array.isArray(obj.series)){
-          const list = obj.series
-            .filter(s => s && isDayKey(s.d) && isFinite(Number(s.v)))
-            .map(s => ({ d: s.d, v: Math.round(Number(s.v)) }))
-            .sort((a, b) => a.d.localeCompare(b.d));
-          if (list.length) row.series = list.slice(-MAX_SNAPSHOTS);
-        }
-        if (Object.keys(row).length) next[id] = row;
-      });
-      settings.cardMeta = next;
-    }
+  /* 카드별 혜택 기준 금액(목표 실적)·아이콘·색·추이 — 설정 탭의 card_meta(JSON)
+     시트 값을 그대로 덮어쓰지 않고, 이 기기에서 바꿔 아직 올리지 못한 항목은 남깁니다. */
+  const parsedMeta = parseCardMetaSetting(st);
+  CARD_META_REMOTE.base = { present: parsedMeta.present, rows: parsedMeta.rows, at: Date.now() };
+  if (parsedMeta.present){
+    const metaScope = assetIdsOf(skipLinked ? baseLedgers().map(l => l.id) : null);
+    applyRemoteCardMeta(parsedMeta.rows, metaScope);
   }
   /* 카테고리 전체 구성 — cat_config(JSON)가 있으면 그것이 기준입니다.
      구성은 목록을 통째로 바꾸지만, 내역 자체는 건드리지 않습니다. */
@@ -6960,6 +7126,13 @@ function applyRemoteLedger(remote, localId){
   const srcCats = (cfg && cfg[remoteId]) || (cfg && cfg[localId]) || null;
   if (srcCats) applyCatConfigObj({ [localId]: srcCats });
 
+  /* 카드·자산 설정(아이콘·색·실적·추이) — 「저장도 하기」로 연결된 시트일 때만
+     가져옵니다. 이 기기에서 바꿔 아직 올리지 못한 항목은 그대로 남깁니다. */
+  const linkMeta = parseCardMetaSetting(st);
+  CARD_META_REMOTE["lg:" + localId] = { present: linkMeta.present, rows: linkMeta.rows, at: Date.now() };
+  if (linkMeta.present && link.mode === "rw")
+    applyRemoteCardMeta(linkMeta.rows, assetIdsOf([localId]));
+
   ASSETS = cur().assetsList || [];
   return { ok: !!row || rEntries.length > 0,
            pendingPush: link.mode === "rw" && extra.length > 0,
@@ -7049,6 +7222,53 @@ async function syncSaveNow(payload, conn){
   return r;
 }
 
+/* =========================================================
+   card_meta 저장 준비 — 기기 사이 덮어쓰기 방지
+   ---------------------------------------------------------
+   card_meta 는 여러 기기가 함께 쓰는 한 칸이라, 예전 상태의 기기가 저장하면
+   다른 기기에서 정한 아이콘·색·혐택 실적·추이 기록이 통째로 날아갈 수 있습니다.
+   그래서 저장할 때
+     · 이 기기에서 바꾼 항목이 있으면 시트의 최신 card_meta 를 먼저 읽어 병합하고
+     · 바꾼 게 없으면 card_meta 칸을 아예 보내지 않습니다(시트 값 유지).
+   사용자가 아이콘을 「기본」으로 되돌리거나 기록을 지우는 정상 변경은
+   바꾼 항목으로 표시되므로 그대로 시트에 반영됩니다.
+   ========================================================= */
+async function prepareCardMetaForPush(t, payload){
+  const out = (payload && payload.settings) || {};
+  const localRows = cardMetaFor(t.ids);
+  const pending = cardMetaPendingOf(t.ids);
+  let snap = CARD_META_REMOTE[t.key] || null;
+  /* 바꾼 항목이 있으면 저장 전에 시트의 최신 값을 확인합니다.
+     마지막 변경 뒤에 읽어 둔 스냅샷이 있으면 그대로 씁니다 — 쓸데없는 호출을 줄입니다. */
+  if (pending.any && !(snap && snap.at >= CARD_META_DIRTY_AT)){
+    const data = await syncApi("load", null, t);
+    const parsed = parseCardMetaSetting(data.settings || {});
+    snap = { present: parsed.present, rows: parsed.rows, at: Date.now() };
+    CARD_META_REMOTE[t.key] = snap;
+  }
+  if (!snap){
+    /* 시트의 card_meta 를 아직 모르면 건드리지 않습니다 */
+    delete out.card_meta;
+    return null;
+  }
+  if (!snap.present){
+    /* 시트에 이 칸이 아직 없을 때만 이 기기 값으로 시작합니다 */
+    if (Object.keys(localRows).length) out.card_meta = JSON.stringify(localRows);
+    else delete out.card_meta;
+    return localRows;
+  }
+  const merged = mergeCardMetaRows(snap.rows, localRows, pending.fields, assetIdsOf(t.ids));
+  if (Object.keys(merged).length) out.card_meta = JSON.stringify(merged);
+  else delete out.card_meta;
+  return merged;
+}
+/* 저장이 끝난 시트의 card_meta 를 기억하고, 이 기기의 변경 표시를 지웁니다 */
+function rememberPushedCardMeta(t, rows){
+  if (rows === null || rows === undefined) return;
+  CARD_META_REMOTE[t.key] = { present: true, rows: rows, at: Date.now() };
+  clearCardMetaPending(Array.from(assetIdsOf(t.ids)));
+}
+
 async function syncPush(manual){
   const targets = sheetTargets();
   if (!targets.length){
@@ -7069,12 +7289,15 @@ async function syncPush(manual){
     for (const t of targets){
       curT = t;
       const payload = targetPayload(t);
+      /* card_meta 는 시트의 최신 값과 병합해 이 기기의 변경만 얹습니다 */
+      const metaRows = await prepareCardMetaForPush(t, payload);
       const sig = sigOf(payload);
       /* 손대지 않은 시트는 그대로 둡니다 (장부 하나를 고쳤다고 남의 시트를 다시 쓰지 않도록) */
       if (!manual && sig === SYNC.sigs[t.key]) continue;
       const r = await syncApi("save", payload, t);
       SYNC.sigs[t.key] = sig;
       saved += 1;
+      rememberPushedCardMeta(t, metaRows);
       if (t.link){
         t.link.lastAt = r.savedAt || new Date().toISOString();
         t.link.err = ""; t.link.status = "ok"; t.link.dirty = false;
@@ -7190,8 +7413,11 @@ async function pushLink(ledgerId, manual){
   k.status = "syncing"; paintSync();
   try{
     const payload = buildPayload([ledgerId], { link:k });
+    const t = { key:"lg:" + ledgerId, url:k.url, pin:k.pin, ids:[ledgerId], link:k };
+    const metaRows = await prepareCardMetaForPush(t, payload);
     const r = await syncApi("save", payload, k);
     SYNC.sigs["lg:" + ledgerId] = sigOf(payload);
+    rememberPushedCardMeta(t, metaRows);
     k.lastAt = r.savedAt || new Date().toISOString();
     k.err = ""; k.status = "ok"; k.dirty = false;
     saveSyncConfig();
@@ -7238,12 +7464,19 @@ async function syncConnect(){
     const data = await syncApi("load");
     const localCount = baseLedgers().reduce((s, l) => s + (l.data || []).length, 0);
     const remoteCount = (data.entries || []).length;
+    /* 방금 읽은 시트의 card_meta 를 기억해 둡니다 (저장할 때 병합 기준) */
+    const baseMeta = parseCardMetaSetting(data.settings || {});
+    CARD_META_REMOTE.base = { present: baseMeta.present, rows: baseMeta.rows, at: Date.now() };
+    const baseIds = baseLedgers().map(l => l.id);
 
     if (localCount > 0 && remoteCount === 0){
       /* 앱에만 있는 기록이 있으면 시트가 비어 있을 때 먼저 올립니다
          (방금 올린 기록을 옛 시트 응답으로 지우지 않도록 그대로 둡니다)
          · 전용 시트를 쓰는 장부는 기본 시트로 보내지 않습니다 */
-      await syncSaveNow(buildPayload(baseLedgers().map(l => l.id)));
+      const firstPayload = buildPayload(baseIds);
+      const firstMeta = await prepareCardMetaForPush({ key:"base", url:SYNC.url, pin:SYNC.pin, ids:baseIds }, firstPayload);
+      await syncSaveNow(firstPayload);
+      rememberPushedCardMeta({ key:"base", url:SYNC.url, pin:SYNC.pin, ids:baseIds }, firstMeta);
       SYNC.lastAt = new Date().toISOString();
       saveSyncConfig();
       persistLocal();
@@ -7262,7 +7495,10 @@ async function syncConnect(){
       renderAll();
       setSyncStatus("ok");
       if (result.pendingPush){
-        await syncSaveNow();
+        const p = buildPayload(baseIds);
+        const rows = await prepareCardMetaForPush({ key:"base", url:SYNC.url, pin:SYNC.pin, ids:baseIds }, p);
+        await syncSaveNow(p);
+        rememberPushedCardMeta({ key:"base", url:SYNC.url, pin:SYNC.pin, ids:baseIds }, rows);
         setSyncStatus("ok");
       }
       showToast("연결했어요 · 시트에서 불러왔습니다");
@@ -7879,6 +8115,8 @@ function applyStoreToDevice(store, opts){
     return false;
   }
   settings.cardMeta = {};
+  CARD_META_DIRTY = {}; CARD_META_SERIES_DIRTY = {}; CARD_META_SERIES_DROP = {};
+  CARD_META_REMOTE = {}; CARD_META_DIRTY_AT = 0;
   loadAll();
   normalizePersonal();
   if (!LEDGERS.length) return false;
