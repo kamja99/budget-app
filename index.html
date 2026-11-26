@@ -6631,7 +6631,10 @@ function saveSyncConfig(){
   try{
     localStorage.setItem(SYNC_KEY, JSON.stringify({
       url: SYNC.url, pin: SYNC.pin, lastAt: SYNC.lastAt, dirty: SYNC.dirty,
-      sigs: SYNC.sigs || {}, links: SYNC.links || {}
+      sigs: SYNC.sigs || {}, links: SYNC.links || {},
+      /* 아직 시트에 올리지 못한 cardMeta 변경 — 앱을 꺼다 켜도 남겨 둡니다 */
+      metaDirty: CARD_META_DIRTY, metaSeries: CARD_META_SERIES_DIRTY,
+      metaDrop: CARD_META_SERIES_DROP, metaAt: CARD_META_DIRTY_AT
     }));
   }catch(e){}
 }
@@ -7848,6 +7851,11 @@ function syncInit(){
       SYNC.lastAt = s.lastAt || null;
       SYNC.dirty = !!s.dirty;
       SYNC.sigs = (s.sigs && typeof s.sigs === "object") ? s.sigs : {};
+      const obj = v => (v && typeof v === "object") ? v : {};
+      CARD_META_DIRTY = obj(s.metaDirty);
+      CARD_META_SERIES_DIRTY = obj(s.metaSeries);
+      CARD_META_SERIES_DROP = obj(s.metaDrop);
+      CARD_META_DIRTY_AT = Number(s.metaAt) || 0;
       const links = (s.links && typeof s.links === "object") ? s.links : {};
       Object.keys(links).forEach(id => {
         const k = links[id];
@@ -8117,6 +8125,7 @@ function applyStoreToDevice(store, opts){
   settings.cardMeta = {};
   CARD_META_DIRTY = {}; CARD_META_SERIES_DIRTY = {}; CARD_META_SERIES_DROP = {};
   CARD_META_REMOTE = {}; CARD_META_DIRTY_AT = 0;
+  if (typeof saveSyncConfig === "function") saveSyncConfig();
   loadAll();
   normalizePersonal();
   if (!LEDGERS.length) return false;
