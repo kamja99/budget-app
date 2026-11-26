@@ -6599,7 +6599,10 @@ const SYNC = {
   url:"", pin:"", status:"off", lastAt:null, err:"",
   busy:false, applying:false, dirty:false, timer:null, started:false,
   sigs:{},      /* 시트(기본·장부별)별로 마지막에 올린 payload 서명 — 바뀐 것만 저장 */
-  links:{}      /* 장부별 전용 시트: 장부 id → {url,pin,mode,remoteId,remoteMeta,...} */
+  links:{},     /* 장부별 전용 시트: 장부 id → {url,pin,mode,remoteId,remoteMeta,...} */
+  base:{},      /* 시트별로 마지막에 시트와 맞춘 이 기기의 행 모습 — 저장 전 병합의 기준
+                   대상 키(base·lg:장부id) → {ledgers·assets·entries: id→서명, at} */
+  adoptLocal:false   /* 복원 직후처럼 이 기기 기록을 먼저 시트에 올려야 할 때 */
 };
 const syncOn = () => !!(SYNC.url && SYNC.pin);
 
@@ -6631,7 +6634,8 @@ function saveSyncConfig(){
   try{
     localStorage.setItem(SYNC_KEY, JSON.stringify({
       url: SYNC.url, pin: SYNC.pin, lastAt: SYNC.lastAt, dirty: SYNC.dirty,
-      sigs: SYNC.sigs || {}, links: SYNC.links || {},
+      sigs: SYNC.sigs || {}, links: SYNC.links || {}, base: SYNC.base || {},
+      adoptLocal: !!SYNC.adoptLocal,
       /* 아직 시트에 올리지 못한 cardMeta 변경 — 앱을 꺼다 켜도 남겨 둡니다 */
       metaDirty: CARD_META_DIRTY, metaSeries: CARD_META_SERIES_DIRTY,
       metaDrop: CARD_META_SERIES_DROP, metaAt: CARD_META_DIRTY_AT
@@ -6910,6 +6914,14 @@ function applyRemote(remote, opts){
       }
       known.add(r.id);
     });
+    /* 병합 저장 뒤에는 시트에 없는 장부(다른 기기에서 지운 장부)를 이 기기에서도 뺍니다 */
+    if (opts.replaceLedgers){
+      for (let i = LEDGERS.length - 1; i >= 0 && LEDGERS.length > 1; i--){
+        const l = LEDGERS[i];
+        if (known.has(l.id) || (skipLinked && linkOf(l.id))) continue;
+        LEDGERS.splice(i, 1);
+      }
+    }
     LEDGERS.forEach(l => { if (!known.has(l.id) && !(skipLinked && linkOf(l.id))) pending = true; });
   }
 
@@ -7088,9 +7100,10 @@ function mergeRemoteAssets(l, rows){
   l.assetsList = list;
 }
 
-function applyRemoteLedger(remote, localId){
+function applyRemoteLedger(remote, localId, opts){
+  opts = opts || {};
   const link = linkOf(localId), l = ledgerById(localId);
-  if (!link || !l) return { ok:false, pendingPush:false };
+  if (!link || !l) return { ok:false, pendingPush:false, extraIds:[] };
   const rows = (Array.isArray(remote.ledgers) ? remote.ledgers : []).filter(r => r && r.id);
   let remoteId = String(link.remoteId || "");
   let row = rows.find(r => r.id === remoteId) || rows.find(r => r.id === localId);
@@ -7105,8 +7118,17 @@ function applyRemoteLedger(remote, localId){
   if (!remoteId) remoteId = localId;
 
   const rAssets = (remote.assets || []).filter(a => (a.ledger || "personal") === remoteId);
-  mergeRemoteAssets(l, rAssets.map(a => ({ id:a.id, name:a.name, group:a.group,
-                                           init:a.init, note:a.note })));
+  const assetRows = rAssets.map(a => ({ id:a.id, name:a.name, group:a.group,
+                                        init:a.init, note:a.note }));
+  if (opts.strict){
+    /* 시트에 없는 자산(다른 기기에서 지운 자산)은 이 장부에서도 뺍니다.
+       이름이 같은 자산은 이 장부의 id 를 그대로 써 내역의 결제수단이 끊어지지 않게 합니다. */
+    const byName = new Map((l.assetsList || []).map(a => [a.name, a.id]));
+    l.assetsList = [];
+    mergeRemoteAssets(l, assetRows.map(a => Object.assign({}, a, { id: byName.get(a.name) || a.id })));
+  } else {
+    mergeRemoteAssets(l, assetRows);
+  }
 
   const rEntries = (remote.entries || []).filter(e => (e.ledger || "personal") === remoteId);
   const converted = rEntries.map(e => {
@@ -7119,7 +7141,9 @@ function applyRemoteLedger(remote, localId){
   });
   const ids = new Set(converted.map(e => e.id));
   const extra = (l.data || []).filter(e => !ids.has(e.id));
-  l.data = converted.concat(extra).sort((a, b) => (a.d + a.t).localeCompare(b.d + b.t));
+  /* strict — 병합 저장 뒤에는 시트와 같은 모습으로 맞춥니다 (이 기기에만 있던 내역도 병합본에 포함) */
+  l.data = (opts.strict ? converted : converted.concat(extra))
+    .sort((a, b) => (a.d + a.t).localeCompare(b.d + b.t));
 
   const st = remote.settings || {};
   let cfg = null;
@@ -7138,7 +7162,8 @@ function applyRemoteLedger(remote, localId){
 
   ASSETS = cur().assetsList || [];
   return { ok: !!row || rEntries.length > 0,
-           pendingPush: link.mode === "rw" && extra.length > 0,
+           pendingPush: !opts.strict && link.mode === "rw" && extra.length > 0,
+           extraIds: extra.map(e => e.id),
            entries: converted.length, assets: rAssets.length };
 }
 
@@ -7236,17 +7261,23 @@ async function syncSaveNow(payload, conn){
    사용자가 아이콘을 「기본」으로 되돌리거나 기록을 지우는 정상 변경은
    바꾼 항목으로 표시되므로 그대로 시트에 반영됩니다.
    ========================================================= */
-async function prepareCardMetaForPush(t, payload){
+async function prepareCardMetaForPush(t, payload, remoteData){
   const out = (payload && payload.settings) || {};
   const localRows = cardMetaFor(t.ids);
   const pending = cardMetaPendingOf(t.ids);
   let snap = CARD_META_REMOTE[t.key] || null;
   /* 바꾼 항목이 있으면 저장 전에 시트의 최신 값을 확인합니다.
-     마지막 변경 뒤에 읽어 둔 스냅샷이 있으면 그대로 씁니다 — 쓸데없는 호출을 줄입니다. */
+     마지막 변경 뒤에 읽어 둔 스냅샷이 있으면 그대로 씁니다 — 쓸데없는 호출을 줄입니다.
+     remoteData 를 주면 방금 load 한 응답을 그대로 씁니다. */
   if (pending.any && !(snap && snap.at >= CARD_META_DIRTY_AT)){
-    const data = await syncApi("load", null, t);
-    const parsed = parseCardMetaSetting(data.settings || {});
-    snap = { present: parsed.present, rows: parsed.rows, at: Date.now() };
+    if (remoteData){
+      const parsed = parseCardMetaSetting(remoteData.settings || {});
+      snap = { present: parsed.present, rows: parsed.rows, at: Date.now() };
+    } else {
+      const data = await syncApi("load", null, t);
+      const parsed = parseCardMetaSetting(data.settings || {});
+      snap = { present: parsed.present, rows: parsed.rows, at: Date.now() };
+    }
     CARD_META_REMOTE[t.key] = snap;
   }
   if (!snap){
@@ -7272,6 +7303,298 @@ function rememberPushedCardMeta(t, rows){
   clearCardMetaPending(Array.from(assetIdsOf(t.ids)));
 }
 
+/* =========================================================
+   기기 사이 덮어쓰기 방지 — 저장 전 병합
+   ---------------------------------------------------------
+   시트의 save 는 「장부목록·자산카드·내역」 탭을 통째로 바꿔 쓰기 때문에,
+   예전 상태가 남은 기기가 저장하면 다른 기기에서 지운 자산이 되살아나거나
+   새로 적은 내역이 사라질 수 있습니다.
+   그래서 저장 직전에
+     ① 시트의 최신 상태를 한 번 읽고(load)
+     ② 이 기기에서 실제로 바뀐 행만 골라(마지막으로 시트와 맞춘 모습 base 와 비교)
+     ③ 「시트 최신 + 이 기기의 변경」을 저장합니다.
+   · 이 기기가 건드리지 않은 행은 시트 최신 상태를 그대로 존중합니다
+     → 다른 기기에서 지운 「생활비 카드」가 옛 기기 때문에 되살아나지 않습니다
+   · 이 기기가 지운 행은 지운 채로 둡니다 (지운 내역·자산·장부 ID 는 base 와
+     비교한 del 목록으로 뽑아 냅니다 — deletedDataIds·deletedAssetIds 역할)
+   · base 는 localStorage(budget-app:sync)에 함께 남겨 앱을 껐다 켜도 이어집니다
+   ========================================================= */
+const syncClock = v => {
+  const m = String(v == null ? "" : v).match(/^(\d{1,2}):(\d{1,2})/);
+  return m ? pad2(m[1]) + ":" + pad2(m[2]) : "00:00";
+};
+/* 시트와 주고받는 모양 그대로의 서명 — id 는 빼고 내용만 봅니다 */
+function entryRowSig(r){
+  return sigOf([r.ledger || "personal", r.d || "", syncClock(r.t), r.type || "expense",
+                r.cat || "", r.sub || "", Number(r.amt) || 0,
+                r.pay || "", r.toPay || "", r.memo || ""]);
+}
+function assetRowSig(r){
+  return sigOf([r.ledger || "personal", r.group || "", r.name || "", r.note || "", Number(r.init) || 0]);
+}
+function ledgerRowSig(r){
+  return sigOf([r.name || "", r.icon || "", r.theme || "", r.cycle ? 1 : 0, r.assets ? 1 : 0]);
+}
+function rowSigMap(rows, sigFn){
+  const m = {};
+  (rows || []).forEach(r => { if (r && r.id) m[r.id] = sigFn(r); });
+  return m;
+}
+/* 이 기기에서 시트로 보낼 모양의 행들 (저장 payload 와 같은 모양) */
+function syncLocalRows(t){
+  const p = buildPayload(t.ids, { link: t.link || null });
+  return { ledgers:p.ledgers || [], assets:p.assets || [], entries:p.entries || [] };
+}
+/* 마지막으로 시트와 맞춘 이 기기의 모습을 기억합니다 (다음 저장의 병합 기준) */
+function rememberSyncBase(t, rows, opts){
+  opts = opts || {};
+  const r = rows || syncLocalRows(t);
+  const skip = opts.skipEntries || null;
+  const entries = {};
+  (r.entries || []).forEach(e => {
+    if (e && e.id && !(skip && skip.has(e.id))) entries[e.id] = entryRowSig(e);
+  });
+  if (!SYNC.base || typeof SYNC.base !== "object") SYNC.base = {};
+  SYNC.base[t.key] = {
+    ledgers: rowSigMap(r.ledgers, ledgerRowSig),
+    assets:  rowSigMap(r.assets, assetRowSig),
+    entries: entries,
+    at: new Date().toISOString()
+  };
+  saveSyncConfig();
+}
+/* 이 기기 행 − base = 이 기기에서 바뀐 것(add·upd·del) */
+function rowChanges(rows, baseMap, sigFn){
+  const add = [], upd = [], del = [], seen = new Set();
+  (rows || []).forEach(r => {
+    if (!r || !r.id) return;
+    seen.add(r.id);
+    if (!baseMap){ add.push(r); return; }
+    const was = baseMap[r.id];
+    if (was === undefined) add.push(r);
+    else if (was !== sigFn(r)) upd.push(r);
+  });
+  if (baseMap) Object.keys(baseMap).forEach(id => { if (!seen.has(id)) del.push(id); });
+  return { add, upd, del, any: !!(add.length || upd.length || del.length) };
+}
+/* 이 기기에서 아직 시트에 못 올린 변경 (base 를 모르면 한 번은 맞춰 봐야 합니다) */
+function localChangesOf(t){
+  const b = (SYNC.base && SYNC.base[t.key]) || null;
+  const hasBase = !!(b && b.ledgers && b.assets && b.entries);
+  const rows = syncLocalRows(t);
+  return {
+    rows, hasBase,
+    ledgers: rowChanges(rows.ledgers, hasBase ? b.ledgers : null, ledgerRowSig),
+    assets:  rowChanges(rows.assets,  hasBase ? b.assets  : null, assetRowSig),
+    entries: rowChanges(rows.entries, hasBase ? b.entries : null, entryRowSig)
+  };
+}
+const hasLocalChanges = t => {
+  const c = localChangesOf(t);
+  return !c.hasBase || c.ledgers.any || c.assets.any || c.entries.any;
+};
+/* 앱이 만든 id = 앞 한 글자 + 만든 시각(36진수) + 무작위 → 만든 때를 읽습니다 */
+function idMadeAt(id){
+  const s = String(id || "");
+  if (s.length < 9) return 0;
+  const n = parseInt(s.slice(1, 9), 36);
+  return (isFinite(n) && n > 1577836800000 && n < 4102444800000) ? n : 0;
+}
+/* 시트와 맞춘 적이 없는 기기(업데이트 뒤 처음 열 때)에서, 시트에 없는 이 기기 행을 살릴지
+   ─ 이 기기가 마지막으로 시트와 맞춘 때(lastAt)보다 뒤에 만든 행만 「이 기기에만 있는 새 기록」입니다.
+     (그 전에 만든 행이 시트에 없다면 다른 기기에서 지운 행이므로 되살리지 않습니다) */
+function keepUnsyncedRow(row, remoteCount){
+  if (!remoteCount) return true;          /* 시트가 비어 있으면 이 기기 기록이 기준 */
+  const at = idMadeAt(row && row.id);
+  if (!at) return false;                  /* 만든 때를 모르는 옛 행은 시트를 따릅니다 */
+  const since = SYNC.lastAt ? Date.parse(SYNC.lastAt) : 0;
+  if (!since || isNaN(since)) return true;
+  return at > since;
+}
+/* 시트의 옛 행(id 없음)에 id 를 붙입니다 — 같은 내용의 이 기기 행 id 를 먼저 씁니다 */
+function fillRowIds(remoteRows, localRows, sigFn, prefix){
+  const used = new Set();
+  (remoteRows || []).forEach(r => { if (r && r.id) used.add(r.id); });
+  const bySig = new Map();
+  (localRows || []).forEach(r => { if (r && r.id && !used.has(r.id)) bySig.set(sigFn(r), r.id); });
+  const taken = new Set();
+  (remoteRows || []).forEach(r => {
+    if (!r || r.id) return;
+    const hit = bySig.get(sigFn(r));
+    r.id = (hit && !taken.has(hit)) ? hit : newId(prefix);
+    taken.add(r.id);
+  });
+}
+/* 시트 최신(remote) 위에 이 기기의 변경만 얹은 행 목록
+   · 이 기기에서 고친 행은 이 기기 값, 지운 행은 지운 채로
+   · 다른 기기가 지운 행(시트에 없음)은 이 기기가 고쳤어도 되살리지 않습니다 */
+function mergeRowSet(remoteRows, changes, opts){
+  opts = opts || {};
+  const rows = new Map();
+  (remoteRows || []).forEach(r => {
+    if (r && r.id && !rows.has(r.id)) rows.set(r.id, Object.assign({}, r));
+  });
+  const inRemote = new Set(rows.keys());
+  const put = r => { if (r && r.id) rows.set(r.id, Object.assign({}, r)); };
+  if (changes && changes.hasBase){
+    changes.add.forEach(put);
+    changes.upd.forEach(r => { if (inRemote.has(r.id)) put(r); });
+    changes.del.forEach(id => rows.delete(id));
+  } else {
+    (changes ? changes.add : []).forEach(r => {
+      if (!r || !r.id || inRemote.has(r.id)) return;
+      if (opts.keepAll || keepUnsyncedRow(r, inRemote.size)) put(r);
+    });
+  }
+  return Array.from(rows.values());
+}
+/* 두 행 목록이 시트에서 같은 모습인지 (id + 내용) */
+function sameRowSet(a, b, sigFn){
+  const m = rows => {
+    const o = {};
+    (rows || []).forEach(r => { if (r && r.id) o[r.id] = sigFn(r); });
+    return o;
+  };
+  const x = m(a), y = m(b);
+  const kx = Object.keys(x);
+  if (kx.length !== Object.keys(y).length) return false;
+  return kx.every(id => y[id] !== undefined && y[id] === x[id]);
+}
+/* 병합본을 이 기기에 앉힙니다 — 시트와 이 기기가 같은 모습이 됩니다 */
+function applyMergedBase(merged, sheetSettings){
+  const before = sigOf(buildPayload(null));
+  SYNC.applying = true;
+  try{
+    applyRemote({ ledgers:merged.ledgers, assets:merged.assets, entries:merged.entries,
+                  settings: sheetSettings || {} },
+                { skipLinked:true, replaceLedgers:true });
+  } finally { SYNC.applying = false; }
+  persistLocal();
+  ASSETS = cur().assetsList || [];
+  return sigOf(buildPayload(null)) !== before;
+}
+
+/* 기본 시트 저장 — 시트 최신 상태와 병합한 뒤 통째로 씁니다 */
+async function pushBaseMerged(t, manual){
+  const sigNow = sigOf(targetPayload(t));
+  /* 이 기기에서 바뀐 게 없고 마지막으로 올린 그대로면 시트를 건드리지 않습니다 */
+  if (!manual && sigNow === SYNC.sigs[t.key] && !cardMetaPendingOf(t.ids).any && !hasLocalChanges(t))
+    return { saved:false, applied:false };
+  const data = await syncApi("load", null, t);
+  const linked = new Set(LEDGERS.filter(l => linkOf(l.id)).map(l => l.id));
+  const remoteL = (data.ledgers || []).filter(r => r && r.id && !linked.has(r.id));
+  const remoteA = (data.assets || []).filter(a => a && !linked.has(a.ledger || "personal"));
+  const remoteE = (data.entries || []).filter(e => e && !linked.has(e.ledger || "personal"));
+  const ch = localChangesOf(t);
+  const keepAll = !!SYNC.adoptLocal;      /* 복원 직후처럼 이 기기 기록이 기준일 때 */
+  fillRowIds(remoteE, ch.rows.entries, entryRowSig, "e");
+  fillRowIds(remoteA, ch.rows.assets, assetRowSig, "a");
+  const merged = {
+    ledgers: mergeRowSet(remoteL, { hasBase:ch.hasBase, add:ch.ledgers.add,
+                                    upd:ch.ledgers.upd, del:ch.ledgers.del }, { keepAll }),
+    assets:  mergeRowSet(remoteA, { hasBase:ch.hasBase, add:ch.assets.add,
+                                    upd:ch.assets.upd, del:ch.assets.del }, { keepAll }),
+    entries: mergeRowSet(remoteE, { hasBase:ch.hasBase, add:ch.entries.add,
+                                    upd:ch.entries.upd, del:ch.entries.del }, { keepAll })
+  };
+  if (!merged.ledgers.length) throw new Error("시트에서 장부를 찾지 못했어요");
+  const keepL = new Set(merged.ledgers.map(r => r.id));
+  merged.assets = merged.assets.filter(a => keepL.has(a.ledger || "personal"));
+  merged.entries = merged.entries.filter(e => keepL.has(e.ledger || "personal"));
+
+  const payload = targetPayload(t);
+  payload.ledgers = merged.ledgers;
+  payload.assets = merged.assets;
+  payload.entries = merged.entries;
+  const metaRows = await prepareCardMetaForPush(t, payload, data);
+  const changed = !sameRowSet(merged.ledgers, remoteL, ledgerRowSig)
+               || !sameRowSet(merged.assets, remoteA, assetRowSig)
+               || !sameRowSet(merged.entries, remoteE, entryRowSig);
+  let saved = false;
+  const sigChanged = SYNC.sigs[t.key] !== undefined && sigNow !== SYNC.sigs[t.key];
+  if (changed || cardMetaPendingOf(t.ids).any || sigChanged){
+    const r = await syncApi("save", payload, t);
+    rememberPushedCardMeta(t, metaRows);
+    SYNC.lastAt = r.savedAt || new Date().toISOString();
+    SYNC.err = "";
+    saved = true;
+  }
+  const applied = applyMergedBase(merged, saved ? (payload.settings || {}) : (data.settings || {}));
+  SYNC.adoptLocal = false;
+  const baseT = { key:t.key, ids: baseLedgers().map(l => l.id), link:null };
+  rememberSyncBase(baseT);
+  /* 다음 저장에서 쓸 서명 — 지금 이 기기(시트와 같은 모습)로 계산합니다 */
+  SYNC.sigs[t.key] = sigOf(targetPayload(baseT));
+  saveSyncConfig();
+  return { saved, applied };
+}
+
+/* 장부 하나의 전용 시트 저장 — 그 시트 최신 상태와 병합한 뒤 씁니다 */
+async function pushLinkMerged(t, manual){
+  const k = t.link, ledgerId = t.ids[0], l = ledgerById(ledgerId);
+  if (!k || !l) return { saved:false, applied:false };
+  if (k.mode !== "rw"){
+    if (manual) showToast("이 장부는 「불러오기만」으로 연결돼 있어 시트에 저장하지 않아요", true);
+    return { saved:false, applied:false };
+  }
+  const sigNow = sigOf(targetPayload(t));
+  if (!manual && sigNow === SYNC.sigs[t.key] && !cardMetaPendingOf(t.ids).any && !hasLocalChanges(t))
+    return { saved:false, applied:false };
+  const data = await syncApi("load", null, t);
+  const rows = (Array.isArray(data.ledgers) ? data.ledgers : []).filter(r => r && r.id);
+  let rid = String(k.remoteId || "");
+  let row = rows.find(r => r.id === rid) || rows.find(r => r.id === ledgerId);
+  if (!row && rows.length === 1) row = rows[0];
+  if (row){
+    rid = row.id;
+    k.remoteId = rid;
+    k.remoteMeta = { name: row.name || "", icon: row.icon || "", theme: row.theme || "",
+                     cycle: !!row.cycle, assets: !!row.assets };
+  }
+  if (!rid) rid = ledgerId;
+  const remoteA = (data.assets || []).filter(a => (a.ledger || "personal") === rid);
+  const remoteE = (data.entries || []).filter(e => (e.ledger || "personal") === rid);
+  const ch = localChangesOf(t);
+  fillRowIds(remoteE, ch.rows.entries, entryRowSig, "e");
+  fillRowIds(remoteA, ch.rows.assets, assetRowSig, "a");
+  const merged = {
+    ledgers: ch.rows.ledgers.slice(0, 1),
+    assets:  mergeRowSet(remoteA, { hasBase:ch.hasBase, add:ch.assets.add,
+                                    upd:ch.assets.upd, del:ch.assets.del }),
+    entries: mergeRowSet(remoteE, { hasBase:ch.hasBase, add:ch.entries.add,
+                                    upd:ch.entries.upd, del:ch.entries.del })
+  };
+  const payload = targetPayload(t);
+  payload.ledgers = merged.ledgers;
+  payload.assets = merged.assets;
+  payload.entries = merged.entries;
+  const metaRows = await prepareCardMetaForPush(t, payload, data);
+  const changed = !sameRowSet(merged.assets, remoteA, assetRowSig)
+               || !sameRowSet(merged.entries, remoteE, entryRowSig);
+  let saved = false;
+  const sigChanged = SYNC.sigs[t.key] !== undefined && sigNow !== SYNC.sigs[t.key];
+  if (changed || cardMetaPendingOf(t.ids).any || sigChanged){
+    const r = await syncApi("save", payload, k);
+    rememberPushedCardMeta(t, metaRows);
+    k.lastAt = r.savedAt || new Date().toISOString();
+    k.err = ""; k.status = "ok"; k.dirty = false;
+    saved = true;
+  }
+  const before = sigOf(buildPayload(null));
+  SYNC.applying = true;
+  try{
+    applyRemoteLedger({ ledgers:merged.ledgers, assets:merged.assets, entries:merged.entries,
+                        settings: saved ? (payload.settings || {}) : (data.settings || {}) },
+                      ledgerId, { strict:true });
+  } finally { SYNC.applying = false; }
+  persistLocal();
+  ASSETS = cur().assetsList || [];
+  rememberSyncBase(t);
+  SYNC.sigs[t.key] = sigOf(targetPayload(t));
+  saveSyncConfig();
+  return { saved, applied: sigOf(buildPayload(null)) !== before };
+}
+
 async function syncPush(manual){
   const targets = sheetTargets();
   if (!targets.length){
@@ -7287,31 +7610,18 @@ async function syncPush(manual){
   }
   SYNC.busy = true;
   setSyncStatus("syncing");
-  let saved = 0, curT = null;
+  let saved = 0, applied = false, curT = null;
   try{
     for (const t of targets){
       curT = t;
-      const payload = targetPayload(t);
-      /* card_meta 는 시트의 최신 값과 병합해 이 기기의 변경만 얹습니다 */
-      const metaRows = await prepareCardMetaForPush(t, payload);
-      const sig = sigOf(payload);
-      /* 손대지 않은 시트는 그대로 둡니다 (장부 하나를 고쳤다고 남의 시트를 다시 쓰지 않도록) */
-      if (!manual && sig === SYNC.sigs[t.key]) continue;
-      const r = await syncApi("save", payload, t);
-      SYNC.sigs[t.key] = sig;
-      saved += 1;
-      rememberPushedCardMeta(t, metaRows);
-      if (t.link){
-        t.link.lastAt = r.savedAt || new Date().toISOString();
-        t.link.err = ""; t.link.status = "ok"; t.link.dirty = false;
-      } else {
-        SYNC.lastAt = r.savedAt || new Date().toISOString();
-        SYNC.err = "";
-      }
+      const r = t.link ? await pushLinkMerged(t, manual) : await pushBaseMerged(t, manual);
+      if (r && r.saved) saved += 1;
+      if (r && r.applied) applied = true;
     }
     SYNC.dirty = false;
     saveSyncConfig();
     setSyncStatus("ok");
+    if (applied) renderAll();
     if (manual) showToast(saved ? "시트에 저장했어요" : "이미 시트와 같아요");
     return true;
   }catch(err){
@@ -7327,11 +7637,18 @@ async function syncPush(manual){
   }
 }
 
-/* 기본 시트에서 불러오기 — 전용 시트를 가진 장부는 건드리지 않습니다 */
+/* 기본 시트에서 불러오기 — 전용 시트를 가진 장부는 건드리지 않습니다
+   · 이 기기에 아직 못 올린 변경이 있으면 먼저 병합 저장하고, 그 뒤에 최신을 읽습니다
+     (불러오기가 방금 적은 내역이나 지운 자산을 되돌리지 않도록) */
 async function syncPull(manual, opts){
   if (!syncOn()){
     if (manual) showToast("먼저 구글 시트를 연결해 주세요", true);
     return false;
+  }
+  if (SYNC.busy) return false;
+  if (sheetTargets().some(t => hasLocalChanges(t))){
+    const ok = await syncPush(false);
+    if (!ok) return false;
   }
   if (SYNC.busy) return false;
   SYNC.busy = true;
@@ -7345,6 +7662,11 @@ async function syncPull(manual, opts){
     SYNC.lastAt = new Date().toISOString();
     SYNC.err = "";
     SYNC.dirty = !!result.pendingPush;
+    /* 불러온 그대로가 이 기기의 기준이 됩니다 */
+    const baseT = { key:"base", ids: baseLedgers().map(l => l.id), link:null };
+    rememberSyncBase(baseT);
+    /* 시트와 같은 모습이 되었으니 다음 저장에서 괜한 덮어쓰기를 하지 않게 서명도 맞춥니다 */
+    if (!result.pendingPush) SYNC.sigs.base = sigOf(targetPayload(baseT));
     saveSyncConfig();
     persistLocal();
     renderAll();
@@ -7380,6 +7702,9 @@ async function pullLink(ledgerId, manual){
     finally{ SYNC.applying = false; }
     k.lastAt = new Date().toISOString();
     k.err = ""; k.status = "ok"; k.dirty = !!result.pendingPush;
+    /* 시트에 아직 없는 이 기기 기록은 다음 저장 때 올라가도록 base 에서 빼 둡니다 */
+    rememberSyncBase({ key:"lg:" + ledgerId, ids:[ledgerId], link:k }, null,
+                     { skipEntries: new Set(result.extraIds || []) });
     saveSyncConfig();
     persistLocal();
     renderAll();
@@ -7415,18 +7740,13 @@ async function pushLink(ledgerId, manual){
   SYNC.busy = true;
   k.status = "syncing"; paintSync();
   try{
-    const payload = buildPayload([ledgerId], { link:k });
     const t = { key:"lg:" + ledgerId, url:k.url, pin:k.pin, ids:[ledgerId], link:k };
-    const metaRows = await prepareCardMetaForPush(t, payload);
-    const r = await syncApi("save", payload, k);
-    SYNC.sigs["lg:" + ledgerId] = sigOf(payload);
-    rememberPushedCardMeta(t, metaRows);
-    k.lastAt = r.savedAt || new Date().toISOString();
-    k.err = ""; k.status = "ok"; k.dirty = false;
+    const r = await pushLinkMerged(t, manual);
     saveSyncConfig();
     renderSheetLinkList();
+    renderAll();
     paintSync();
-    if (manual) showToast(`「${l.name}」 시트에 저장했어요`);
+    if (manual) showToast(r.saved ? `「${l.name}」 시트에 저장했어요` : "이미 시트와 같아요");
     return true;
   }catch(err){
     k.err = err.message; k.status = "error";
@@ -7452,8 +7772,11 @@ async function syncConnect(){
   }
   if (!pin){ pinEl.focus(); showToast("보안 PIN을 넣어 주세요", true); return; }
 
+  const prevUrl = SYNC.url;
   SYNC.url = url;
   SYNC.pin = pin;
+  /* 다른 시트로 바꿔 연결하면 병합 기준을 새로 잡습니다 */
+  if (prevUrl !== url){ SYNC.base = {}; SYNC.sigs = {}; }
   saveSyncConfig();
   setSyncStatus("connecting");
 
@@ -7474,12 +7797,10 @@ async function syncConnect(){
 
     if (localCount > 0 && remoteCount === 0){
       /* 앱에만 있는 기록이 있으면 시트가 비어 있을 때 먼저 올립니다
-         (방금 올린 기록을 옛 시트 응답으로 지우지 않도록 그대로 둡니다)
          · 전용 시트를 쓰는 장부는 기본 시트로 보내지 않습니다 */
-      const firstPayload = buildPayload(baseIds);
-      const firstMeta = await prepareCardMetaForPush({ key:"base", url:SYNC.url, pin:SYNC.pin, ids:baseIds }, firstPayload);
-      await syncSaveNow(firstPayload);
-      rememberPushedCardMeta({ key:"base", url:SYNC.url, pin:SYNC.pin, ids:baseIds }, firstMeta);
+      SYNC.adoptLocal = true;
+      for (const t of sheetTargets().filter(x => !x.link)) await pushBaseMerged(t, false);
+      SYNC.adoptLocal = false;
       SYNC.lastAt = new Date().toISOString();
       saveSyncConfig();
       persistLocal();
@@ -7492,18 +7813,13 @@ async function syncConnect(){
       try{ result = applyRemote(data, { merge:true, skipLinked:true }); }
       finally{ SYNC.applying = false; }
       SYNC.lastAt = new Date().toISOString();
-      SYNC.dirty = !!result.pendingPush;
       saveSyncConfig();
       persistLocal();
       renderAll();
       setSyncStatus("ok");
-      if (result.pendingPush){
-        const p = buildPayload(baseIds);
-        const rows = await prepareCardMetaForPush({ key:"base", url:SYNC.url, pin:SYNC.pin, ids:baseIds }, p);
-        await syncSaveNow(p);
-        rememberPushedCardMeta({ key:"base", url:SYNC.url, pin:SYNC.pin, ids:baseIds }, rows);
-        setSyncStatus("ok");
-      }
+      /* 이 기기에만 있던 기록도 시트 최신에 병합해 올립니다 (예전 상태로 덮어쓰지 않게) */
+      for (const t of sheetTargets().filter(x => !x.link)) await pushBaseMerged(t, false);
+      setSyncStatus("ok");
       showToast("연결했어요 · 시트에서 불러왔습니다");
     }
   }catch(err){
@@ -7536,6 +7852,7 @@ function syncDisconnect(){
   btn.classList.remove("armed");
   btn.textContent = "연결 끊기";
   SYNC.url = ""; SYNC.pin = ""; SYNC.lastAt = null; SYNC.dirty = false; SYNC.err = "";
+  SYNC.base = {}; SYNC.sigs = {};
   clearTimeout(SYNC.timer);
   saveSyncConfig();
   setSyncStatus("off");
@@ -7851,6 +8168,8 @@ function syncInit(){
       SYNC.lastAt = s.lastAt || null;
       SYNC.dirty = !!s.dirty;
       SYNC.sigs = (s.sigs && typeof s.sigs === "object") ? s.sigs : {};
+      SYNC.base = (s.base && typeof s.base === "object") ? s.base : {};
+      SYNC.adoptLocal = !!s.adoptLocal;
       const obj = v => (v && typeof v === "object") ? v : {};
       CARD_META_DIRTY = obj(s.metaDirty);
       CARD_META_SERIES_DIRTY = obj(s.metaSeries);
@@ -8125,6 +8444,9 @@ function applyStoreToDevice(store, opts){
   settings.cardMeta = {};
   CARD_META_DIRTY = {}; CARD_META_SERIES_DIRTY = {}; CARD_META_SERIES_DROP = {};
   CARD_META_REMOTE = {}; CARD_META_DIRTY_AT = 0;
+  /* 복원한 기록은 시트에 없더라도 지우지 않고 올리도록 병합 기준을 새로 잡습니다 */
+  SYNC.base = {};
+  SYNC.adoptLocal = true;
   if (typeof saveSyncConfig === "function") saveSyncConfig();
   loadAll();
   normalizePersonal();
