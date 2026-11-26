@@ -822,6 +822,14 @@
   }
   .actBtn:active{background:#F2F4F6}
   .actBtn[hidden]{display:none}
+  /* 자산 상세: 지금 보고 있는 자산으로 바로 내역 추가 */
+  .amAddBtn{
+    display:block;width:100%;margin:12px 0 0;border:none;border-radius:12px;background:var(--theme);
+    color:#fff;font-family:inherit;font-size:13px;font-weight:800;letter-spacing:-.02em;
+    padding:12px 0;cursor:pointer;
+  }
+  .amAddBtn:active{filter:brightness(.94)}
+  .amAddBtn[hidden]{display:none}
   /* 카드 혜택 기준 금액(목표 실적) */
   .cCard{margin-top:2px}
   .cCard[hidden]{display:none}
@@ -2044,6 +2052,7 @@
       <div class="amFlow"><span id="assetFlowK1">이번 기간 입금</span><b id="assetFlowV1" class="up">+0원</b></div>
       <div class="amFlow"><span id="assetFlowK2">이번 기간 출금</span><b id="assetFlowV2" class="dn">−0원</b></div>
     </div>
+    <button class="amAddBtn" id="assetAddBtn" type="button" hidden>＋ 내역 추가</button>
     <div class="assetActs" id="assetActs" hidden>
       <button class="actBtn" id="assetAdjustBtn">⚖️ 잔액 맞추기</button>
       <button class="actBtn" id="assetPrepayBtn">💸 즉시결제 기록</button>
@@ -4975,7 +4984,7 @@ function syncDateTime(){
 
 function openAdd(opts){
   opts = opts || {};
-  const type0 = opts.type === "income" ? "income" : "expense";
+  let type0 = opts.type === "income" ? "income" : (opts.type === "transfer" ? "transfer" : "expense");
   const d = parseKey(state.sel);
   const now = new Date();
   document.getElementById("dateInput").value = iso(d);
@@ -4985,11 +4994,13 @@ function openAdd(opts){
   document.getElementById("amtInput").value = "";
   document.getElementById("memoInput").value = "";
   const ids = ASSETS.map(a => a.id);
-  const fromId = ids[0] || null;
-  const toId = ids.find(id => id !== fromId) || null;
-  state.form = { type:type0, cat:opts.cat || null, sub:null, acct:null, fromId, toId };
-  pickSubAdd = false;
   const canTransfer = !!cur().assets && ids.length > 1;
+  if (type0 === "transfer" && !canTransfer) type0 = "expense";
+  /* 자산 상세에서 열면 그 자산을 결제수단·출금계좌 기본값으로 받습니다 */
+  const fromId = (opts.fromId && ids.includes(opts.fromId)) ? opts.fromId : (ids[0] || null);
+  const toId = ids.find(id => id !== fromId) || null;
+  state.form = { type:type0, cat:opts.cat || null, sub:null, acct:opts.acct || null, fromId, toId };
+  pickSubAdd = false;
   document.querySelectorAll("#typeSeg button").forEach(b => {
     b.classList.toggle("on", b.dataset.type === state.form.type);
     if (b.dataset.type === "transfer") b.style.display = canTransfer ? "" : "none";
@@ -5003,6 +5014,20 @@ function openAdd(opts){
 function closeAdd(){
   addScreen.hidden = true;
   Overlay.hide("addScreen");
+}
+
+/* 자산 상세의 「＋ 내역 추가」 — 방금 보고 있던 자산을 기본값으로 넘깁니다.
+   · 통장·현금·카드: 지출 탭, 결제수단 = 이 자산
+   · 저축·투자·보험처럼 결제·입금 계좌로 쓸 수 없는 자산: 이체 탭, 출금계좌 = 이 자산 */
+function openAddFromAsset(a){
+  if (!a) return;
+  const isCard = isCardAsset(a);
+  const canPay = payAssets().some(x => x.id === a.id);
+  openAdd({
+    type: canPay ? "expense" : "transfer",
+    acct: canPay ? a.id : null,
+    fromId: isCard ? null : a.id
+  });
 }
 
 /* 줄에 지금 고른 값을 그대로 보여 줍니다 (고른 값이 없으면 흐린 안내 글자) */
@@ -5283,7 +5308,11 @@ document.getElementById("typeSeg").addEventListener("click", ev => {
   state.form.type = b.dataset.type;
   state.form.cat = null;
   state.form.sub = null;
-  state.form.acct = null;
+  /* 방금 고른 계좌가 새 탭에서도 쓸 수 있는 계좌면 그대로 둡니다
+     (자산 상세에서 「＋ 내역 추가」로 열고 수입↔지출을 오갈 때 유지) */
+  const prevAcct = state.form.acct;
+  const pool = state.form.type === "income" ? acctAssets() : payAssets();
+  state.form.acct = (prevAcct && pool.some(a => a.id === prevAcct)) ? prevAcct : null;
   pickSubAdd = false;
   document.querySelectorAll("#typeSeg button").forEach(x => x.classList.toggle("on", x.dataset.type === state.form.type));
   renderAddForm();
@@ -5298,6 +5327,13 @@ document.getElementById("timeInput").addEventListener("input", syncDateTime);
 document.getElementById("addBtn").addEventListener("click", () => openAdd());
 document.getElementById("pcAddBtn").addEventListener("click", () => openAdd());
 document.getElementById("addClose").addEventListener("click", closeAdd);
+
+document.getElementById("assetAddBtn").addEventListener("click", () => {
+  const a = assetEditing ? assetById(assetEditing) : null;
+  if (!a) return;
+  closeAssetModal();
+  openAddFromAsset(a);
+});
 document.addEventListener("keydown", ev => {
   if (ev.key !== "Escape") return;
   Overlay.escape();
@@ -5648,6 +5684,7 @@ function renderAssetKinds(){
   document.getElementById("assetCardWrap").hidden = !isCard;
   const acts = document.getElementById("assetActs");
   acts.hidden = !assetEditing;
+  document.getElementById("assetAddBtn").hidden = !assetEditing;
   document.getElementById("assetAdjustBtn").hidden = isCard;
   document.getElementById("assetPrepayBtn").hidden = !isCard;
   /* 투자 계좌는 새로 만들 때 추이 그래프를 기본으로 켜 둡니다 */
