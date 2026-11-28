@@ -442,6 +442,13 @@
   /* 내역 리스트 */
   .row{display:flex;align-items:center;gap:10px;padding:8.5px 0}
   .row+.row{border-top:1px solid #F7F8F9}
+  /* 누를 수 있는 내역 줄 — 일별 리스트(.dlRow)와 같은 눌림 피드백 */
+  .rowBtn{
+    width:100%;border:none;background:transparent;font-family:inherit;color:inherit;
+    text-align:left;cursor:pointer;border-radius:0;
+  }
+  .rowBtn:active{background:#F7F8FA}
+  .rowBtn:focus-visible{outline:2px solid var(--theme);outline-offset:-2px;border-radius:8px}
   .emoji{
     width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;
     font-size:15px;flex:0 0 auto;background:#F5F6F8;
@@ -2180,7 +2187,7 @@
         <span class="fLab">금액</span>
         <span class="fAmtBox"><input id="entryAmt" inputmode="numeric" placeholder="0" autocomplete="off" aria-label="금액" /><i>원</i></span>
       </label>
-      <button class="fRow" type="button" data-pick="cat">
+      <button class="fRow" type="button" data-pick="cat" id="erowCat">
         <span class="fLab">카테고리</span>
         <span class="fVal" id="erowCatVal">선택</span>
         <span class="fGo">›</span>
@@ -2188,6 +2195,16 @@
       <button class="fRow" type="button" data-pick="acct" id="erowAcct">
         <span class="fLab" id="entryPayLabel">결제수단</span>
         <span class="fVal" id="erowAcctVal">선택</span>
+        <span class="fGo">›</span>
+      </button>
+      <button class="fRow" type="button" data-pick="from" id="erowFrom" hidden>
+        <span class="fLab">출금계좌</span>
+        <span class="fVal" id="erowFromVal">선택</span>
+        <span class="fGo">›</span>
+      </button>
+      <button class="fRow" type="button" data-pick="to" id="erowTo" hidden>
+        <span class="fLab">입금계좌</span>
+        <span class="fVal" id="erowToVal">선택</span>
         <span class="fGo">›</span>
       </button>
       <label class="fRow" for="entryMemo">
@@ -3038,6 +3055,8 @@ function renderCalendar(){
   });
 }
 
+let sheetEntries = [];   /* 달력 하단 시트에 보이는 내역 — 줄을 누르면 openEntryModal */
+
 function renderSheet(){
   const d = parseKey(state.sel);
   document.getElementById("selDate").textContent = `${d.getMonth()+1}월 ${d.getDate()}일`;
@@ -3058,6 +3077,7 @@ function renderSheet(){
   document.querySelectorAll(".tabs .tab").forEach(t => t.classList.toggle("active", t.dataset.tab === state.tab));
 
   const body = document.getElementById("sheetBody");
+  sheetEntries = [];
   if (!list.length){
     body.innerHTML = `<div class="empty">
         <div class="e">🗓️</div>
@@ -3070,7 +3090,10 @@ function renderSheet(){
   }
 
   if (state.tab === "all"){
-    body.innerHTML = list.map(e => `<div class="row">${entryRowInner(e)}</div>`).join("");
+    /* 줄을 누르면 그 내역을 고치는 창이 열립니다 (일별 리스트와 같은 동작) */
+    sheetEntries = list.slice();
+    body.innerHTML = sheetEntries.map((e, i) =>
+      `<button type="button" class="row rowBtn" data-sheet="${i}">${entryRowInner(e)}</button>`).join("");
   } else {
     renderCategory(body, list.filter(e => e.type !== "transfer"), inc, exp, trf);
   }
@@ -3158,9 +3181,7 @@ function renderDayList(){
     if (exp) sums += `<span class="exp">−${nf.format(exp)}</span>`;
     if (trf) sums += `<span class="trf">⇄${nf.format(trf)}</span>`;
     const rows = items.map(e => {
-      /* 이체는 내역 수정 창이 다루지 않으므로 눌리지 않는 줄로 보여만 줍니다 */
-      if (e.type === "transfer")
-        return `<div class="dlRow dlStatic">${entryRowInner(e)}</div>`;
+      /* 지출·수입·이체 모두 눌러서 그 내역을 고칠 수 있습니다 */
       dayListEntries.push(e);
       return `<button type="button" class="dlRow" data-dl="${dayListEntries.length-1}">
         ${entryRowInner(e)}
@@ -4915,6 +4936,13 @@ document.getElementById("dlBody").addEventListener("click", ev => {
   const e = dayListEntries[Number(row.dataset.dl)];
   if (e) openEntryModal(e);
 });
+/* 달력 아래 시트의 내역 줄 — 눌러서 수정 */
+document.getElementById("sheetBody").addEventListener("click", ev => {
+  const row = ev.target.closest("[data-sheet]");
+  if (!row) return;
+  const e = sheetEntries[Number(row.dataset.sheet)];
+  if (e) openEntryModal(e);
+});
 
 document.querySelectorAll(".tabs .tab").forEach(t => {
   t.addEventListener("click", () => { state.tab = t.dataset.tab; renderSheet(); });
@@ -6239,9 +6267,28 @@ function syncEntryDateTime(){
   document.getElementById("erowWhenVal").textContent = `${l.date} ${l.time}`;
 }
 
-/* 수정 화면도 추가 화면과 같은 세로 줄 — 줄을 누르면 같은 하단 선택창이 열립니다 */
+/* 수정 화면도 추가 화면과 같은 세로 줄 — 줄을 누르면 같은 하단 선택창이 열립니다.
+   지출·수입은 카테고리·계좌를, 이체는 출금·입금 계좌를 고릅니다. */
 function renderEntryForm(){
   const f = entryDraft;
+  const isT = f.type === "transfer";
+  document.getElementById("erowCat").hidden = isT;
+  document.getElementById("erowAcct").hidden = isT;
+  document.getElementById("erowFrom").hidden = !isT;
+  document.getElementById("erowTo").hidden = !isT;
+  document.getElementById("entryMemo").placeholder =
+    isT ? (f.toId ? `예: ${assetName(f.toId)}으로 이체` : "예: 이체") : "예: 점심 김치찌개";
+
+  if (isT){
+    const ids = ASSETS.map(a => a.id);
+    if (!ids.includes(f.fromId)) f.fromId = ids[0] || null;
+    if (!f.toId || f.toId === f.fromId) f.toId = ids.find(id => id !== f.fromId) || null;
+    const fa = assetById(f.fromId), ta = assetById(f.toId);
+    setRowVal("erowFromVal", fa ? `${assetIcon(fa)} ${fa.name}` : "선택", !fa);
+    setRowVal("erowToVal", ta ? `${assetIcon(ta)} ${ta.name}` : "선택", !ta);
+    return;
+  }
+
   const cats = cur().cats[f.type] || [];
   if (!cats.some(c => c.k === f.cat)) f.cat = cats.length ? cats[0].k : "";
   const c = catOf(f.type, f.cat);
@@ -6263,16 +6310,20 @@ function renderEntryForm(){
 function openEntryModal(e){
   if (!e) return;
   entryEditing = e;
-  entryDraft = {
-    type: e.type,
-    cat: e.cat,
-    sub: e.sub || null,
-    acct: cur().assets ? (e.acct || acctIdFor(e.pay, ASSETS)) : (e.pay || null)
-  };
+  entryDraft = e.type === "transfer"
+    ? { type:"transfer", fromId:e.fromId, toId:e.toId }
+    : {
+        type: e.type,
+        cat: e.cat,
+        sub: e.sub || null,
+        acct: cur().assets ? (e.acct || acctIdFor(e.pay, ASSETS)) : (e.pay || null)
+      };
   pickSubAdd = false;
-  document.getElementById("entryTitle").textContent = e.type === "income" ? "수입 수정" : "지출 수정";
-  document.getElementById("entrySub").textContent =
-    "날짜·금액·분류·계좌·내용을 고칠 수 있어요";
+  document.getElementById("entryTitle").textContent =
+    e.type === "income" ? "수입 수정" : e.type === "transfer" ? "이체 수정" : "지출 수정";
+  document.getElementById("entrySub").textContent = e.type === "transfer"
+    ? "날짜·금액·출금·입금 계좌·내용을 고칠 수 있어요"
+    : "날짜·금액·분류·계좌·내용을 고칠 수 있어요";
   document.getElementById("entryAmt").value = nf.format(e.amt);
   document.getElementById("entryDate").value = e.d;
   document.getElementById("entryTime").value = e.t;
@@ -6315,14 +6366,32 @@ document.getElementById("entrySave").addEventListener("click", () => {
   if (!e) return;
   const amt = Number(document.getElementById("entryAmt").value.replace(/[^\d]/g, ""));
   if (!amt){ document.getElementById("entryAmt").focus(); return; }
-  const c = catOf(e.type, entryDraft.cat);
+  const memo = document.getElementById("entryMemo").value.trim();
   e.amt = amt;
   e.d = document.getElementById("entryDate").value || e.d;
   e.t = document.getElementById("entryTime").value || e.t;
+
+  if (e.type === "transfer"){
+    const f = entryDraft;
+    if (!f.fromId || !f.toId){ showToast("출금 계좌와 입금 계좌를 골라 주세요", true); return; }
+    if (f.fromId === f.toId){ showToast("출금 계좌와 입금 계좌가 같아요", true); return; }
+    const beforeAuto = autoTransferMemo(e);      // 계좌를 바꾸기 전의 자동 제목
+    e.fromId = f.fromId;
+    e.toId = f.toId;
+    /* 내용을 비웠거나 예전 자동 제목 그대로면 새 계좌로 자동 제목을 다시 맞춥니다 */
+    e.memo = (!memo || memo === beforeAuto) ? autoTransferMemo(e) : memo;
+    closeEntryModal();
+    saveAll();
+    renderAll();
+    showToast("내역을 수정했어요");
+    return;
+  }
+
+  const c = catOf(e.type, entryDraft.cat);
   e.cat = c.k;
   e.sub = entryDraft.sub || "";
   if (!e.sub) delete e.sub;
-  e.memo = document.getElementById("entryMemo").value.trim() || c.k;
+  e.memo = memo || c.k;
   if (cur().assets){
     e.acct = entryDraft.acct;
     e.pay = assetName(e.acct);
